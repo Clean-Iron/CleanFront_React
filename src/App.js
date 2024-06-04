@@ -2,7 +2,7 @@
 import {React, useState} from 'react';
 import './App.css';
 import SideMenu from './components/paginaPrincipal/SideMenu';
-import Schedule from './components/paginaPrincipal/Schedule';
+import Schedule from './components/paginaPrincipal/calendario/Schedule';
 import Top from './components/paginaPrincipal/Top';
 
 function App() {
