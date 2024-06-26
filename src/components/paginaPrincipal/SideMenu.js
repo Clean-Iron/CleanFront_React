@@ -6,6 +6,7 @@ import {Box, ModalClose, Drawer} from '@mui/joy';
 import InboxIcon from '@mui/icons-material/Inbox';
 import MapIcon from '@mui/icons-material/Map';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import PeopleIcon from '@mui/icons-material/People';
 
 
 function SideMenu({isOpen, onClose, manejarClic}) {
@@ -23,7 +24,10 @@ function SideMenu({isOpen, onClose, manejarClic}) {
 				componente: 'programacion' },
 			{ text: 'Mapa', 
 				icon: <MapIcon />, 
-				componente: 'mapa' }
+				componente: 'mapa' },
+			{ text: 'Empleados', 
+				icon: <PeopleIcon />, 
+				componente: 'empleados' }
 		]
   return (
     <div>

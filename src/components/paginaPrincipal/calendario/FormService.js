@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Box, TextField, Button, Typography, Grid } from '@mui/material';
+import { Modal, Box, TextField, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import RecurringServiceForm from './RecurringServiceForm';
 
 const modalStyle = {
@@ -7,16 +7,30 @@ const modalStyle = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '90vw', // Ajusta el ancho del modal para ocupar el 90% del viewport width
-  maxWidth: 600, // Ancho máximo del modal
-  height: 'auto', // Altura automática para ajustarse al contenido
-  maxHeight: '90vh', // Altura máxima del modal para ocupar el 90% del viewport height
-  overflowY: 'auto', // Habilita el scroll vertical si el contenido es demasiado alto
+  width: '90vw',
+  maxWidth: 600,
+  height: 'auto',
+  maxHeight: '90vh',
+  overflowY: 'auto',
   bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
 };
+
+const employees = [
+  'Juan Pérez',
+  'Ana Gómez',
+  'Carlos Sánchez',
+  'María López',
+];
+
+const clients = [
+  'Cliente A',
+  'Cliente B',
+  'Cliente C',
+  'Cliente D',
+];
 
 function FormService({ open, onClose, onAddEvent }) {
   const [recurringOpen, setRecurringOpen] = useState(false);
@@ -116,22 +130,36 @@ function FormService({ open, onClose, onAddEvent }) {
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Persona Encargada"
-              value={person}
-              onChange={(e) => setPerson(e.target.value)}
-              margin="normal"
-            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Persona Encargada</InputLabel>
+              <Select
+                value={person}
+                onChange={(e) => setPerson(e.target.value)}
+                label="Persona Encargada"
+              >
+                {employees.map((employee) => (
+                  <MenuItem key={employee} value={employee}>
+                    {employee}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Cliente"
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
-              margin="normal"
-            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Cliente</InputLabel>
+              <Select
+                value={client}
+                onChange={(e) => setClient(e.target.value)}
+                label="Cliente"
+              >
+                {clients.map((client) => (
+                  <MenuItem key={client} value={client}>
+                    {client}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12}>
             <TextField
@@ -174,6 +202,7 @@ function FormService({ open, onClose, onAddEvent }) {
 }
 
 export default FormService;
+
 
 
 
