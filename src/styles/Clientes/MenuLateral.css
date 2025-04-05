@@ -1,0 +1,152 @@
+/* ============================ */
+/* Estilos base del menú lateral */
+/* ============================ */
+.menu-lateral {
+    width: 250px;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    padding: 20px;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ============================== */
+/* Contenedor de botones del menú */
+/* ============================== */
+.menu-buttons ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Move the gap here */
+}
+
+.menu-buttons li {
+    width: 100%;
+    margin: 0; /* Remove default margins */
+}
+
+/* Update your menu-buttons class */
+.menu-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px; /* Increase top margin for better spacing from Regresar button */
+}
+
+/* ========================== */
+/* Estilos para los botones  */
+/* ========================== */
+.menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Mismo ancho para todos */
+    padding: 1em 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 45px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    outline: none;
+    text-decoration: none;
+    text-align: center;
+}
+
+/* Hover: cambia color y añade efecto de elevación */
+.menu-btn:hover {
+    background-color: #23c483;
+    box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+    color: #fff;
+    transform: translateY(-5px);
+}
+
+/* Efecto al presionar */
+.menu-btn:active {
+    transform: translateY(-2px);
+}
+
+/* ================================================= */
+/* Estilos del botón "btn-53" (Regresar con flecha)  */
+/* ================================================= */
+.btn-53 {
+    border: 1px solid;
+    border-radius: 999px;
+    box-sizing: border-box;
+    display: block;
+    font-weight: 900;
+    overflow: hidden;
+    padding: 1.2rem 3rem;
+    position: relative;
+    text-transform: uppercase;
+    text-decoration: none;
+    background-color: #000;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%; /* Mismo ancho que los demás botones */
+}
+
+/* Texto principal (Regresar) */
+.btn-53 .original {
+    background: #fff;
+    color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    inset: 0;
+    position: absolute;
+    transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* Texto en hover (MENÚ) */
+.btn-53:hover .original {
+    transform: translateY(100%);
+}
+
+.btn-53 .letters {
+    display: inline-flex;
+}
+
+.btn-53 span {
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1), opacity 0.2s;
+}
+
+.btn-53 span:nth-child(2n) {
+    transform: translateY(15px);
+}
+
+.btn-53:hover span {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.btn-53:hover span:nth-child(2) {
+    transition-delay: 0.1s;
+}
+
+.btn-53:hover span:nth-child(3) {
+    transition-delay: 0.2s;
+}
+
+.btn-53:hover span:nth-child(4) {
+    transition-delay: 0.3s;
+}

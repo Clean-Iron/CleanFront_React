@@ -1,0 +1,116 @@
+.main {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em; /* Más espacio entre filas */
+}
+
+.up,
+.down {
+    display: flex;
+    flex-direction: row;
+    gap: 0.8em; /* Más espacio entre botones */
+}
+
+.card1,
+.card2,
+.card3,
+.card4 {
+    width: 120px;  /* Más grandes */
+    height: 120px; /* Más grandes */
+    outline: none;
+    border: none;
+    background: rgb(161, 219, 255);
+    box-shadow:
+        rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
+        rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+
+    /* Centrar contenido */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card1 {
+    border-radius: 120px 5px 5px 5px;
+}
+
+.card2 {
+    border-radius: 5px 120px 5px 5px;
+}
+
+.card3 {
+    border-radius: 5px 5px 5px 120px;
+}
+
+.card4 {
+    border-radius: 5px 5px 120px 5px;
+}
+
+/* Estilos de los íconos */
+.whatsapp,
+.calendario,
+.clientes,
+.empleados {
+    width: 55px; /* Más grandes */
+    height: 55px; /* Más grandes */
+    display: block;
+}
+
+/* Colores */
+.whatsapp {
+    fill: #16c716;
+}
+
+.calendario {
+    fill: #03a9f4;
+}
+
+.clientes {
+    fill: black;
+}
+
+.empleados {
+    fill: #ff9c63;
+}
+
+/* Hover */
+.card1:hover {
+    cursor: pointer;
+    transform: scale(1.15);
+    background-color: #00ff00;
+}
+
+.card2:hover {
+    cursor: pointer;
+    transform: scale(1.15);
+    background-color: #03a9f4;
+}
+
+.card2:hover .calendario {
+    fill: white;
+}
+
+.card3:hover {
+    cursor: pointer;
+    transform: scale(1.15);
+    background-color: rgb(227, 114, 255);
+}
+
+.card3:hover .clientes {
+    fill: white;
+}
+
+.card4:hover {
+    cursor: pointer;
+    transform: scale(1.15);
+    background-color: #8c9eff;
+}
+
+.card4:hover .empleados {
+    fill: white;
+}

@@ -1,0 +1,387 @@
+/* ============================== */
+/* Estilos base del contenedor de servicios armonizados */
+/* ============================== */
+.service-list-container {
+    width: 60%;
+    max-width: 500px;
+    padding: 20px;
+    box-sizing: border-box;
+    margin-right: 1%;
+    margin-left: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align-self: stretch;    /* Changed from center to stretch to fill parent height */
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================== */
+/* Nuevos controles de filtro */
+/* ============================== */
+.filter-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+/* Para navegadores que no soportan gap */
+@supports not (gap: 10px) {
+    .filter-controls > * + * {
+        margin-top: 10px;
+    }
+}
+
+/* 🔍 Barra de búsqueda mejorada */
+.search-container {
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border-radius: 9999px;
+    border: solid 1px #333;
+    transition: all 0.3s ease-in-out;
+    outline: none;
+    opacity: 0.8;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    opacity: 1;
+    box-shadow: 0 0 0 2px rgba(35, 196, 131, 0.3);
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translate(0, -50%);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.search-input:focus + .search-icon {
+    opacity: 1;
+}
+
+/* Wrapper para los dropdowns */
+.filters-wrapper {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Para navegadores que no soportan gap */
+@supports not (gap: 10px) {
+    .filters-wrapper > * + * {
+        margin-left: 10px;
+    }
+}
+
+/* Contenedor de dropdown */
+.filter-dropdown-container {
+    position: relative;
+    flex: 1;
+}
+
+/* Botón de dropdown */
+.filter-dropdown-btn {
+    width: 100%;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    color: #444;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 20px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+    opacity: 0.8;
+}
+
+.filter-dropdown-btn:hover {
+    opacity: 1;
+}
+
+.filter-dropdown-btn:focus {
+    opacity: 1;
+    box-shadow: 0 0 0 2px rgba(35, 196, 131, 0.3);
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    margin-left: 5px;
+    color: #888;
+}
+
+/* Menú dropdown */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 5px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    z-index: 10;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+}
+
+/* Items de dropdown */
+.dropdown-item {
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-item.active {
+    background-color: rgba(35, 196, 131, 0.1);
+    color: #23c483;
+    font-weight: 600;
+}
+
+/* ============================== */
+/* Lista de servicios con scroll */
+/* ============================== */
+.services-list {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    max-height: 450px; /* Altura máxima para que sea similar al calendario */
+    min-height: 200px; /* Asegura una altura mínima en ambos navegadores */
+    height: 100%; /* Asegura que ocupe todo el espacio disponible */
+    padding-right: 5px;
+    flex: 1; /* Permite que la lista ocupe el espacio disponible */
+    scrollbar-width: thin; /* Para Firefox */
+    scrollbar-color: #c1c1c1 #f1f1f1; /* Para Firefox */
+}
+
+/* Para navegadores que no soportan gap */
+@supports not (gap: 15px) {
+    .services-list > * + * {
+        margin-top: 15px;
+    }
+}
+
+/* Estilo para la barra de desplazamiento - WebKit (Chrome, Safari, nuevo Edge) */
+.services-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.services-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.services-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.services-list::-webkit-scrollbar-thumb:hover {
+    background: #23c483;
+}
+
+/* Estilo para Internet Explorer */
+.services-list {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+/* ============================== */
+/* Tarjeta de servicio */
+/* ============================== */
+.service-card {
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 15px;
+    border-left: 4px solid #23c483;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+    -webkit-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    -webkit-flex-shrink: 0;
+    -ms-flex-negative: 0;
+    flex-shrink: 0; /* Evita que las tarjetas se contraigan en Edge */
+}
+
+.service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Cabecera de la tarjeta */
+.service-header {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.service-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Indicador de estado */
+.status-indicator {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-indicator.completed {
+    background-color: #23c483;
+}
+
+.status-indicator.pending {
+    background-color: #fff;
+    border: 2px solid #aaa;
+}
+
+/* Detalles del servicio */
+.service-details p {
+    margin: 8px 0;
+    font-size: 12px;
+    color: #444;
+    letter-spacing: 0.3px;
+}
+
+.service-details p strong {
+    font-weight: 600;
+}
+
+/* ============================== */
+/* Estados vacíos y carga */
+/* ============================== */
+.no-services {
+    text-align: center;
+    padding: 40px 0;
+    color: #777;
+    font-style: italic;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    height: 200px;
+}
+
+.loading-indicator {
+    text-align: center;
+    padding: 40px 0;
+    color: #666;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    height: 200px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .service-list-container {
+        padding: 15px;
+        width: 90%;
+        margin: auto;
+        margin-top: 20px;
+    }
+    
+    .services-list {
+        max-height: 350px;
+        min-height: 150px; /* Altura mínima ajustada para móviles */
+    }
+    
+    .service-details p {
+        font-size: 11px;
+    }
+    
+    /* Ajustes responsivos para controles de filtro */
+    .filters-wrapper {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* Para navegadores que no soportan gap */
+    @supports not (gap: 10px) {
+        .filters-wrapper > * + * {
+            margin-left: 0;
+            margin-top: 10px;
+        }
+    }
+}
+
+/* Asegura que el contenedor padre también permita expansión */
+html, body {
+    height: 100%;
+}
+
+/* Si el contenedor está dentro de otro elemento flex, asegúrate de que tenga altura adecuada */
+.parent-container {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    min-height: 100%;
+    height: 100%;
+}
