@@ -280,27 +280,27 @@
 }
 
 .tabla-clientes th:nth-child(2), .tabla-clientes td:nth-child(2) { /* Número */
-  width: 15%;
+  width: 12%;
   min-width: 100px;
 }
 
-.tabla-clientes th:nth-child(3), .tabla-clientes td:nth-child(3) { /* Email */
-  width: 25%;
+.tabla-clientes th:nth-child(3), .tabla-clientes td:nth-child(3) { /* ID */
+  width: 5%;
   min-width: 200px;
 }
 
-.tabla-clientes th:nth-child(4), .tabla-clientes td:nth-child(4) { /* Ciudad */
-  width: 15%;
+.tabla-clientes th:nth-child(4), .tabla-clientes td:nth-child(4) { /* Documento */
+  width: 10%;
   min-width: 100px;
 }
 
-.tabla-clientes th:nth-child(5), .tabla-clientes td:nth-child(5) { /* Direcciones */
-  width: 12%;
+.tabla-clientes th:nth-child(5), .tabla-clientes td:nth-child(5) { /* Email */
+  width: 15%;
   min-width: 80px;
 }
 
 .tabla-clientes th:nth-child(6), .tabla-clientes td:nth-child(6) { /* Acciones */
-  width: 13%;
+  width: 10%;
   min-width: 100px;
 }
 
@@ -521,3 +521,4 @@ html {
     width: 100%;
   }
 }
+

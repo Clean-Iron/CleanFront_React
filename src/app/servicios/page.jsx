@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Menu from "./MenuLateral";
 import InfoServicios from "./infoServicios/InfoServicios";
 import InfoDisponibilidad from "./disponibilidad/InfoDisponibilidad";
+import EditarTarea from "./editarTarea/EditarTarea";
 
 const Servicios = () => {
   const [componenteActual, setComponenteActual] = useState("infoServicios");
@@ -19,10 +20,9 @@ const Servicios = () => {
         return <InfoServicios />;
       case "infoDisponibilidad":
         return <InfoDisponibilidad />;
-      // Cuando se descomenten los demás componentes, agregar los casos:
+      case "editarTarea":
+        return <EditarTarea />;
       /*
-      case "agregarCliente":
-        return <AgregarCliente />;
       case "reportes":
         return <Reportes />;
       case "configuracion":

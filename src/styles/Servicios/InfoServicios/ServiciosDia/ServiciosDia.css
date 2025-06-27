@@ -10,7 +10,7 @@
     margin-left: auto;
     margin-top: 10px;
     margin-bottom: 10px;
-    align-self: stretch;    /* Changed from center to stretch to fill parent height */
+    align-self: stretch;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 20px;
     box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
@@ -31,7 +31,7 @@
 
 /* Para navegadores que no soportan gap */
 @supports not (gap: 10px) {
-    .filter-controls > * + * {
+    .filter-controls>*+* {
         margin-top: 10px;
     }
 }
@@ -69,7 +69,7 @@
     transition: opacity 0.2s;
 }
 
-.search-input:focus + .search-icon {
+.search-input:focus+.search-icon {
     opacity: 1;
 }
 
@@ -82,7 +82,7 @@
 
 /* Para navegadores que no soportan gap */
 @supports not (gap: 10px) {
-    .filters-wrapper > * + * {
+    .filters-wrapper>*+* {
         margin-left: 10px;
     }
 }
@@ -168,45 +168,30 @@
 /* Lista de servicios con scroll */
 /* ============================== */
 .services-list {
-    display: -webkit-flex;
-    display: -ms-flexbox;
     display: flex;
     flex-direction: column;
     gap: 15px;
     overflow-y: auto;
-    max-height: 450px; /* Altura máxima para que sea similar al calendario */
-    min-height: 200px; /* Asegura una altura mínima en ambos navegadores */
-    height: 100%; /* Asegura que ocupe todo el espacio disponible */
+    max-height: 450px;
+    /* Altura máxima para que sea similar al calendario */
+    min-height: 200px;
+    /* Asegura una altura mínima en ambos navegadores */
+    height: 100%;
+    /* Asegura que ocupe todo el espacio disponible */
     padding-right: 5px;
-    flex: 1; /* Permite que la lista ocupe el espacio disponible */
-    scrollbar-width: thin; /* Para Firefox */
-    scrollbar-color: #c1c1c1 #f1f1f1; /* Para Firefox */
+    flex: 1;
+    /* Permite que la lista ocupe el espacio disponible */
+    scrollbar-width: thin;
+    /* Para Firefox */
+    scrollbar-color: #c1c1c1 #f1f1f1;
+    /* Para Firefox */
 }
 
 /* Para navegadores que no soportan gap */
 @supports not (gap: 15px) {
-    .services-list > * + * {
+    .services-list>*+* {
         margin-top: 15px;
     }
-}
-
-/* Estilo para la barra de desplazamiento - WebKit (Chrome, Safari, nuevo Edge) */
-.services-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.services-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.services-list::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 10px;
-}
-
-.services-list::-webkit-scrollbar-thumb:hover {
-    background: #23c483;
 }
 
 /* Estilo para Internet Explorer */
@@ -223,12 +208,9 @@
     padding: 15px;
     border-left: 4px solid #23c483;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
-    -webkit-transition: all 0.3s ease;
-    -ms-transition: all 0.3s ease;
     transition: all 0.3s ease;
-    -webkit-flex-shrink: 0;
-    -ms-flex-negative: 0;
-    flex-shrink: 0; /* Evita que las tarjetas se contraigan en Edge */
+    flex-shrink: 0;
+    /* Evita que las tarjetas se contraigan en Edge */
 }
 
 .service-card:hover {
@@ -241,11 +223,7 @@
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-justify-content: space-between;
-    -ms-flex-pack: justify;
     justify-content: space-between;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
     align-items: center;
     margin-bottom: 10px;
 }
@@ -297,41 +275,12 @@
     font-weight: 600;
 }
 
-/* ============================== */
-/* Estados vacíos y carga */
-/* ============================== */
-.no-services {
-    text-align: center;
-    padding: 40px 0;
-    color: #777;
-    font-style: italic;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-justify-content: center;
-    -ms-flex-pack: center;
-    justify-content: center;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    height: 200px;
-}
-
 .loading-indicator {
     text-align: center;
     padding: 40px 0;
     color: #666;
-    display: -webkit-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
     align-items: center;
-    -webkit-justify-content: center;
-    -ms-flex-pack: center;
     justify-content: center;
     font-size: 14px;
     text-transform: uppercase;
@@ -347,25 +296,26 @@
         margin: auto;
         margin-top: 20px;
     }
-    
+
     .services-list {
         max-height: 350px;
-        min-height: 150px; /* Altura mínima ajustada para móviles */
+        min-height: 150px;
+        /* Altura mínima ajustada para móviles */
     }
-    
+
     .service-details p {
         font-size: 11px;
     }
-    
+
     /* Ajustes responsivos para controles de filtro */
     .filters-wrapper {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     /* Para navegadores que no soportan gap */
     @supports not (gap: 10px) {
-        .filters-wrapper > * + * {
+        .filters-wrapper>*+* {
             margin-left: 0;
             margin-top: 10px;
         }
@@ -373,14 +323,13 @@
 }
 
 /* Asegura que el contenedor padre también permita expansión */
-html, body {
+html,
+body {
     height: 100%;
 }
 
 /* Si el contenedor está dentro de otro elemento flex, asegúrate de que tenga altura adecuada */
 .parent-container {
-    display: -webkit-flex;
-    display: -ms-flexbox;
     display: flex;
     min-height: 100%;
     height: 100%;

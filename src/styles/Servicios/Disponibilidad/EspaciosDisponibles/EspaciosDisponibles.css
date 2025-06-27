@@ -1,0 +1,214 @@
+/* ============================== */
+/* Contenedor principal flexible */
+/* ============================== */
+.container-espacios-disponibles {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: calc(100% - 2cm);
+  width: calc(100% - 2cm);
+  margin: 1cm;
+  background-color: transparent;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* ============================== */
+/* Panel derecho: resultados */
+/* ============================== */
+.espacios-scroll {
+  flex: 2;
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1); 
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  position: relative;
+
+  /* ✅ Permitir scroll si el contenido excede */
+  overflow-y: auto;
+}
+
+/* Ya no necesitas posicionamiento absoluto */
+.espacios-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 5px;
+  box-sizing: border-box;
+
+  /* Puedes establecer un min-height opcional */
+  min-height: 0;
+  flex: 1;
+}
+
+/* ============================== */
+/* Tarjeta de espacio disponible */
+/* ============================== */
+.espacio-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 16px 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.espacio-card:hover {
+  transform: translateY(-2px);
+}
+
+.espacio-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.espacio-nombre {
+  font-weight: 600;
+  font-size: 16px;
+  color: #444;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.espacio-direccion {
+  font-size: 14px;
+  color: #777;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================== */
+/* Botón reservar */
+/* ============================== */
+.reserva-button {
+  padding: 10px 16px;
+  background-color: #23c483;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.reserva-button:hover {
+  background-color: #1fa374;
+  box-shadow: 0px 8px 12px rgba(46, 229, 157, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ============================== */
+/* Scroll personalizado */
+/* ============================== */
+.espacios-contenido::-webkit-scrollbar,
+.filtros-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.espacios-contenido::-webkit-scrollbar-track,
+.filtros-panel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.espacios-contenido::-webkit-scrollbar-thumb,
+.filtros-panel::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.espacios-contenido::-webkit-scrollbar-thumb:hover,
+.filtros-panel::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* ============================== */
+/* Responsive: vista móvil */
+/* ============================== */
+@media (max-width: 768px) {
+  .container-espacios-disponibles {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(90vh - 2cm);
+    width: calc(100% - 2cm);
+    margin: 1cm auto;
+  }
+
+  .filtros-panel,
+  .espacios-scroll {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px;
+  }
+  
+  .filtros-panel {
+    height: auto;
+    max-height: 40vh;
+    min-height: 250px;
+  }
+  
+  .espacios-scroll {
+    height: 50vh;
+    margin-bottom: 20px;
+    min-height: 350px;
+  }
+  
+  .espacios-contenido {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+  }
+
+  .espacio-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .reserva-button {
+    margin-left: 0;
+    align-self: flex-start;
+    width: 100%;
+  }
+  
+  .espacio-nombre,
+  .espacio-direccion {
+    white-space: normal;
+  }
+}
+
+/* Ajustes adicionales para pantallas pequeñas */
+@media (max-width: 480px) {
+  .container-espacios-disponibles {
+    margin: 0.5cm auto;
+    width: calc(100% - 1cm);
+  }
+  
+  .filtros-panel,
+  .espacios-scroll {
+    padding: 15px;
+  }
+}

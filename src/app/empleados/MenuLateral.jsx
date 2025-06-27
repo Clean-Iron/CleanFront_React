@@ -1,5 +1,5 @@
 import React from "react";
-//import "../../styles/Clientes/MenuLateral.css";
+//import "../../styles/Empleados/MenuLateral.css";
 import Link from "next/link";
 
 const Sidebar = ({ onNavClick, seccionActiva }) => {
@@ -27,17 +27,17 @@ const Sidebar = ({ onNavClick, seccionActiva }) => {
 					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "listaClientes" ? "activo" : ""}`}
-							onClick={() => onNavClick("listaClientes")}
+							onClick={() => onNavClick("listaEmpleados")}
 						>
-							📋 Lista de Clientes
+							📋 Lista de Empleados
 						</button>
 					</li>
 					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "agregarCliente" ? "activo" : ""}`}
-							onClick={() => onNavClick("agregarCliente")}
+							onClick={() => onNavClick("editarEmpleados")}
 						>
-							➕ Editar Cliente
+							➕ Editar Empleado
 						</button>
 					</li>
 					<li>

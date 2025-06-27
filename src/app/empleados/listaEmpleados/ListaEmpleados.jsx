@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { buscarClientes } from "./Buscar";
-import "../../../styles/Clientes/ListaClientes/ListaClientes.css";
+import { buscarEmpleados } from "./Buscar";
+import "../../../styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 
-const ListaClientes = () => {
-  const [clientes, setClientes] = useState([]);
+const ListaEmpleados = () => {
+  const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [filtroSeleccionado, setFiltroSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState("");
-  const [mostrarDirecciones, setMostrarDirecciones] = useState({});
 
   // Estados para filtros específicos
   const [filtros, setFiltros] = useState({
     ciudad: "",
-    tipoId: "",
-    ordenamiento: "nombre" // nombre, documento, email, ciudad
+    ordenamiento: "nombre" // nombre, documento, email
   });
 
   useEffect(() => {
@@ -26,12 +24,12 @@ const ListaClientes = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await buscarClientes();
-      setClientes(Array.isArray(data) ? data : []);
+      const data = await buscarEmpleados();
+      setEmpleados(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error al buscar clientes:", error);
-      setError("Error al cargar los clientes");
-      setClientes([]);
+      console.error("Error al buscar empleados:", error);
+      setError("Error al cargar los empleados");
+      setEmpleados([]);
     } finally {
       setLoading(false);
     }
@@ -51,33 +49,26 @@ const ListaClientes = () => {
     setFiltroSeleccionado(null);
   };
 
-  // Obtener opciones únicas para los filtros
-  const opcionesUnicas = useMemo(() => {
-    const ciudades = clientes
-      .map(cliente => cliente.city)
+  // Obtener ciudades únicas para el filtro
+  const ciudadesUnicas = useMemo(() => {
+    const ciudades = empleados
+      .map(emp => emp.city)
       .filter(ciudad => ciudad && ciudad.trim() !== "")
       .filter((ciudad, index, arr) => arr.indexOf(ciudad) === index)
       .sort();
+    return ciudades;
+  }, [empleados]);
 
-    const tiposId = clientes
-      .map(cliente => cliente.typeId?.trim())
-      .filter(tipo => tipo && tipo !== "")
-      .filter((tipo, index, arr) => arr.indexOf(tipo) === index)
-      .sort();
-
-    return { ciudades, tiposId };
-  }, [clientes]);
-
-  // Filtrar y ordenar clientes
-  const clientesFiltrados = useMemo(() => {
-    let resultado = clientes.filter(cliente => {
+  // Filtrar y ordenar empleados
+  const empleadosFiltrados = useMemo(() => {
+    let resultado = empleados.filter(empleado => {
       // Filtro de búsqueda general
       const terminoBusqueda = busqueda.toLowerCase().trim();
-      const nombreCompleto = `${cliente.name || ''} ${cliente.surname || ''}`.toLowerCase();
-      const email = (cliente.email || '').toLowerCase();
-      const ciudad = (cliente.city || '').toLowerCase();
-      const documento = (cliente.document || '').toString();
-      const telefono = (cliente.phone || '').toString();
+      const nombreCompleto = `${empleado.name || ''} ${empleado.surname || ''}`.toLowerCase();
+      const email = (empleado.email || '').toLowerCase();
+      const ciudad = (empleado.city || '').toLowerCase();
+      const documento = (empleado.document || '').toString();
+      const telefono = (empleado.phone || '').toString();
 
       const coincideBusqueda = terminoBusqueda === '' || 
         nombreCompleto.includes(terminoBusqueda) ||
@@ -87,12 +78,9 @@ const ListaClientes = () => {
         telefono.includes(terminoBusqueda);
 
       // Filtro por ciudad
-      const coincideCiudad = !filtros.ciudad || cliente.city === filtros.ciudad;
+      const coincideCiudad = !filtros.ciudad || empleado.city === filtros.ciudad;
 
-      // Filtro por tipo de ID
-      const coincideTipoId = !filtros.tipoId || cliente.typeId?.trim() === filtros.tipoId;
-
-      return coincideBusqueda && coincideCiudad && coincideTipoId;
+      return coincideBusqueda && coincideCiudad;
     });
 
     // Aplicar ordenamiento
@@ -114,7 +102,7 @@ const ListaClientes = () => {
     });
 
     return resultado;
-  }, [clientes, busqueda, filtros]);
+  }, [empleados, busqueda, filtros]);
 
   const toggleFiltros = () => {
     setMostrarFiltros(!mostrarFiltros);
@@ -129,13 +117,6 @@ const ListaClientes = () => {
     setBusqueda(e.target.value);
   };
 
-  const toggleDirecciones = (document) => {
-    setMostrarDirecciones(prev => ({
-      ...prev,
-      [document]: !prev[document]
-    }));
-  };
-
   // Renderizar opciones de dropdown
   const renderDropdownOptions = (filtro) => {
     switch (filtro) {
@@ -145,30 +126,13 @@ const ListaClientes = () => {
             <button onClick={() => aplicarFiltro('ciudad', '')}>
               Todas las ciudades
             </button>
-            {opcionesUnicas.ciudades.map(ciudad => (
+            {ciudadesUnicas.map(ciudad => (
               <button 
                 key={ciudad} 
                 onClick={() => aplicarFiltro('ciudad', ciudad)}
                 className={filtros.ciudad === ciudad ? 'selected' : ''}
               >
                 {ciudad}
-              </button>
-            ))}
-          </>
-        );
-      case 'Tipo ID':
-        return (
-          <>
-            <button onClick={() => aplicarFiltro('tipoId', '')}>
-              Todos los tipos
-            </button>
-            {opcionesUnicas.tiposId.map(tipo => (
-              <button 
-                key={tipo} 
-                onClick={() => aplicarFiltro('tipoId', tipo)}
-                className={filtros.tipoId === tipo ? 'selected' : ''}
-              >
-                {tipo}
               </button>
             ))}
           </>
@@ -217,7 +181,7 @@ const ListaClientes = () => {
     return (
       <div className="container">
         <div className="lista-clientes-content">
-          <div className="loading">Cargando clientes...</div>
+          <div className="loading">Cargando empleados...</div>
         </div>
       </div>
     );
@@ -242,13 +206,13 @@ const ListaClientes = () => {
     <div className="container">
       <div className="lista-clientes-content">
         <div className="top-bar">
-          {/* 🔍 Barra de búsqueda mejorada con SVG y botón de limpieza */}
+          {/* Barra de búsqueda mejorada */}
           <div className="container-input">
             <input
               type="text"
               value={busqueda}
               onChange={handleBusquedaChange}
-              placeholder="Buscar clientes por nombre, email, ciudad, documento..."
+              placeholder="Buscar empleados por nombre, email, ciudad, documento..."
               className="input"
             />
             <svg
@@ -272,17 +236,17 @@ const ListaClientes = () => {
             )}
           </div>
 
-          {/* 🎛 Botón de Filtrar */}
+          {/* Botón de Filtrar */}
           {!mostrarFiltros && (
             <button className="menu-btn-listaclientes filter-btn" onClick={toggleFiltros}>
               <span className="filter-icon">🔍</span> Filtrar
             </button>
           )}
 
-          {/* 🎚 Opciones de Filtro */}
+          {/* Opciones de Filtro */}
           {mostrarFiltros && (
             <div className="filter-buttons">
-              {["Ciudad", "Tipo ID", "Ordenar"].map((filtro) => (
+              {["Ciudad", "Ordenar"].map((filtro) => (
                 <div className="dropdown" key={filtro}>
                   <button
                     className={`menu-btn-listaclientes ${filtroSeleccionado === filtro ? 'active-filter' : ''}`}
@@ -298,7 +262,7 @@ const ListaClientes = () => {
                 </div>
               ))}
 
-              {/* ❌ Botón de Cerrar */}
+              {/* Botón de Cerrar */}
               <button className="close-btn" onClick={toggleFiltros}>✖</button>
             </div>
           )}
@@ -306,80 +270,44 @@ const ListaClientes = () => {
 
         {/* Contador de resultados */}
         <div className="results-info">
-          {clientesFiltrados.length === clientes.length 
-            ? `Mostrando ${clientes.length} clientes`
-            : `Mostrando ${clientesFiltrados.length} de ${clientes.length} clientes`
+          {empleadosFiltrados.length === empleados.length 
+            ? `Mostrando ${empleados.length} empleados`
+            : `Mostrando ${empleadosFiltrados.length} de ${empleados.length} empleados`
           }
         </div>
 
-        {/* Tabla de clientes con scrolling */}
+        {/* Tabla de empleados */}
         <div className="tabla-clientes-container">
-          {clientesFiltrados.length > 0 ? (
+          {empleadosFiltrados.length > 0 ? (
             <table className="tabla-clientes">
               <thead>
                 <tr>
                   <th>Nombre</th>
-                  <th>Numero Contacto</th>
-                  <th>ID</th>
+                  <th>Número Contacto</th>
                   <th>Documento</th>
                   <th>Email</th>
-                  <th>Direcciones</th>
+                  <th>Dirección</th>
+                  <th>Ciudad</th>
                 </tr>
               </thead>
               <tbody>
-                {clientesFiltrados.map(cliente => (
-                  <React.Fragment key={cliente.document}>
-                    <tr className="cliente-row">
-                      <td>{cliente.name} {cliente.surname}</td>
-                      <td>{cliente.phone || "—"}</td>
-                      <td>{cliente.typeId?.trim() || "—"}</td>
-                      <td>{cliente.document || "—"}</td>
-                      <td>{cliente.email || "—"}</td>
-                      <td>
-                        <button
-                          className="direcciones-toggle"
-                          onClick={() => toggleDirecciones(cliente.document)}
-                        >
-                          {cliente.addresses?.length || 0} {mostrarDirecciones[cliente.document] ? "▲" : "▼"}
-                        </button>
-                      </td>
-                    </tr>
-                    {mostrarDirecciones[cliente.document] && cliente.addresses && (
-                      <tr className="direcciones-row">
-                        <td colSpan="6">
-                          <div className="direcciones-container">
-                            <h4>Direcciones:</h4>
-                            <div className="direcciones-grid">
-                              {cliente.addresses.map(address => (
-                                <div key={address.id} className="direccion-card">
-                                  <div className="direccion-tipo">{address.description}</div>
-                                  <div className="direccion-datos">
-                                    <p><strong>Dirección:</strong> {address.address}</p>
-                                    <p><strong>Ciudad:</strong> {address.city}</p>
-                                  </div>
-                                  <div className="direccion-acciones">
-                                    <button className="action-button edit-button-small" title="Editar dirección">✏️</button>
-                                    <button className="action-button delete-button-small" title="Eliminar dirección">🗑️</button>
-                                  </div>
-                                </div>
-                              ))}
-                              <div className="direccion-card add-direccion">
-                                <button className="add-direccion-button">+ Añadir dirección</button>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
+                {empleadosFiltrados.map(empleado => (
+                  <tr key={`${empleado.document}-${empleado.email}`} className="cliente-row">
+                    <td>{empleado.name} {empleado.surname}</td>
+                    <td>{empleado.phone || "—"}</td>
+                    <td>{empleado.document || "—"}</td>
+                    <td>{empleado.email || "—"}</td>
+                    <td>{empleado.addressResidence || "—"}</td>
+                    <td>{empleado.city || "—"}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           ) : (
             <div className="no-results">
-              {busqueda || filtros.ciudad || filtros.tipoId
-                ? "No se encontraron clientes que coincidan con los filtros"
-                : "No hay clientes para mostrar"
+              {busqueda || filtros.ciudad 
+                ? "No se encontraron empleados que coincidan con los filtros"
+                : "No hay empleados para mostrar"
               }
             </div>
           )}
@@ -389,4 +317,4 @@ const ListaClientes = () => {
   );
 };
 
-export default ListaClientes;
+export default ListaEmpleados;

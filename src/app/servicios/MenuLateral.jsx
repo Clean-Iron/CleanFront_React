@@ -1,5 +1,4 @@
 import React from "react";
-import "../../styles/Servicios/Menu/Menu.css";
 import Link from "next/link";
 
 const Menu = ({ onNavClick, seccionActiva }) => {
@@ -21,7 +20,7 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoServicios" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoServicios")}
 						>
-							📋 Información Servicios
+							📋 Información Tareas
 						</button>
 					</li>
                     <li>
@@ -35,9 +34,9 @@ const Menu = ({ onNavClick, seccionActiva }) => {
                     <li>
 						<button
 							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
-							onClick={() => onNavClick("infoGeneral")}
+							onClick={() => onNavClick("editarTarea")}
 						>
-							📋 Editar Servicio
+							📋 Editar Tarea
 						</button>
 					</li>
 				</ul>

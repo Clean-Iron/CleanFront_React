@@ -2,15 +2,19 @@
 
 /* Modo claro */
 :root {
-  --background: #78bafc; /* Azul pastel más amigable */
-  --foreground: #171717; /* Gris oscuro */
+  --background: #78bafc;
+  /* Azul pastel más amigable */
+  --foreground: #171717;
+  /* Gris oscuro */
 }
 
 /* Modo oscuro */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #121212; /* Negro menos agresivo */
-    --foreground: #f5f5f5; /* Blanco humo para mejor lectura */
+    --background: #121212;
+    /* Negro menos agresivo */
+    --foreground: #f5f5f5;
+    /* Blanco humo para mejor lectura */
   }
 }
 
@@ -19,18 +23,544 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: sans-serif;
-  transition: 0.3s ease-in-out, color 0.3s ease-in-out; /* Transición suave */
+  transition: 0.3s ease-in-out, color 0.3s ease-in-out;
+  /* Transición suave */
 }
 
 .container {
   flex-grow: 1;
-  height: calc(100vh - 2cm); /* Subtracting 2cm to account for top and bottom margins */
-  width: calc(100% - 2cm); /* Subtracting 2cm to account for left and right margins */
-  margin: 1cm; /* This creates the 1cm spacing on all sides */
+  height: calc(100vh - 2cm);
+  /* Subtracting 2cm to account for top and bottom margins */
+  width: calc(100vh - 2cm);
+  /* Subtracting 2cm to account for left and right margins */
+  margin: 1cm;
+  /* This creates the 1cm spacing on all sides */
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/*--------------------------------------------------------------*/
+
+/*
+  Estilos chips
+*/
+
+.chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: white;
+  border: 1px solid #B8D4F0;
+  border-radius: 20px;
+  padding: 8px 12px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  min-height: 45px;
+}
+
+/* ============================== */
+/* Estilos comunes para chips */
+/* ============================== */
+.modal-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+  transition: all 0.2s ease;
+}
+
+.modal-chip:hover {
+  background-color: #d1e7ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================== */
+/* Chips container y section */
+/* ============================== */
+.modal-chip-section {
+  position: relative;
+}
+
+.modal-chip-container {
+  position: relative;
+  min-height: 45px;
+}
+
+/*--------------------------------------------------------------*/
+
+/*
+  Estilos dropdowns
+*/
+
+/* ============================== */
+/*     Dropdown personalizado     */
+/* ============================== */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #B8D4F0;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  color: #333;
+}
+
+.dropdown-trigger:hover,
+.dropdown-trigger:focus {
+  outline: none;
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
+}
+
+.dropdown-trigger .arrow {
+  margin-left: 8px;
+  transition: transform 0.2s;
+}
+
+.dropdown-trigger.open .arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  z-index: 10;
+  animation: fadeIn 0.2s ease-out;
+  overflow: hidden;
+  max-height: 135px;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-content button {
+  background: none;
+  border: none;
+  padding: 12px 15px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+  font-size: 14px;
+  box-sizing: border-box;
+  color: #333;
+}
+
+.dropdown-content button:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-content button:disabled {
+  color: #999;
+  cursor: not-allowed;
+  font-weight: 600;
+}
+
+.dropdown-content button:disabled:hover {
+  background: none;
+}
+
+/*--------------------------------------------------------------*/
+
+/*
+  Estilos texto de carga de datos y loaders para la espera de resultados en consultas
+*/
+
+/* ============================== */
+/* Estados vacíos y carga */
+/* ============================== */
+.no-results {
+  text-align: center;
+  padding: 60px 0;
+  color: #777;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  height: 200px;
+}
+
+/*--------------------------------------------------------------*/
+
+/*
+  Estilos Menu Lateral y Botones de Navegación
+*/
+
+/* ============================ */
+/* Estilos base del menú lateral */
+/* ============================ */
+.menu-lateral {
+  width: 250px;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  padding: 20px;
+  box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================== */
+/* Contenedor de botones del menú */
+/* ============================== */
+.menu-buttons ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* Move the gap here */
+}
+
+.menu-buttons li {
+  width: 100%;
+  margin: 0;
+  /* Remove default margins */
+}
+
+/* Update your menu-buttons class */
+.menu-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  /* Increase top margin for better spacing from Regresar button */
+}
+
+/* ========================== */
+/* Estilos para los botones  */
+/* ========================== */
+.menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* Mismo ancho para todos */
+  padding: 1em 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  color: #000;
+  background-color: #fff;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  text-align: center;
+}
+
+/* Hover: cambia color y añade efecto de elevación */
+.menu-btn:hover {
+  background-color: #23c483;
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  color: #fff;
+  transform: translateY(-5px);
+}
+
+/* Efecto al presionar */
+.menu-btn:active {
+  transform: translateY(-2px);
+}
+
+/* ================================================= */
+/* Estilos del botón "btn-53" (Regresar con flecha)  */
+/* ================================================= */
+.btn-53 {
+  border: 1px solid;
+  border-radius: 999px;
+  box-sizing: border-box;
+  display: block;
+  font-weight: 900;
+  overflow: hidden;
+  padding: 1.2rem 3rem;
+  position: relative;
+  text-transform: uppercase;
+  text-decoration: none;
+  background-color: #000;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+  /* Mismo ancho que los demás botones */
+}
+
+/* Texto principal (Regresar) */
+.btn-53 .original {
+  background: #fff;
+  color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  inset: 0;
+  position: absolute;
+  transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* Texto en hover (MENÚ) */
+.btn-53:hover .original {
+  transform: translateY(100%);
+}
+
+.btn-53 .letters {
+  display: inline-flex;
+}
+
+.btn-53 span {
+  opacity: 0;
+  transform: translateY(-15px);
+  transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1), opacity 0.2s;
+}
+
+.btn-53 span:nth-child(2n) {
+  transform: translateY(15px);
+}
+
+.btn-53:hover span {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.btn-53:hover span:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.btn-53:hover span:nth-child(3) {
+  transition-delay: 0.2s;
+}
+
+.btn-53:hover span:nth-child(4) {
+  transition-delay: 0.3s;
+}
+
+/*--------------------------------------------------------------*/
+
+/* ============================== */
+/*       Busqueda de empleados     */
+/* ============================== */
+
+.busqueda-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================== */
+/*       Campos de entrada        */
+/* ============================== */
+.busqueda-form-grid input {
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #B8D4F0;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.busqueda-form-grid input:focus {
+  outline: none;
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
+}
+
+/* ============================== */
+/*   Contenedor de botones form   */
+/* ============================== */
+.busqueda-form-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  align-items: center;
+}
+
+/* ============================== */
+/*        Elementos de grid       */
+/* ============================== */
+/* Para que elementos ocupen toda la fila */
+.busqueda-full-width {
+  grid-column: 1 / 3;
+}
+
+/*--------------------------------------------------------------*/
+
+/*
+  Estilos Modal y campos de formulario
+*/
+
+/* ============================== */
+/* Overlay del modal */
+/* ============================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ============================== */
+/* Contenedor principal del modal */
+/* ============================== */
+.modal-container {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 900px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================== */
+/* Sección de datos superiores */
+/* ============================== */
+.modal-datos-superiores {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ============================== */
+/*        RESPONSIVE DESIGN       */
+/* ============================== */
+
+/* Breakpoint: tablet (768px) */
+@media (max-width: 768px) {
+  .busqueda-form-grid {
+    grid-template-columns: 1fr;
+    /* De dos columnas a una */
+  }
+
+  .busqueda-full-width {
+    grid-column: 1 / 2;
+  }
+
+  .modal-datos-superiores {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .menu-lateral {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .menu-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .menu-buttons li {
+    width: auto;
+    flex: 1 1 45%;
+  }
+
+  .menu-btn,
+  .btn-53 {
+    font-size: 12px;
+    padding: 0.8em 1.2em;
+  }
+}
+
+/* Breakpoint: mobile (480px) */
+@media (max-width: 480px) {
+  .modal-container {
+    padding: 15px;
+    max-width: 95%;
+  }
+
+  .busqueda-form-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dropdown-trigger {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .dropdown-content button {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .modal-chip {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .container {
+    margin: 0.5cm;
+    width: auto;
+    height: auto;
+  }
 }
