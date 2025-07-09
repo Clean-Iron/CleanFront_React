@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import BuscarEmpleados from "./buscarEmpleados/BuscarEmpleados";
 import EliminarEmpleados from "./eliminarEmpleados/EliminarEmpleados";
 import AgregarEmpleados from "./agregarEmpleados/AgregarEmpleados";
-import { actualizarEmpleado } from "./EditarEmpleados.js";
+import { actualizarEmpleado } from "@/lib/Services/Logic.js";
 import "../../../styles/Empleados/EditarEmpleados/EditarEmpleados.css";
 
 const EditarEmpleados = () => {
@@ -10,7 +10,7 @@ const EditarEmpleados = () => {
   const [selectedCargo, setSelectedCargo] = useState("");
   const [selectedEstado, setSelectedEstado] = useState("");
   const [busquedaDocumento, setBusquedaDocumento] = useState("");
-  const [clienteEncontrado, setClienteEncontrado] = useState(null);
+  const [empleadoEncontrado, setEmpleadoEncontrado] = useState(null);
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");
@@ -21,6 +21,8 @@ const EditarEmpleados = () => {
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
+
+  const [mostrarEliminarForm, setMostrarEliminarForm] = useState(false);
 
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
   const ciudadDropdownRef = useRef(null);
@@ -37,21 +39,21 @@ const EditarEmpleados = () => {
   const estados = ["Activo", "Inactivo"];
 
   useEffect(() => {
-    if (clienteEncontrado) {
-      setNombre(clienteEncontrado.name || "");
-      setApellido(clienteEncontrado.surname || "");
-      setDocumento(clienteEncontrado.document || "");
-      setEmail(clienteEncontrado.email || "");
-      setPhone(clienteEncontrado.phone || "");
-      setDireccion(clienteEncontrado.addressResidence || "");
-      setSelectedCity(clienteEncontrado.city || "");
-      if (clienteEncontrado.entryDate) {
-        setFechaIngreso(clienteEncontrado.entryDate);
+    if (empleadoEncontrado) {
+      setNombre(empleadoEncontrado.name || "");
+      setApellido(empleadoEncontrado.surname || "");
+      setDocumento(empleadoEncontrado.document || "");
+      setEmail(empleadoEncontrado.email || "");
+      setPhone(empleadoEncontrado.phone || "");
+      setDireccion(empleadoEncontrado.addressResidence || "");
+      setSelectedCity(empleadoEncontrado.city || "");
+      if (empleadoEncontrado.entryDate) {
+        setFechaIngreso(empleadoEncontrado.entryDate);
       } else {
         setFechaIngreso("");
       }
     }
-  }, [clienteEncontrado]);
+  }, [empleadoEncontrado]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,20 +76,28 @@ const EditarEmpleados = () => {
 
   const manejarResultadoBusqueda = (datos) => {
     if (datos) {
-      setClienteEncontrado(datos);
+      setEmpleadoEncontrado(datos);
       setSelectedCargo(datos.position);
       setSelectedEstado(datos.state ? "Activo" : "Inactivo");
-      setMostrarFormulario(true);
+      
+      // Handle different behaviors based on active tab
+      if (activeTab === "edit") {
+        setMostrarFormulario(true);
+      } else if (activeTab === "delete") {
+        setMostrarEliminarForm(true);
+      }
+      
       setMensajeError("");
     } else {
-      setClienteEncontrado(null);
+      setEmpleadoEncontrado(null);
       setMostrarFormulario(false);
-      setMensajeError("Cliente no encontrado.");
+      setMostrarEliminarForm(false);
+      setMensajeError("Empleado no encontrado.");
     }
   };
 
   const guardarCambios = async () => {
-    if (!clienteEncontrado) return;
+    if (!empleadoEncontrado) return;
 
     const datosActualizados = {
       name: nombre,
@@ -103,7 +113,7 @@ const EditarEmpleados = () => {
     };
 
     try {
-      await actualizarEmpleado(clienteEncontrado.id || clienteEncontrado.document, datosActualizados);
+      await actualizarEmpleado(empleadoEncontrado.id || empleadoEncontrado.document, datosActualizados);
       alert("Empleado actualizado correctamente ✅");
     } catch (error) {
       alert("Error al actualizar empleado ❌" + error);
@@ -112,8 +122,9 @@ const EditarEmpleados = () => {
 
   const resetBusqueda = () => {
     setBusquedaDocumento("");
-    setClienteEncontrado(null);
+    setEmpleadoEncontrado(null);
     setMostrarFormulario(false);
+    setMostrarEliminarForm(false);
     setMensajeError("");
     setSelectedCargo("");
     setSelectedEstado("");
@@ -265,7 +276,20 @@ const EditarEmpleados = () => {
     }
 
     if (activeTab === "delete") {
-      return <EliminarEmpleados />;
+      // Show search component first, then delete component with employee data
+      return mostrarEliminarForm ? (
+        <EliminarEmpleados 
+          empleadoData={empleadoEncontrado}
+          onVolver={resetBusqueda}
+        />
+      ) : (
+        <BuscarEmpleados
+          value={busquedaDocumento}
+          onChange={(e) => setBusquedaDocumento(e.target.value)}
+          onResultado={manejarResultadoBusqueda}
+          mensajeError={mensajeError}
+        />
+      );
     }
 
     return null;

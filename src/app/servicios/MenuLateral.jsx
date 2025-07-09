@@ -16,6 +16,11 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 			<div className="menu-buttons">
 				<ul>
 					<li>
+						<Link href="/servicios/resumenGeneral"  className={`menu-btn ${seccionActiva === "resumenGeneral" ? "activo" : ""}`}>
+							📋 Resumen General
+						</Link>
+					</li>
+					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "infoServicios" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoServicios")}
@@ -23,15 +28,15 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							📋 Información Tareas
 						</button>
 					</li>
-                    <li>
+					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "infoDisponibilidad" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoDisponibilidad")}
 						>
-							 Buscar Disponibilidad
+							Buscar Disponibilidad
 						</button>
 					</li>
-                    <li>
+					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
 							onClick={() => onNavClick("editarTarea")}

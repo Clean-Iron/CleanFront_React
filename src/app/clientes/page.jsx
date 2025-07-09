@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Sidebar from "./MenuLateral";
 import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
 import ListaClientes from "./listaClientes/ListaClientes.jsx";
-/*import AgregarCliente from "./AgregarCliente";
+import EditarEmpleados from "./editarClientes/EditarClientes";
+/*
 import Reportes from "./Reportes";
 import Configuracion from "./Configuracion";*/
 
@@ -23,7 +24,8 @@ const Clientes = () => {
         return <InfoGeneral />;
       case "listaClientes":
         return <ListaClientes />;
-      // Cuando se descomenten los demás componentes, agregar los casos:
+      case "editarClientes":
+        return <EditarEmpleados />;
       /*
       case "agregarCliente":
         return <AgregarCliente />;

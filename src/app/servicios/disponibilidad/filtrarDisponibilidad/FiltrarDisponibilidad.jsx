@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { buscarDisponibilidad } from './DisponibilidadServicio';
+import { buscarDisponibilidad } from '@/lib/Services/Logic.js';
 import '../../../../styles/Servicios/Disponibilidad/FiltrarDisponibilidad/FiltrarDisponibilidad.css';
 
 const FiltrarDisponibilidad = ({ onEmployeesUpdate }) => {

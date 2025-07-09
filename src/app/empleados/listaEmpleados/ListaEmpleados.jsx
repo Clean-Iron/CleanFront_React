@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { buscarEmpleados } from "./Buscar";
+import { buscarEmpleados } from "@/lib/Services/Logic.js";
 import "../../../styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 
 const ListaEmpleados = () => {

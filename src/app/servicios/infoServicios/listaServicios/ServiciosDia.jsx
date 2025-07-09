@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { buscarServicios } from './Servicios';
+import { buscarServicios } from '@/lib/Services/Logic.js';
 import DetalleServicioModal from './DetalleServicioModal/DetalleServicioModal';
 import '../../../../styles/Servicios/InfoServicios/ServiciosDia/ServiciosDia.css';
 
@@ -59,6 +59,7 @@ const ServiciosDía = ({ selectedDate }) => {
       return {
         id: serviceObj.id,
         time: formatTime(serviceObj.startDate, serviceObj.endDate),
+        hours: serviceObj.totalServiceHours,
         type: serviceObj.serviceDescription || 'Servicio no especificado',
         client: serviceObj.clientCompleteName ||
           `${serviceObj.clientName || ''} ${serviceObj.clientSurname || ''}`.trim() ||
@@ -300,6 +301,7 @@ const ServiciosDía = ({ selectedDate }) => {
                 </div>
               </div>
               <div className="service-details">
+                <p><strong>Número de Horas:</strong> {service.hours}</p>
                 <p><strong>Cliente:</strong> {service.client}</p>
                 <p><strong>Dirección:</strong> {service.address}</p>
                 <p><strong>Ciudad:</strong> {service.city}</p>

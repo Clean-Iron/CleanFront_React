@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { buscarEmpleadoById } from "@/lib/Services/Logic.js";
+import { buscarClienteById } from "@/lib/Services/Logic.js";
 
-const BuscarEmpleados = ({ value, onChange, onResultado, mensajeError }) => {
+const BuscarClientes = ({ value, onChange, onResultado, mensajeError }) => {
   const [loading, setLoading] = useState(false);
 
   const handleBuscar = async () => {
     if (!value.trim()) return;
     setLoading(true);
     try {
-      const empleado = await buscarEmpleadoById(value);
-      onResultado(empleado);
+      const cliente = await buscarClienteById(value);
+      onResultado(cliente);
     } catch (err) {
       onResultado(null);
     } finally {
@@ -21,7 +21,7 @@ const BuscarEmpleados = ({ value, onChange, onResultado, mensajeError }) => {
     <div className="busqueda-form-grid">
       <input
         type="text"
-        placeholder="Documento del empleado"
+        placeholder="Documento del cliente"
         value={value}
         onChange={onChange}
         className="busqueda-full-width"
@@ -38,4 +38,4 @@ const BuscarEmpleados = ({ value, onChange, onResultado, mensajeError }) => {
   );
 };
 
-export default BuscarEmpleados;
+export default BuscarClientes;

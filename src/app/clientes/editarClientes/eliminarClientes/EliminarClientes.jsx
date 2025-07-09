@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { eliminarEmpleado } from "@/lib/Services/Logic.js";
-
-const EliminarEmpleados = ({ empleadoData, onVolver }) => {
+const EliminarClientes = ({ cliente, onVolver }) => {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");
@@ -9,35 +8,28 @@ const EliminarEmpleados = ({ empleadoData, onVolver }) => {
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
   const [ciudad, setCiudad] = useState("");
-  const [cargo, setCargo] = useState("");
-  const [estado, setEstado] = useState("");
-  const [fechaIngreso, setFechaIngreso] = useState("");
 
-  // Fill form fields when employee data is received
   useEffect(() => {
-    if (empleadoData) {
-      setNombre(empleadoData.name || "");
-      setApellido(empleadoData.surname || "");
-      setDocumento(empleadoData.document || "");
-      setEmail(empleadoData.email || "");
-      setPhone(empleadoData.phone || "");
-      setDireccion(empleadoData.addressResidence || "");
-      setCiudad(empleadoData.city || "");
-      setCargo(empleadoData.position || "");
-      setEstado(empleadoData.state ? "Activo" : "Inactivo");
-      setFechaIngreso(empleadoData.entryDate || "");
+    if (cliente) {
+      setNombre(cliente.name || "");
+      setApellido(cliente.surname || "");
+      setDocumento(cliente.document || "");
+      setEmail(cliente.email || "");
+      setPhone(cliente.phone || "");
+      setDireccion(cliente.addressResidence || "");
+      setCiudad(cliente.city || "");
     }
-  }, [empleadoData]);
+  }, [cliente]);
 
   const handleEliminar = async () => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar al empleado ${nombre} ${apellido}?`)) {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar al cliente ${nombre} ${apellido}?`)) {
       try {
-        await eliminarEmpleado(empleadoData.document);
+        await eliminarEmpleado(cliente.document);
       } catch (error) {
-        alert("Error al agregar empleado.");
+        alert("Error al agregar Cliente.");
         console.error(error);
       }
-      alert("Empleado eliminado correctamente ✅");
+      alert("Cliente eliminado correctamente ✅");
       if (onVolver) onVolver();
     }
   };
@@ -99,27 +91,6 @@ const EliminarEmpleados = ({ empleadoData, onVolver }) => {
         readOnly
         className="empleados-readonly"
       />
-      <input
-        type="text"
-        placeholder="Cargo"
-        value={cargo}
-        readOnly
-        className="empleados-readonly"
-      />
-      <input
-        type="text"
-        placeholder="Estado"
-        value={estado}
-        readOnly
-        className="empleados-readonly"
-      />
-      <input
-        type="date"
-        placeholder="Fecha de Ingreso"
-        value={fechaIngreso}
-        readOnly
-        className="empleados-readonly"
-      />
 
       <div className="empleados-form-buttons empleados-full-width">
         <button type="button" className="menu-btn" onClick={onVolver}>
@@ -136,4 +107,4 @@ const EliminarEmpleados = ({ empleadoData, onVolver }) => {
   );
 };
 
-export default EliminarEmpleados;
+export default EliminarClientes;

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Menu from "./MenuLateral";
+import ResumenGeneral from "./resumenGeneral/page";
 import InfoServicios from "./infoServicios/InfoServicios";
 import InfoDisponibilidad from "./disponibilidad/InfoDisponibilidad";
 import EditarTarea from "./editarTarea/EditarTarea";
@@ -16,6 +17,8 @@ const Servicios = () => {
   // Renderizado condicional del componente seleccionado
   const renderComponente = () => {
     switch (componenteActual) {
+      case "resumenGeneral":
+        return <ResumenGeneral />;
       case "infoServicios":
         return <InfoServicios />;
       case "infoDisponibilidad":

@@ -181,21 +181,6 @@
 }
 
 /* ============================== */
-/* Animaciones */
-/* ============================== */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ============================== */
 /* Botones de acción del modal */
 /* ============================== */
 .modal-asignacion-form-buttons {
@@ -206,7 +191,8 @@
 }
 
 .modal-asignacion-btn-cancelar,
-.modal-asignacion-btn-confirmar {
+.modal-asignacion-btn-confirmar,
+.modal-asignacion-btn-eliminar {
     padding: 12px 24px;
     border-radius: 20px;
     border: none;
@@ -237,4 +223,30 @@
     background-color: #1fa374;
     transform: translateY(-1px);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.modal-asignacion-btn-eliminar {
+    background-color: #2394c4;
+    color: white;
+}
+
+.modal-asignacion-btn-eliminar:hover {
+    background-color: #1f56a3;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================== */
+/* Animaciones */
+/* ============================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

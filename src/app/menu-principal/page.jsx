@@ -1,5 +1,5 @@
 import React from "react";
-import "../../styles/MenuPrincipal.css"; // Import your CSS file
+import "../../styles/MenuPrincipal.css"; 
 import Link from "next/link";
 
 const MenuPrincipal = () => {

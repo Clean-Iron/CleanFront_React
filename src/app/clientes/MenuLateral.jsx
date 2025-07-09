@@ -35,7 +35,7 @@ const Sidebar = ({ onNavClick, seccionActiva }) => {
 					<li>
 						<button
 							className={`menu-btn ${seccionActiva === "agregarCliente" ? "activo" : ""}`}
-							onClick={() => onNavClick("agregarCliente")}
+							onClick={() => onNavClick("editarClientes")}
 						>
 							➕ Editar Cliente
 						</button>

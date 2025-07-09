@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { obtenerServicios, obtenerClientesConDireccionCiudad, asignarServicio } from "./ModalLogica";
-import '../../../../../styles/Servicios/Disponibilidad/EspaciosDisponibles/AsignarServicio/ModalAsignacion.css';
+import { obtenerServicios, obtenerClientesConDireccionCiudad, asignarServicio } from "@/lib/Services/Logic.js";
+import '@/styles/Servicios/Disponibilidad/EspaciosDisponibles/AsignarServicio/ModalAsignacion.css';
 
 const ModalAsignacion = ({ show, onClose, empleado, date, startHour, endHour, city, allEmployees = [] }) => {
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);

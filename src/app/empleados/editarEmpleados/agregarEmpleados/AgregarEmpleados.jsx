@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { agregarEmpleado } from "./AgregarEmpleado";
+import { agregarEmpleado } from "@/lib/Services/Logic.js";
 
 const AgregarEmpleados = () => {
   const [nombre, setNombre] = useState("");
@@ -15,8 +15,8 @@ const AgregarEmpleados = () => {
   const [direccion, setDireccion] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
-  
-  
+
+
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
   const estadoDropdownRef = useRef(null);
@@ -183,13 +183,6 @@ const AgregarEmpleados = () => {
         )}
       </div>
 
-      <input
-        type="date"
-        placeholder="Fecha de ingreso"
-        value={fechaIngreso}
-        onChange={(e) => setFechaIngreso(e.target.value)}
-      />
-
       {/* Dropdown Estado */}
       <div className="dropdown" ref={estadoDropdownRef}>
         <button
@@ -213,6 +206,13 @@ const AgregarEmpleados = () => {
           </div>
         )}
       </div>
+
+      <input
+        type="date"
+        placeholder="Fecha de ingreso"
+        value={fechaIngreso}
+        onChange={(e) => setFechaIngreso(e.target.value)}
+      />
 
       <div className="empleados-form-buttons empleados-full-width">
         <button type="button" className="menu-btn" onClick={handleSubmit}>

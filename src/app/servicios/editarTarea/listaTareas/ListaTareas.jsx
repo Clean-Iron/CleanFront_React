@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import FormularioTarea from "../formularioTarea/FormularioTarea";
 
 const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 	const [loading, setLoading] = useState(false);
 	const [selectedService, setSelectedService] = useState(null);
 	const [filteredServices, setFilteredServices] = useState([]);
+	const [modalOpen, setModalOpen] = useState(false);
 
 	// Use data prop if available, otherwise use servicios prop
 	const servicesData = data && data.length > 0 ? data : servicios;
@@ -23,7 +25,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 			height: '100%',
 			minHeight: '400px'
 		}}>
-			<div className="services-list" style={{marginBottom: '20px'}}>
+			<div className="services-list" style={{ marginBottom: '20px' }}>
 				{loading ? (
 					<div className="loading-indicator">Cargando servicios...</div>
 				) : filteredServices.length > 0 ? (
@@ -33,6 +35,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 							className="service-card"
 							onClick={() => {
 								setSelectedService(service);
+								setModalOpen(true);
 							}}
 						>
 							<div className="service-header">
@@ -68,10 +71,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 			</div>
 			{/* Botones de acción */}
 			{filteredServices.length > 0 ? (
-				<div className="busqueda-form-buttons busqueda-full-width" style={{marginBottom: '10px'}}>
-					<button type="button" className="menu-btn" onClick={() => console.log('Agregar clicked')}>
-						➕ AGREGAR
-					</button>
+				<div className="busqueda-form-buttons busqueda-full-width" style={{ marginBottom: '10px' }}>
 					<button type="reset" className="menu-btn" onClick={onNuevaBusqueda}>
 						❌ CANCELAR
 					</button>
@@ -82,6 +82,15 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 						🔍 NUEVA BÚSQUEDA
 					</button>
 				</div>
+			)}
+			{modalOpen && selectedService && (
+				<FormularioTarea
+					service={selectedService}
+					onClose={() => {
+						setModalOpen(false);
+						setSelectedService(null);
+					}}
+				/>
 			)}
 		</div>
 	);

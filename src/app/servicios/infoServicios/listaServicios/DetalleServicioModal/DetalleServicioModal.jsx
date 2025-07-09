@@ -1,16 +1,15 @@
 'use client';
 import React from 'react';
-//import './ServiceDetailModal.css'; // Asegúrate de importar el CSS
 
 const DetalleServicioModal = ({ service, onClose }) => {
     if (!service) return null;
-    console.log(service)
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-container" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-datos-superiores">
                     <span>Hora: {service.time}</span>
+                    <span>Número de Horas: {service.hours}</span>
                     <span>Estado: {service.state}</span>
                 </div>
 
