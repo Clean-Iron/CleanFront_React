@@ -135,7 +135,7 @@ export const actualizarEmpleado = async (id, datosParciales) => {
 }
 
 export const buscarEmpleados = async () => {
-    const response = await axios.get(`${API_URL}/employee/employees`, {
+    const response = await axios.get(`${API_URL}/employee`, {
         headers: {
             'Content-Type': 'application/json'
         }
@@ -200,3 +200,24 @@ export const buscarServiciosConParam = async (nombre, apellido, selectedCity, da
     });
     return response.data;
 };
+
+export const actualizarServicio = async (id, datos) => {
+    try {
+        const response = await axios.patch(`${API_URL}/schedule/${id}`, datos);
+        console.log('Servicio actualizado:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error al actualizar el servicio:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
+export const eliminarServicio = async (id) => {
+    try {
+        await axios.delete(`${API_URL}/schedule/${id}`);
+    } catch (error) {
+        console.error('Error al actualizar el servicio:', error.response?.data || error.message);
+        throw error;
+    }
+};
+

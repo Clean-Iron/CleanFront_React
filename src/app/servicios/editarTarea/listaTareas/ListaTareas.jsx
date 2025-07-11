@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import FormularioTarea from "../formularioTarea/FormularioTarea";
 
-const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
+const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda, onRecargar }) => {
 	const [loading, setLoading] = useState(false);
 	const [selectedService, setSelectedService] = useState(null);
 	const [filteredServices, setFilteredServices] = useState([]);
@@ -17,6 +17,30 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 			setLoading(false);
 		}, 1000);
 	}, [servicesData]); // Add servicesData as dependency
+
+	const recargarServicios = async () => {
+		if (onRecargar) {
+			await onRecargar(); // recarga con los mismos filtros
+		} else {
+			const nuevosDatos = await obtenerServicios(); // fallback
+			setFilteredServices(nuevosDatos);
+		}
+	};
+
+
+	const formatEmployees = (employees) => {
+
+		return employees
+			.map(emp => emp.employeeCompleteName.trim())
+			.join(', ');
+	};
+
+	const formatServices = (services) => {
+		return services
+			.map(ser => ser.serviceDescription.trim())
+			.join(', ');
+	};
+
 
 	return (
 		<div style={{
@@ -39,7 +63,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 							}}
 						>
 							<div className="service-header">
-								<h3>{service.endDate} | {service.serviceDescription?.[0] || 'Servicio'}</h3>
+								<h3>{service.endDate} | {formatServices(service.services) || 'Servicio'}</h3>
 								<div className={`status-indicator ${service.state === "COMPLETADA"
 									? "completed"
 									: service.state === "PROGRAMADA"
@@ -57,7 +81,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 								<p><strong>Cliente:</strong> {service.clientName}</p>
 								<p><strong>Dirección:</strong> {service.addressService}</p>
 								<p><strong>Ciudad:</strong> {service.city}</p>
-								<p><strong>Empleados:</strong> {service.employees?.length || 0}</p>
+								<p><strong>Empleados:</strong> {formatEmployees(service.employees)}</p>
 								<p><strong>Estado:</strong> <span className={`status-text ${service.state.toLowerCase()}`}>{service.state}</span></p>
 								{service.comments && <p><strong>Comentarios:</strong> {service.comments}</p>}
 							</div>
@@ -90,6 +114,7 @@ const ListaTareas = ({ data = [], servicios = [], onNuevaBusqueda }) => {
 						setModalOpen(false);
 						setSelectedService(null);
 					}}
+					onUpdate={recargarServicios}
 				/>
 			)}
 		</div>

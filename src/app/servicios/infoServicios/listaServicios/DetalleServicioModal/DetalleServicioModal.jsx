@@ -38,9 +38,9 @@ const DetalleServicioModal = ({ service, onClose }) => {
                         <label>Servicios</label>
                         <div className="modal-chip-container">
                             <div className="chips">
-                                {service.type.map((t, idx) => (
+                                {service.type.split(',').map((t, idx) => (
                                     <div key={idx} className="modal-chip">
-                                        {t}
+                                        {t.trim()}
                                     </div>
                                 ))}
                             </div>
@@ -52,7 +52,9 @@ const DetalleServicioModal = ({ service, onClose }) => {
                         <div className="modal-chip-container">
                             <div className="chips">
                                 {service.staff.split(',').map((emp, idx) => (
-                                    <div key={idx} className="modal-chip">{emp.trim()}</div>
+                                    <div key={idx} className="modal-chip">
+                                        {emp.trim()}
+                                    </div>
                                 ))}
                             </div>
                         </div>
