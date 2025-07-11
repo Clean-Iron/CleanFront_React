@@ -63,9 +63,8 @@ const BuscarTarea = ({ onResultado }) => {
 
     try {
       const servicios = await buscarServiciosConParam(nombre, apellido, selectedCity, date);
-
       if (servicios) {
-        onResultado(servicios);
+        onResultado(servicios, { nombre, apellido, selectedCity, date });
         setMensajeError(false);
       } else {
         onResultado(null);

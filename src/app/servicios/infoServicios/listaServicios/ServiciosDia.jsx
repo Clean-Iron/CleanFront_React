@@ -41,12 +41,18 @@ const ServiciosDía = ({ selectedDate }) => {
         return `${formatHour(startTime)} - ${formatHour(endTime)}`;
       };
 
-      // Combinar nombres de empleados
       const formatEmployees = (employees) => {
         if (!employees || employees.length === 0) return 'Personal no asignado';
 
         return employees
           .map(emp => emp.employeeCompleteName || `${emp.employeeName || ''} ${emp.employeeSurname || ''}`.trim())
+          .join(', ');
+      };
+
+      const formatServices = (services) => {
+
+        return services
+          .map(ser => ser.serviceDescription.trim())
           .join(', ');
       };
 
@@ -60,7 +66,7 @@ const ServiciosDía = ({ selectedDate }) => {
         id: serviceObj.id,
         time: formatTime(serviceObj.startDate, serviceObj.endDate),
         hours: serviceObj.totalServiceHours,
-        type: serviceObj.serviceDescription || 'Servicio no especificado',
+        type: formatServices(serviceObj.services) || 'Servicio no especificado',
         client: serviceObj.clientCompleteName ||
           `${serviceObj.clientName || ''} ${serviceObj.clientSurname || ''}`.trim() ||
           'Cliente no especificado',

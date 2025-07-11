@@ -4,7 +4,7 @@ import EliminarClientes from "./eliminarClientes/EliminarClientes";
 import AgregarClientes from "./agregarClientes/AgregarClientes";
 import ModalEditarDirecciones from "./modalEditarDirecciones/ModalEditarDirecciones.jsx";
 import { actualizarCliente } from "@/lib/Services/Logic.js";
-import "../../../styles/Empleados/EditarEmpleados/EditarEmpleados.css";
+import '@/styles/Empleados/EditarEmpleados/EditarEmpleados.css';
 
 const EditarClientes = () => {
   const [activeTab, setActiveTab] = useState("edit");

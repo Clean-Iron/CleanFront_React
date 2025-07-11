@@ -16,7 +16,7 @@ const AgregarClientes = () => {
   const tipoIdDropdownRef = useRef(null);
 
   const tipoId = [
-    "CC", "TI", "NIT", "CE", "PA"  
+    "CC", "TI", "NIT", "CE", "PA"
   ];
 
   useEffect(() => {
@@ -88,10 +88,6 @@ const AgregarClientes = () => {
         placeholder="Apellido"
         value={apellido}
         onChange={(e) => setApellido(e.target.value)} />
-      <input type="text"
-        placeholder="Documento"
-        value={documento}
-        onChange={(e) => setDocumento(e.target.value)} />
 
       {/* Dropdown Tipo ID */}
       <div className="dropdown" ref={tipoIdDropdownRef}>
@@ -109,6 +105,13 @@ const AgregarClientes = () => {
           </div>
         )}
       </div>
+      
+      <input type="text"
+        placeholder="Documento"
+        value={documento}
+        onChange={(e) => setDocumento(e.target.value)} />
+
+
 
       <input type="email"
         placeholder="Correo electrónico"
