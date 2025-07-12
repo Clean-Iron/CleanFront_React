@@ -7,20 +7,18 @@ const getApiBaseUrl = () => {
             window.location.hostname === "127.0.0.1";
 
         if (isDevelopment) {
-            console.log('url local')
+            console.log('url local');
             return "http://localhost:8080";
         }
 
-        console.log('url despliegue')
-        // En producción: usar IP pública sin puerto
-        return "cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net"; // o "https://" si usas HTTPS en Azure
+        console.log('url despliegue');
+        return "https://cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
     }
 
-    console.log('url despliegue')
-
-    // SSR o fallback
-    return "cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
+    console.log('url despliegue');
+    return "https://cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
 };
+
 
 
 const API_URL = getApiBaseUrl();
