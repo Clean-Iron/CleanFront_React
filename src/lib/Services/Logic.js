@@ -11,11 +11,11 @@ const getApiBaseUrl = () => {
         }
 
         // En producción: usar IP pública sin puerto
-        return "http://20.119.144.18"; // o "https://" si usas HTTPS en Azure
+        return "cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net"; // o "https://" si usas HTTPS en Azure
     }
 
     // SSR o fallback
-    return "http://20.119.144.18";
+    return "cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
 };
 
 
