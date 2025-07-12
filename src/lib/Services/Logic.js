@@ -2,7 +2,6 @@ import axios from "axios";
 
 const getApiBaseUrl = () => {
     if (typeof window !== "undefined") {
-        // Detectar si estamos en desarrollo o producción
         const isDevelopment =
             window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1";
@@ -11,14 +10,14 @@ const getApiBaseUrl = () => {
             return "http://localhost:8080";
         }
 
-        return window.location.hostname === "192.168.84.17"
-            ? "http://192.168.84.17:8080"
-            : `${window.location.protocol}//${window.location.hostname}:8080`;
+        // En producción: usar IP pública sin puerto
+        return "http://20.119.144.18"; // o "https://" si usas HTTPS en Azure
     }
 
-    // En entorno de servidor (SSR), retorna una URL por defecto o lanza un error controlado
-    return "http://localhost:8080"; // o una URL de producción por defecto
+    // SSR o fallback
+    return "http://20.119.144.18";
 };
+
 
 const API_URL = getApiBaseUrl();
 
