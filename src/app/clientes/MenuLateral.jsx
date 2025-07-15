@@ -1,5 +1,4 @@
 import React from "react";
-//import "../../styles/Clientes/MenuLateral.css";
 import Link from "next/link";
 
 const Sidebar = ({ onNavClick, seccionActiva }) => {

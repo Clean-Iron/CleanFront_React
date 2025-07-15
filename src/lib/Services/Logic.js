@@ -42,9 +42,8 @@ export const obtenerClientesConDireccionCiudad = async (city) => {
 };
 
 export const asignarServicio = async (schedule) => {
-    console.log(schedule);
     try {
-        const response = await axios.post(`${API_URL}/schedule/new`, schedule, {
+        const response = await axios.post(`${API_URL}/schedule`, schedule, {
             headers: {
                 "Content-Type": "application/json"
             }
@@ -106,7 +105,16 @@ export const agregarEmpleado = async (empleado) => {
 };
 
 export const buscarEmpleadoById = async (id) => {
-    const response = await axios.get(`${API_URL}/employee/get/${id}`, {
+    const response = await axios.get(`${API_URL}/employee/id/${id}`, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return response.data;
+};
+
+export const buscarEmpleadosByCity = async (city) => {
+    const response = await axios.get(`${API_URL}/employee/city/${city}`, {
         headers: {
             'Content-Type': 'application/json'
         }
@@ -159,6 +167,19 @@ export const buscarDisponibilidad = async (date, startHour, endHour, city) => {
             startHour,
             endHour,
             city
+        },
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return response.data;
+};
+
+export const buscarServiciosPorMesDeEmpleado = async (doc, year, month) => {
+    const response = await axios.get(`${API_URL}/schedule/servicesEmployee/${doc}`, {
+        params: {
+            year: year,
+            month: month
         },
         headers: {
             'Content-Type': 'application/json'

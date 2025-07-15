@@ -1,54 +1,75 @@
 @import "tailwindcss";
 
-/* Modo claro */
+/* ==============================
+   Variables de color y esquema
+   ============================== */
 :root {
   --background: #78bafc;
-  /* Azul pastel más amigable */
   --foreground: #171717;
-  /* Gris oscuro */
 }
 
-/* Modo oscuro */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #121212;
-    /* Negro menos agresivo */
-    --foreground: #f5f5f5;
-    /* Blanco humo para mejor lectura */
-  }
-}
-
-/* Aplicación global */
+/* ============
+   Estilos globales
+   ============ */
 body {
+  margin: 0;
+  padding: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: sans-serif;
-  transition: 0.3s ease-in-out, color 0.3s ease-in-out;
-  /* Transición suave */
+  transition: background 0.3s, color 0.3s;
+  min-height: 100dvh;
 }
 
+/* =====================================
+   Layout principal: sidebar + contenido
+   ===================================== */
+.layout {
+  display: flex;
+  flex-direction: row;
+  min-height: 100dvh;
+}
+
+/* Sidebar fijo en desktop */
+.menu-lateral {
+  flex: 0 0 250px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1.25rem;
+  border-top-right-radius: 1.25rem;
+  border-bottom-right-radius: 1.25rem;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* ===========================
+   Contenedor genérico (.container)
+   =========================== */
 .container {
   flex-grow: 1;
   height: calc(100vh - 2cm);
-  /* Subtracting 2cm to account for top and bottom margins */
-  width: calc(100vh - 2cm);
-  /* Subtracting 2cm to account for left and right margins */
+  width: calc(100vw - 2cm);
   margin: 1cm;
-  /* This creates the 1cm spacing on all sides */
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-/*--------------------------------------------------------------*/
-
-/*
-  Estilos chips
-*/
-
+/* ============
+   Estilos chips
+   ============ */
 .chips {
   display: flex;
   align-items: center;
@@ -61,10 +82,6 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   min-height: 45px;
 }
-
-/* ============================== */
-/* Estilos comunes para chips */
-/* ============================== */
 .modal-chip {
   display: inline-flex;
   align-items: center;
@@ -77,38 +94,25 @@ body {
   border: 1px solid #bbdefb;
   transition: all 0.2s ease;
 }
-
 .modal-chip:hover {
   background-color: #d1e7ff;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
-/* ============================== */
-/* Chips container y section */
-/* ============================== */
-.modal-chip-section {
-  position: relative;
-}
-
+.modal-chip-section,
 .modal-chip-container {
   position: relative;
+}
+.modal-chip-container {
   min-height: 45px;
 }
 
-/*--------------------------------------------------------------*/
-
-/*
-  Estilos dropdowns
-*/
-
-/* ============================== */
-/*     Dropdown personalizado     */
-/* ============================== */
+/* ===================
+   Estilos custom dropdown
+   =================== */
 .dropdown {
   position: relative;
 }
-
 .dropdown-trigger {
   padding: 12px;
   border-radius: 20px;
@@ -122,33 +126,28 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  text-align: left;
   color: #333;
 }
-
 .dropdown-trigger:hover,
 .dropdown-trigger:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
-
 .dropdown-trigger .arrow {
   margin-left: 8px;
   transition: transform 0.2s;
 }
-
 .dropdown-trigger.open .arrow {
   transform: rotate(180deg);
 }
-
 .dropdown-content {
   position: absolute;
   top: 45px;
   left: 0;
   background: white;
   border-radius: 10px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -158,19 +157,6 @@ body {
   max-height: 135px;
   overflow-y: auto;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .dropdown-content button {
   background: none;
   border: none;
@@ -183,30 +169,21 @@ body {
   box-sizing: border-box;
   color: #333;
 }
-
 .dropdown-content button:hover {
   background: #f5f5f5;
 }
-
 .dropdown-content button:disabled {
   color: #999;
   cursor: not-allowed;
   font-weight: 600;
 }
-
 .dropdown-content button:disabled:hover {
   background: none;
 }
 
-/*--------------------------------------------------------------*/
-
-/*
-  Estilos texto de carga de datos y loaders para la espera de resultados en consultas
-*/
-
-/* ============================== */
-/* Estados vacíos y carga */
-/* ============================== */
+/* ===================
+   Estado “sin resultados”
+   =================== */
 .no-results {
   text-align: center;
   padding: 60px 0;
@@ -221,31 +198,9 @@ body {
   height: 200px;
 }
 
-/*--------------------------------------------------------------*/
-
-/*
-  Estilos Menu Lateral y Botones de Navegación
-*/
-
-/* ============================ */
-/* Estilos base del menú lateral */
-/* ============================ */
-.menu-lateral {
-  width: 250px;
-  height: 100vh;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  padding: 20px;
-  box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* ============================== */
-/* Contenedor de botones del menú */
-/* ============================== */
+/* =======================================
+   Menú lateral y botones de navegación
+   ======================================= */
 .menu-buttons ul {
   list-style: none;
   padding: 0;
@@ -254,34 +209,23 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  /* Move the gap here */
 }
-
-.menu-buttons li {
-  width: 100%;
-  margin: 0;
-  /* Remove default margins */
-}
-
-/* Update your menu-buttons class */
 .menu-buttons {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 20px;
-  /* Increase top margin for better spacing from Regresar button */
 }
-
-/* ========================== */
-/* Estilos para los botones  */
-/* ========================== */
+.menu-buttons li {
+  width: 100%;
+  margin: 0;
+}
 .menu-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  /* Mismo ancho para todos */
   padding: 1em 0;
   font-size: 14px;
   text-transform: uppercase;
@@ -294,38 +238,28 @@ body {
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   cursor: pointer;
-  outline: none;
   text-decoration: none;
-  text-align: center;
 }
-
-/* Hover: cambia color y añade efecto de elevación */
 .menu-btn:hover {
   background-color: #23c483;
   box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
   color: #fff;
   transform: translateY(-5px);
 }
-
-/* Efecto al presionar */
 .menu-btn:active {
   transform: translateY(-2px);
 }
 
-/* ================================================= */
-/* Estilos del botón "btn-53" (Regresar con flecha)  */
-/* ================================================= */
+/* Botón “Regresar” */
 .btn-53 {
   border: 1px solid;
   border-radius: 999px;
-  box-sizing: border-box;
   display: block;
   font-weight: 900;
   overflow: hidden;
   padding: 1.2rem 3rem;
   position: relative;
   text-transform: uppercase;
-  text-decoration: none;
   background-color: #000;
   color: white;
   cursor: pointer;
@@ -333,10 +267,7 @@ body {
   text-align: center;
   margin-bottom: 20px;
   width: 100%;
-  /* Mismo ancho que los demás botones */
 }
-
-/* Texto principal (Regresar) */
 .btn-53 .original {
   background: #fff;
   color: #000;
@@ -348,49 +279,31 @@ body {
   position: absolute;
   transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1);
 }
-
-/* Texto en hover (MENÚ) */
 .btn-53:hover .original {
   transform: translateY(100%);
 }
-
 .btn-53 .letters {
   display: inline-flex;
 }
-
 .btn-53 span {
   opacity: 0;
   transform: translateY(-15px);
   transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1), opacity 0.2s;
 }
-
 .btn-53 span:nth-child(2n) {
   transform: translateY(15px);
 }
-
 .btn-53:hover span {
   opacity: 1;
   transform: translateY(0);
 }
+.btn-53:hover span:nth-child(2) { transition-delay: 0.1s; }
+.btn-53:hover span:nth-child(3) { transition-delay: 0.2s; }
+.btn-53:hover span:nth-child(4) { transition-delay: 0.3s; }
 
-.btn-53:hover span:nth-child(2) {
-  transition-delay: 0.1s;
-}
-
-.btn-53:hover span:nth-child(3) {
-  transition-delay: 0.2s;
-}
-
-.btn-53:hover span:nth-child(4) {
-  transition-delay: 0.3s;
-}
-
-/*--------------------------------------------------------------*/
-
-/* ============================== */
-/*       Busqueda de empleados     */
-/* ============================== */
-
+/* ==========================
+   Formulario de búsqueda
+   ========================== */
 .busqueda-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -398,10 +311,6 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
-
-/* ============================== */
-/*       Campos de entrada        */
-/* ============================== */
 .busqueda-form-grid input {
   padding: 12px;
   border-radius: 20px;
@@ -410,18 +319,13 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   font-size: 14px;
   width: 100%;
-  box-sizing: border-box;
 }
-
 .busqueda-form-grid input:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
-
-/* ============================== */
-/*   Contenedor de botones form   */
-/* ============================== */
+.busqueda-full-width { grid-column: 1 / 3; }
 .busqueda-form-buttons {
   display: flex;
   justify-content: center;
@@ -429,51 +333,27 @@ body {
   align-items: center;
 }
 
-/* ============================== */
-/*        Elementos de grid       */
-/* ============================== */
-/* Para que elementos ocupen toda la fila */
-.busqueda-full-width {
-  grid-column: 1 / 3;
-}
-
-/*--------------------------------------------------------------*/
-
-/*
-  Estilos Modal y campos de formulario
-*/
-
-/* ============================== */
-/* Overlay del modal */
-/* ============================== */
+/* ====================
+   Modal y formularios
+   ==================== */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
-
-/* ============================== */
-/* Contenedor principal del modal */
-/* ============================== */
 .modal-container {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
   padding: 30px;
   width: 90%;
   max-width: 900px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
-
-/* ============================== */
-/* Sección de datos superiores */
-/* ============================== */
 .modal-datos-superiores {
   display: flex;
   justify-content: space-between;
@@ -481,24 +361,13 @@ body {
   font-weight: bold;
   color: #333;
 }
-
-/* ============================== */
-/* Grid del formulario */
-/* ============================== */
 .modal-asignacion-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 25px;
   align-items: start;
 }
-
-.modal-asignacion-full-width {
-  grid-column: 1 / 3;
-}
-
-/* ============================== */
-/* Etiquetas y campos */
-/* ============================== */
+.modal-asignacion-full-width { grid-column: 1 / 3; }
 .modal-asignacion-form-grid label {
   display: block;
   margin-bottom: 8px;
@@ -506,7 +375,6 @@ body {
   color: #333;
   font-size: 14px;
 }
-
 .modal-asignacion-form-grid input,
 .modal-asignacion-form-grid select,
 .modal-asignacion-textarea {
@@ -517,37 +385,24 @@ body {
   font-size: 14px;
   background: white;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 .modal-asignacion-form-grid input:focus,
 .modal-asignacion-textarea:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
-
-
-/* ============================== */
-/* Botón de eliminar en chips */
-/* ============================== */
 .modal-asignacion-remove-btn {
   margin-left: 6px;
   color: #1976d2;
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
   padding: 0 2px;
 }
-
-.modal-asignacion-remove-btn:hover {
-  color: #d32f2f;
-}
-
-/* ============================== */
-/* Botón + para agregar elementos */
-/* ============================== */
+.modal-asignacion-remove-btn:hover { color: #d32f2f; }
 .modal-asignacion-add-empleado-btn,
 .modal-asignacion-add-servicio-btn {
   background-color: #4caf50;
@@ -563,20 +418,14 @@ body {
   font-size: 16px;
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  transition: all 0.2s;
 }
-
 .modal-asignacion-add-empleado-btn:hover,
 .modal-asignacion-add-servicio-btn:hover {
   background-color: #45a049;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 }
-
-/* ============================== */
-/* Dropdowns */
-/* ============================== */
 .modal-asignacion-dropdown-chip,
 .modal-asignacion-dropdown-content {
   position: absolute;
@@ -593,7 +442,6 @@ body {
   margin-top: 5px;
   animation: fadeIn 0.2s ease-out;
 }
-
 .modal-asignacion-dropdown-chip button,
 .modal-asignacion-dropdown-content button {
   width: 100%;
@@ -602,26 +450,22 @@ body {
   background: none;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s;
   font-size: 14px;
   color: #333;
 }
-
 .modal-asignacion-dropdown-chip button:hover,
 .modal-asignacion-dropdown-content button:hover {
   background-color: #f5f5f5;
 }
-
 .modal-asignacion-dropdown-chip button:first-child,
 .modal-asignacion-dropdown-content button:first-child {
   border-radius: 10px 10px 0 0;
 }
-
 .modal-asignacion-dropdown-chip button:last-child,
 .modal-asignacion-dropdown-content button:last-child {
   border-radius: 0 0 10px 10px;
 }
-
 .modal-asignacion-no-opciones {
   padding: 12px 15px;
   color: #666;
@@ -629,11 +473,7 @@ body {
   text-align: center;
   font-size: 14px;
 }
-
-.modal-asignacion-dropdown {
-  position: relative;
-}
-
+.modal-asignacion-dropdown { position: relative; }
 .modal-asignacion-dropdown-trigger {
   padding: 12px;
   border-radius: 20px;
@@ -644,36 +484,28 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
   font-size: 14px;
   color: #333;
 }
-
 .modal-asignacion-dropdown-trigger:hover {
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
-
 .modal-asignacion-arrow {
   font-size: 12px;
   color: #666;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
 }
-
 .modal-asignacion-dropdown-trigger.open .modal-asignacion-arrow {
   transform: rotate(180deg);
 }
-
-/* ============================== */
-/* Botones de acción del modal */
-/* ============================== */
 .modal-asignacion-form-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
   margin-top: 20px;
 }
-
 .modal-asignacion-btn-cancelar,
 .modal-asignacion-btn-confirmar {
   padding: 12px 24px;
@@ -682,125 +514,94 @@ body {
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .modal-asignacion-btn-cancelar {
   background-color: #f44336;
   color: white;
 }
-
 .modal-asignacion-btn-cancelar:hover {
   background-color: #da190b;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
-
 .modal-asignacion-btn-confirmar {
   background-color: #23c483;
   color: white;
 }
-
 .modal-asignacion-btn-confirmar:hover {
   background-color: #1fa374;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* ============================== */
-/* Animaciones */
-/* ============================== */
+/* ======================
+   Animación genérica
+   ====================== */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================== */
-/*        RESPONSIVE DESIGN       */
-/* ============================== */
-
-/* Breakpoint: tablet (768px) */
-@media (max-width: 768px) {
-  .busqueda-form-grid {
-    grid-template-columns: 1fr;
-    /* De dos columnas a una */
-  }
-
-  .busqueda-full-width {
-    grid-column: 1 / 2;
-  }
-
-  .modal-datos-superiores {
+/* =====================
+   Responsive Design
+   ===================== */
+/* ≤ 1024px: tablet landscape */
+@media (max-width: 1024px) {
+  .layout {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
   }
-
   .menu-lateral {
+    flex: 0 0 auto;
     width: 100%;
-    height: auto;
+    border-radius: 0 0 1.25rem 1.25rem;
+    padding: 1rem;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 10px;
   }
-
-  .menu-buttons {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .menu-buttons li {
-    width: auto;
-    flex: 1 1 45%;
-  }
-
-  .menu-btn,
-  .btn-53 {
-    font-size: 12px;
-    padding: 0.8em 1.2em;
+  .main-content {
+    width: 100%;
   }
 }
 
-/* Breakpoint: mobile (480px) */
+/* ≤ 768px: tablet portrait / móvil grande */
+@media (max-width: 768px) {
+  .menu-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .menu-buttons li {
+    flex: 1 1 45%;
+  }
+  .menu-btn,
+  .btn-53 {
+    font-size: 0.85rem;
+    padding: 0.6em 1em;
+  }
+}
+
+/* ≤ 480px: móviles pequeños */
 @media (max-width: 480px) {
-  .modal-container {
-    padding: 15px;
-    max-width: 95%;
-  }
-
-  .busqueda-form-buttons {
+  .layout {
     flex-direction: column;
-    gap: 10px;
   }
-
-  .dropdown-trigger {
-    padding: 10px;
-    font-size: 12px;
+  .menu-lateral {
+    padding: 0.5rem;
   }
-
-  .dropdown-content button {
-    padding: 10px;
-    font-size: 12px;
+  .menu-buttons li {
+    flex: 1 1 100%;
   }
-
-  .modal-chip {
-    font-size: 12px;
-    padding: 5px 10px;
+  .menu-btn,
+  .btn-53 {
+    font-size: 0.75rem;
+    padding: 0.5em 0.8em;
   }
-
-  .container {
-    margin: 0.5cm;
+  .container,
+  .modal-container {
+    margin: 0.5rem;
     width: auto;
     height: auto;
   }

@@ -1,19 +1,20 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import '../../../../styles/Servicios/ResumenGeneral/CalendarioServicios/CalendarioServicios.css';
 
 const CalendarioServicios = ({
+    dataServicios = [],
     onDateSelect,
-    onButtonClick, // Nueva prop para manejar clicks de botones individuales
+    onButtonClick,
     initialDate = null,
     minDate = null,
     maxDate = null,
     currentMonth = null,
     currentYear = null,
-    onMonthChange = null,
     hideNavigation = false,
-    buttonLabels = ['DÍA', 'TARDE'] // Labels personalizables para los botones
+    buttonLabels = ['TURNO 1', 'TURNO 2']
 }) => {
     const [currentDate, setCurrentDate] = useState(() => {
         if (currentMonth !== null && currentYear !== null) {
@@ -30,7 +31,7 @@ const CalendarioServicios = ({
         return new Date();
     });
 
-    const [selectedButton, setSelectedButton] = useState(null); // Para trackear qué botón está seleccionado
+    const [selectedButton, setSelectedButton] = useState(null);
 
     useEffect(() => {
         if (currentMonth !== null && currentYear !== null) {
@@ -79,14 +80,10 @@ const CalendarioServicios = ({
 
     const handleButtonClick = useCallback((day, buttonIndex) => {
         if (isDateDisabled(day)) return;
-        
-        const date = new Date(year, month, day);
-        const dateString = formatDateToYYYYMMDD(date);
-        
-        setSelectedDate(date);
+        const dateObj = new Date(year, month, day);
+        const dateString = formatDateToYYYYMMDD(dateObj);
+        setSelectedDate(dateObj);
         setSelectedButton({ day, buttonIndex, date: dateString });
-        
-        // Llamar ambos callbacks
         onDateSelect?.(dateString);
         onButtonClick?.(dateString, buttonIndex, buttonLabels[buttonIndex]);
     }, [year, month, isDateDisabled, formatDateToYYYYMMDD, onDateSelect, onButtonClick, buttonLabels]);
@@ -103,11 +100,18 @@ const CalendarioServicios = ({
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
+            const dateObj = new Date(year, month, day);
+            const dateString = formatDateToYYYYMMDD(dateObj);
+
+            const serviciosDelDia = dataServicios.filter(s => s.serviceDate === dateString);
+            const totalHours = serviciosDelDia.reduce((sum, s) => sum + (s.totalServiceHours || 0), 0);
+            const fullDay = totalHours === 8;
+
             const isTodayDate = isToday(day);
             const isSelectedDay = isSelected(day);
             const isDisabled = isDateDisabled(day);
 
-            const dayContainerClasses = [
+            const containerClasses = [
                 'modern-date-container',
                 isTodayDate && 'modern-date-container-today',
                 isSelectedDay && 'modern-date-container-selected',
@@ -115,25 +119,30 @@ const CalendarioServicios = ({
             ].filter(Boolean).join(' ');
 
             allDays.push(
-                <div key={`day-${day}`} className={dayContainerClasses}>
+                <div key={`day-${day}`} className={containerClasses}>
                     <div className="modern-date-number">{day}</div>
                     <div className="modern-date-buttons">
                         {buttonLabels.map((label, buttonIndex) => {
-                            const isButtonSelectedForDay = isButtonSelected(day, buttonIndex);
-                            const buttonClasses = [
+                            const ocupado = serviciosDelDia[buttonIndex] !== undefined;
+                            const red = fullDay || ocupado;
+                            const btnStyle = red ? { backgroundColor: '#EF4444', color: '#FFFFFF' } : {};
+                            const selectedBtn = isButtonSelected(day, buttonIndex);
+
+                            const btnClasses = [
                                 'modern-date-button',
-                                isButtonSelectedForDay && 'modern-date-button-selected',
+                                selectedBtn && 'modern-date-button-selected',
                                 isDisabled && 'modern-date-button-disabled'
                             ].filter(Boolean).join(' ');
 
                             return (
                                 <button
                                     key={`${day}-${buttonIndex}`}
-                                    className={buttonClasses}
+                                    className={btnClasses}
+                                    style={btnStyle}
                                     onClick={() => handleButtonClick(day, buttonIndex)}
                                     disabled={isDisabled}
                                     aria-label={`${label} del ${day} de ${currentDate.toLocaleDateString('es-ES', { month: 'long' })} ${year}`}
-                                    aria-pressed={isButtonSelectedForDay}
+                                    aria-pressed={selectedBtn}
                                 >
                                     {label}
                                 </button>
@@ -143,19 +152,8 @@ const CalendarioServicios = ({
                 </div>
             );
         }
-
         return allDays;
-    }, [startDay, daysInMonth, isToday, isSelected, isDateDisabled, handleButtonClick, isButtonSelected, currentDate, year, buttonLabels]);
-
-    const changeMonth = useCallback((offset) => {
-        if (hideNavigation) return;
-        setCurrentDate(prevDate => {
-            const newDate = new Date(prevDate);
-            newDate.setMonth(prevDate.getMonth() + offset);
-            onMonthChange?.(newDate.getMonth(), newDate.getFullYear());
-            return newDate;
-        });
-    }, [onMonthChange, hideNavigation]);
+    }, [startDay, daysInMonth, isToday, isSelected, isDateDisabled, handleButtonClick, isButtonSelected, dataServicios, formatDateToYYYYMMDD, buttonLabels, currentDate, year, month]);
 
     const monthNames = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',

@@ -11,7 +11,6 @@ const CalendarioEspacios = ({
     maxDate = null,
     currentMonth = null,
     currentYear = null,
-    onMonthChange = null,
     hideNavigation = false,
     buttonLabels = ['DISPONIBLE', 'OCUPADO', 'PERMISO/VAC'] // Labels personalizables para los tres botones
 }) => {
@@ -147,16 +146,6 @@ const CalendarioEspacios = ({
 
         return allDays;
     }, [startDay, daysInMonth, isToday, isSelected, isDateDisabled, handleButtonClick, isButtonSelected, currentDate, year, buttonLabels]);
-
-    const changeMonth = useCallback((offset) => {
-        if (hideNavigation) return;
-        setCurrentDate(prevDate => {
-            const newDate = new Date(prevDate);
-            newDate.setMonth(prevDate.getMonth() + offset);
-            onMonthChange?.(newDate.getMonth(), newDate.getFullYear());
-            return newDate;
-        });
-    }, [onMonthChange, hideNavigation]);
 
     const monthNames = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',

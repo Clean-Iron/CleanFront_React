@@ -40,7 +40,7 @@ const Clientes = () => {
   };
   
   return (
-    <div className="flex">
+    <div className="layout">
       <Sidebar onNavClick={cambiarComponente} seccionActiva={componenteActual} />
       {renderComponente()}
     </div>
