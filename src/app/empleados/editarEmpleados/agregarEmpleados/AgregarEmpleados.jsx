@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { agregarEmpleado } from "@/lib/Services/Logic.js";
+import { useCiudades } from "@/lib/Hooks/Hooks";
 
 const AgregarEmpleados = () => {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
+  const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [selectedCargo, setSelectedCargo] = useState("");
   const [selectedEstado, setSelectedEstado] = useState("");
@@ -21,10 +23,6 @@ const AgregarEmpleados = () => {
   const cargoDropdownRef = useRef(null);
   const estadoDropdownRef = useRef(null);
 
-  const ciudades = [
-    "Bogotá", "Medellín", "Cali",
-    "Barranquilla", "Bucaramanga", "Cartagena"
-  ];
   const cargos = [
     "Coordinador", "Supervisor", "Asistente Administrativo",
     "Secretario/a", "Auxiliar", "Contador",
@@ -140,7 +138,6 @@ const AgregarEmpleados = () => {
       />
 
       <input type="text" placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
-      <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
 
       {/* Dropdown Ciudad */}
       <div className="dropdown" ref={ciudadDropdownRef}>
@@ -150,14 +147,25 @@ const AgregarEmpleados = () => {
         </button>
         {ciudadDropdownOpen && (
           <div className="dropdown-content">
-            {ciudades.map((ciudad, index) => (
-              <button key={index} type="button" onClick={() => { setSelectedCity(ciudad); setCiudadDropdownOpen(false); }}>
+            {ciudadesLoading && <div>Cargando ciudades...</div>}
+            {ciudadesError && <div>Error al cargar ciudades</div>}
+            {!ciudadesLoading && !ciudadesError && ciudades.map((ciudad, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setSelectedCity(ciudad);
+                  setCiudadDropdownOpen(false);
+                }}
+              >
                 {ciudad}
               </button>
             ))}
           </div>
         )}
       </div>
+
+      <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
 
       {/* Dropdown Cargo */}
       <div className="dropdown" ref={cargoDropdownRef}>

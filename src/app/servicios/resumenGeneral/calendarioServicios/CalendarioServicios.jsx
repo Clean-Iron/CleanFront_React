@@ -1,6 +1,3 @@
-
-'use client';
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import '../../../../styles/Servicios/ResumenGeneral/CalendarioServicios/CalendarioServicios.css';
 
@@ -95,17 +92,27 @@ const CalendarioServicios = ({
     const days = useMemo(() => {
         const allDays = [];
 
+        // Espacios vacíos antes del primer día del mes
         for (let i = 0; i < startDay; i++) {
             allDays.push(<div key={`empty-${i}`} className="modern-date-empty" />);
         }
 
+        // Generar cada día del mes
         for (let day = 1; day <= daysInMonth; day++) {
             const dateObj = new Date(year, month, day);
             const dateString = formatDateToYYYYMMDD(dateObj);
 
+            // Filtrar servicios para este día
             const serviciosDelDia = dataServicios.filter(s => s.serviceDate === dateString);
+
+            // Separar servicio de mañana y tarde por hora de inicio
+            const morningService = serviciosDelDia.find(s => s.startHour < '13:00:00');
+            const afternoonService = serviciosDelDia.find(s => s.startHour >= '13:00:00');
+            const orderedServices = [morningService, afternoonService];
+
+            // Calcular horas totales para día completo
             const totalHours = serviciosDelDia.reduce((sum, s) => sum + (s.totalServiceHours || 0), 0);
-            const fullDay = totalHours === 8;
+            const fullDay = totalHours >= 8;
 
             const isTodayDate = isToday(day);
             const isSelectedDay = isSelected(day);
@@ -122,29 +129,43 @@ const CalendarioServicios = ({
                 <div key={`day-${day}`} className={containerClasses}>
                     <div className="modern-date-number">{day}</div>
                     <div className="modern-date-buttons">
-                        {buttonLabels.map((label, buttonIndex) => {
-                            const ocupado = serviciosDelDia[buttonIndex] !== undefined;
+                        {orderedServices.map((servicio, index) => {
+                            const ocupado = !!servicio;
                             const red = fullDay || ocupado;
-                            const btnStyle = red ? { backgroundColor: '#EF4444', color: '#FFFFFF' } : {};
-                            const selectedBtn = isButtonSelected(day, buttonIndex);
 
+                            // Contenido de botón:
+                            // - Si hay servicio: siempre mostrar hora + cliente
+                            // - Si no hay servicio y no es fullDay: mostrar etiqueta turno
+                            // - Si es fullDay y no hay servicio en este slot: ocultar etiqueta
+                            let contenido = null;
+                            if (servicio) {
+                                contenido = (
+                                    <>
+                                        <div>{`${servicio.startHour.slice(0,5)}-${servicio.endHour.slice(0,5)}`}</div>
+                                        <div className="modern-btn-client">{servicio.nombreCompletoCliente}</div>
+                                    </>
+                                );
+                            } else if (!fullDay) {
+                                contenido = buttonLabels[index];
+                            }
+
+                            const btnStyle = red ? { backgroundColor: '#EF4444', color: '#FFFFFF' } : {};
                             const btnClasses = [
                                 'modern-date-button',
-                                selectedBtn && 'modern-date-button-selected',
+                                isButtonSelected(day, index) && 'modern-date-button-selected',
                                 isDisabled && 'modern-date-button-disabled'
                             ].filter(Boolean).join(' ');
 
                             return (
                                 <button
-                                    key={`${day}-${buttonIndex}`}
+                                    key={`${day}-${index}`}
                                     className={btnClasses}
                                     style={btnStyle}
-                                    onClick={() => handleButtonClick(day, buttonIndex)}
+                                    onClick={() => handleButtonClick(day, index)}
                                     disabled={isDisabled}
-                                    aria-label={`${label} del ${day} de ${currentDate.toLocaleDateString('es-ES', { month: 'long' })} ${year}`}
-                                    aria-pressed={selectedBtn}
+                                    aria-pressed={isButtonSelected(day, index)}
                                 >
-                                    {label}
+                                    {contenido}
                                 </button>
                             );
                         })}
@@ -153,7 +174,7 @@ const CalendarioServicios = ({
             );
         }
         return allDays;
-    }, [startDay, daysInMonth, isToday, isSelected, isDateDisabled, handleButtonClick, isButtonSelected, dataServicios, formatDateToYYYYMMDD, buttonLabels, currentDate, year, month]);
+    }, [startDay, daysInMonth, isToday, isSelected, isDateDisabled, handleButtonClick, isButtonSelected, dataServicios, formatDateToYYYYMMDD, buttonLabels]);
 
     const monthNames = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -163,17 +184,13 @@ const CalendarioServicios = ({
     return (
         <div className="modern-calendar" role="application" aria-label="Calendario de selección de fechas">
             <div className="modern-month-header">
-                <h2 className={`modern-month-title ${hideNavigation ? 'centered' : ''}`}>
-                    {monthNames[month]} {year}
-                </h2>
+                <h2 className={`modern-month-title ${hideNavigation ? 'centered' : ''}`}>{monthNames[month]} {year}</h2>
             </div>
-
             <div className="modern-weekdays">
-                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day, index) => (
-                    <div key={index} className="modern-weekday">{day}</div>
+                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((dayName, i) => (
+                    <div key={i} className="modern-weekday">{dayName}</div>
                 ))}
             </div>
-
             <div className="modern-calendar-grid">
                 {days}
             </div>

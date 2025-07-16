@@ -1,40 +1,33 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import { useCiudades } from "@/lib/Hooks/Hooks";
+
 
 const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
+	const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
+
 	const [direcciones, setDirecciones] = useState([]);
 	const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState({});
 	const ciudadDropdownRefs = useRef({});
 
-	// Lista de ciudades disponibles
-	const ciudades = [
-		"Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena",
-		"Bucaramanga", "Pereira", "Manizales", "Ibagué", "Cucuta",
-		"Barcelona", "Madrid", "Valencia"
-	];
-
 	useEffect(() => {
-		if (cliente && cliente.addresses) {
-			const direccionesExistentes = cliente.addresses.map(addr => ({
-				id: addr.id,
-				address: addr.address || '',
-				city: addr.city || '',
-				description: addr.description || ''
-			}));
-
-			// Si no hay direcciones, crear una vacía
-			if (direccionesExistentes.length === 0) {
-				direccionesExistentes.push({
-					id: Date.now(),
-					address: '',
-					city: '',
-					description: ''
-				});
-			}
-
-			setDirecciones(direccionesExistentes);
+		const arr = Array.isArray(cliente.addresses) ? cliente.addresses : [];
+		const inicial = arr.map(addr => ({
+			id: addr.id,
+			address: addr.address || '',
+			city: addr.city || '',
+			description: addr.description || ''
+		}));
+		if (inicial.length === 0) {
+			inicial.push({
+				id: `temp-${Date.now()}`,
+				address: '',
+				city: '',
+				description: ''
+			});
 		}
-	}, [cliente]);
+		setDirecciones(inicial);
+	}, [cliente.addresses]);
 
 	// Manejar clicks fuera del dropdown
 	useEffect(() => {
@@ -177,11 +170,13 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
 													overflowY: 'auto'
 												}}
 											>
-												{ciudades.map((ciudad, index) => (
+												{ciudadesLoading && <div>Cargando ciudades...</div>}
+												{ciudadesError && <div>Error al cargar ciudades</div>}
+												{!ciudadesLoading && !ciudadesError && ciudades.map((ciu, idx) => (
 													<button
-														key={index}
+														key={`${direccion.id}-${ciu}`}
 														type="button"
-														onClick={() => handleCiudadSelect(direccion.id, ciudad)}
+														onClick={() => handleCiudadSelect(direccion.id, ciu)}
 														style={{
 															display: 'block',
 															width: '100%',
@@ -190,16 +185,12 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
 															border: 'none',
 															backgroundColor: 'transparent',
 															cursor: 'pointer',
-															borderBottom: index < ciudades.length - 1 ? '1px solid #eee' : 'none'
+															borderBottom: idx < ciudades.length - 1 ? '1px solid #eee' : 'none'
 														}}
-														onMouseEnter={(e) => {
-															e.target.style.backgroundColor = '#f5f5f5';
-														}}
-														onMouseLeave={(e) => {
-															e.target.style.backgroundColor = 'transparent';
-														}}
+														onMouseEnter={e => e.target.style.backgroundColor = '#f5f5f5'}
+														onMouseLeave={e => e.target.style.backgroundColor = 'transparent'}
 													>
-														{ciudad}
+														{ciu}
 													</button>
 												))}
 											</div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { buscarEmpleadosByCity, buscarServiciosPorMesDeEmpleado } from "@/lib/Services/Logic.js";
+import { useCiudades } from "@/lib/Hooks/Hooks.js";
 import CalendarioServicios from "./calendarioServicios/CalendarioServicios";
 import CalendarioEspacios from "./calendarioEspacios/CalendarioEspacios";
 
@@ -11,6 +12,7 @@ const ResumenGeneral = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [city, setCity] = useState('');
+  const { ciudades, isLoading, isError } = useCiudades();
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dataServicios, setDataServicios] = useState([]);
@@ -26,8 +28,6 @@ const ResumenGeneral = () => {
   const employeeDropdownRef = useRef(null);
 
   const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-  const cities = ["Bogota", "Medellin", "Madrid", "Barranquilla", "Cartagena"];
-
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
@@ -239,7 +239,9 @@ const ResumenGeneral = () => {
                           Limpiar selección
                         </button>
                       )}
-                      {cities.map((c, idx) => (
+                      {isLoading && <div>Cargando ciudades...</div>}
+                      {isError && <div>Error al cargar ciudades</div>}
+                      {!isLoading && !isError && ciudades.map((c, idx) => (
                         <button
                           key={idx}
                           type="button"

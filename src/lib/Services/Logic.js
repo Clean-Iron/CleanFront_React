@@ -1,245 +1,115 @@
-import axios from "axios";
+import axios from 'axios';
 
-const getApiBaseUrl = () => {
-    if (typeof window !== "undefined") {
-        const isDevelopment =
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
+// URL base de la API, definida en .env
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-        if (isDevelopment) {
-            console.log('url local');
-            return "http://localhost:8080";
-        }
+// Instancia de axios con configuración común
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' }
+});
 
-        console.log('url despliegue');
-        return "https://cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
-    }
-
-    console.log('url despliegue');
-    return "https://cleanbackend-esfpg9c5cnajd0eq.eastus2-01.azurewebsites.net";
-};
-
-
-
-const API_URL = getApiBaseUrl();
-
+// Servicios
 export const obtenerServicios = async () => {
-    const response = await axios.get(`${API_URL}/service/all`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
-};
-
-export const obtenerClientesConDireccionCiudad = async (city) => {
-    const response = await axios.get(`${API_URL}/client/clientsByCity/${city}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get('/service/all');
+  return data;
 };
 
 export const asignarServicio = async (schedule) => {
-    try {
-        const response = await axios.post(`${API_URL}/schedule`, schedule, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error al guardar la agenda:", error);
-        throw error;
-    }
+  const { data } = await api.post('/schedule', schedule);
+  return data;
 };
 
-export const agregarCliente = async (empleado) => {
-    const response = await axios.post(`${API_URL}/client`, empleado, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    return response.data;
+// Clientes
+export const buscarClientes = async () => {
+  const { data } = await api.get('/client');
+  return data;
+};
+
+export const obtenerClientesConDireccionCiudad = async (city) => {
+  const { data } = await api.get(`/client/clientsByCity/${encodeURIComponent(city)}`);
+  return data;
+};
+
+export const agregarCliente = async (cliente) => {
+  const { data } = await api.post('/client', cliente);
+  return data;
 };
 
 export const buscarClienteById = async (id) => {
-    const response = await axios.get(`${API_URL}/client/${id}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get(`/client/${id}`);
+  return data;
 };
 
 export const actualizarCliente = async (id, datos) => {
-    try {
-        await axios.put(`${API_URL}/client/${id}`, datos, {
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
-    } catch (error) {
-        console.error("Error al actualizar el cliente:", error);
-        throw error;
-    }
+  await api.put(`/client/${id}`, datos);
 };
 
-export const buscarClientes = async () => {
-    const response = await axios.get(`${API_URL}/client/clients`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
-};
-
-export const agregarEmpleado = async (empleado) => {
-    const response = await axios.post(`${API_URL}/employee/new`, empleado, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    return response.data;
+// Empleados
+export const buscarEmpleados = async () => {
+  const { data } = await api.get('/employee');
+  return data;
 };
 
 export const buscarEmpleadoById = async (id) => {
-    const response = await axios.get(`${API_URL}/employee/id/${id}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get(`/employee/id/${id}`);
+  return data;
+};
+
+export const agregarEmpleado = async (empleado) => {
+  const { data } = await api.post('/employee/new', empleado);
+  return data;
 };
 
 export const buscarEmpleadosByCity = async (city) => {
-    const response = await axios.get(`${API_URL}/employee/city/${city}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get(`/employee/city/${encodeURIComponent(city)}`);
+  return data;
 };
 
 export const actualizarEmpleado = async (id, datosParciales) => {
-    try {
-        const response = await axios.patch(`${API_URL}/employee/update/${id}`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(datosParciales)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error al actualizar empleado: ${response.status}`);
-        }
-
-        const empleadoActualizado = await response.json();
-        return empleadoActualizado;
-    } catch (error) {
-        console.error("Error:", error);
-        throw error;
-    }
-}
-
-export const buscarEmpleados = async () => {
-    const response = await axios.get(`${API_URL}/employee`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.patch(`/employee/update/${id}`, datosParciales);
+  return data;
 };
 
 export const eliminarEmpleado = async (id) => {
-    await axios.delete(`${API_URL}/employee/delete/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-}
+  await api.delete(`/employee/delete/${id}`);
+};
 
+// Disponibilidad y agenda
 export const buscarDisponibilidad = async (date, startHour, endHour, city) => {
-    const response = await axios.get(`${API_URL}/employee/available`, {
-        params: {
-            date,
-            startHour,
-            endHour,
-            city
-        },
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get('/employee/available', {
+    params: { date, startHour, endHour, city }
+  });
+  return data;
 };
 
 export const buscarServiciosPorMesDeEmpleado = async (doc, year, month) => {
-    const response = await axios.get(`${API_URL}/schedule/servicesEmployee/${doc}`, {
-        params: {
-            year: year,
-            month: month
-        },
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get(`/schedule/servicesEmployee/${doc}`, {
+    params: { year, month }
+  });
+  return data;
 };
 
 export const buscarServicios = async (date) => {
-    console.log(date);
-    const response = await axios.get(`${API_URL}/schedule/${date}`, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const { data } = await api.get(`/schedule/${date}`);
+  return data;
 };
 
 export const buscarServiciosConParam = async (nombre, apellido, selectedCity, date) => {
-    // Si solo date está presente (los otros campos están vacíos)
-    if (date && (!nombre || nombre.trim() === '') && (!apellido || apellido.trim() === '') && (!selectedCity || selectedCity.trim() === '')) {
-        const response = await axios.get(`${API_URL}/schedule/${date}`, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data;
-    }
-
-    // Si hay otros parámetros además de date, usar la búsqueda con params
-    const response = await axios.get(`${API_URL}/schedule/${date}`, {
-        params: {
-            city: selectedCity,
-            name: nombre,
-            surname: apellido
-        },
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-    return response.data;
+  const params = { name: nombre, surname: apellido, city: selectedCity };
+  // Si sólo hay fecha, no pasamos otros parámetros
+  const endpoint = date && !nombre && !apellido && !selectedCity
+    ? `/schedule/${date}`
+    : `/schedule/${date}`;
+  const { data } = await api.get(endpoint, { params });
+  return data;
 };
 
 export const actualizarServicio = async (id, datos) => {
-    try {
-        const response = await axios.patch(`${API_URL}/schedule/${id}`, datos);
-        console.log('Servicio actualizado:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error al actualizar el servicio:', error.response?.data || error.message);
-        throw error;
-    }
+  const { data } = await api.patch(`/schedule/${id}`, datos);
+  return data;
 };
 
 export const eliminarServicio = async (id) => {
-    try {
-        await axios.delete(`${API_URL}/schedule/${id}`);
-    } catch (error) {
-        console.error('Error al actualizar el servicio:', error.response?.data || error.message);
-        throw error;
-    }
+  await api.delete(`/schedule/${id}`);
 };
-

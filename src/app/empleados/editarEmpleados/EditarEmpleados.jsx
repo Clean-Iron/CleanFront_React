@@ -3,6 +3,7 @@ import BuscarEmpleados from "./buscarEmpleados/BuscarEmpleados";
 import EliminarEmpleados from "./eliminarEmpleados/EliminarEmpleados";
 import AgregarEmpleados from "./agregarEmpleados/AgregarEmpleados";
 import { actualizarEmpleado } from "@/lib/Services/Logic.js";
+import { useCiudades } from "@/lib/Hooks/Hooks";
 import "../../../styles/Empleados/EditarEmpleados/EditarEmpleados.css";
 
 const EditarEmpleados = () => {
@@ -18,6 +19,7 @@ const EditarEmpleados = () => {
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
@@ -30,7 +32,6 @@ const EditarEmpleados = () => {
   const cargoDropdownRef = useRef(null);
   const estadoDropdownRef = useRef(null);
 
-  const ciudades = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Bucaramanga", "Cartagena"];
   const cargos = [
     "Coordinador", "Supervisor", "Asistente Administrativo", "Secretario/a",
     "Auxiliar", "Contador", "Recursos Humanos", "Atención al Cliente", "Operario"
@@ -79,14 +80,14 @@ const EditarEmpleados = () => {
       setEmpleadoEncontrado(datos);
       setSelectedCargo(datos.position);
       setSelectedEstado(datos.state ? "Activo" : "Inactivo");
-      
+
       // Handle different behaviors based on active tab
       if (activeTab === "edit") {
         setMostrarFormulario(true);
       } else if (activeTab === "delete") {
         setMostrarEliminarForm(true);
       }
-      
+
       setMensajeError("");
     } else {
       setEmpleadoEncontrado(null);
@@ -144,44 +145,8 @@ const EditarEmpleados = () => {
         value={apellido}
         onChange={(e) => setApellido(e.target.value)}
       />
-      <input
-        type="text"
-        placeholder="Documento"
-        value={documento}
-        onChange={(e) => setDocumento(e.target.value)}
-      />
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input type="text" placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
-      <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
 
-      {/* Dropdown Ciudad */}
-      <div className="dropdown" ref={ciudadDropdownRef}>
-        <button type="button" className={`dropdown-trigger ${ciudadDropdownOpen ? "open" : ""}`} onClick={() => setCiudadDropdownOpen(!ciudadDropdownOpen)}>
-          <span>{selectedCity || "Seleccionar ciudad"}</span>
-          <span className="arrow">▼</span>
-        </button>
-        {ciudadDropdownOpen && (
-          <div className="dropdown-content">
-            {ciudades.map((ciudad, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => {
-                  setSelectedCity(ciudad);
-                  setCiudadDropdownOpen(false);
-                }}
-              >
-                {ciudad}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Dropdown Cargo */}
       <div className="dropdown" ref={cargoDropdownRef}>
         <button
           type="button"
@@ -208,6 +173,48 @@ const EditarEmpleados = () => {
           </div>
         )}
       </div>
+
+      <input
+        type="text"
+        placeholder="Documento"
+        value={documento}
+        onChange={(e) => setDocumento(e.target.value)}
+      />
+      <input
+        type="email"
+        placeholder="Correo electrónico"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input type="text" placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+      {/* Dropdown Ciudad */}
+      <div className="dropdown" ref={ciudadDropdownRef}>
+        <button type="button" className={`dropdown-trigger ${ciudadDropdownOpen ? "open" : ""}`} onClick={() => setCiudadDropdownOpen(!ciudadDropdownOpen)}>
+          <span>{selectedCity || "Seleccionar ciudad"}</span>
+          <span className="arrow">▼</span>
+        </button>
+        {ciudadDropdownOpen && (
+          <div className="dropdown-content">
+            {ciudadesLoading && <div>Cargando ciudades...</div>}
+            {ciudadesError && <div>Error al cargar ciudades</div>}
+            {!ciudadesLoading && !ciudadesError && ciudades.map((ciu, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setSelectedCity(ciu);
+                  setCiudadDropdownOpen(false);
+                }}
+              >
+                {ciu}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
 
       <div className="dropdown" ref={estadoDropdownRef}>
         <button
@@ -278,7 +285,7 @@ const EditarEmpleados = () => {
     if (activeTab === "delete") {
       // Show search component first, then delete component with employee data
       return mostrarEliminarForm ? (
-        <EliminarEmpleados 
+        <EliminarEmpleados
           empleadoData={empleadoEncontrado}
           onVolver={resetBusqueda}
         />

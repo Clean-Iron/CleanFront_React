@@ -135,6 +135,7 @@ const AgregarClientes = () => {
 
       {mostrarModalDirecciones && (
         <ModalEditarDirecciones
+          cliente={{ addresses: direcciones }}
           onClose={() => setMostrarModalDirecciones(false)}
           onGuardar={manejarGuardarDirecciones}
         />
