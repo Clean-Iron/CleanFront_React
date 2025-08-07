@@ -1,7 +1,8 @@
 'use client';
 import { useState } from "react";
-import EspaciosDisponibles from "./espaciosDisponibles/EspaciosDisponibles";
-import FiltrarDisponibilidad from "./filtrarDisponibilidad/FiltrarDisponibilidad";
+import { buscarDisponibilidad } from '@/lib/Logic.js';
+import EspaciosDisponibles from "./EspaciosDisponibles";
+import FiltrarDisponibilidad from "./FiltrarDisponibilidad";
 
 const InfoDisponibilidad = () => {
   const [employees, setEmployees] = useState([]);
@@ -18,15 +19,26 @@ const InfoDisponibilidad = () => {
     setCity(city);
   };
 
+  const refreshDisponibilidad = async () => {
+    try {
+      const data = await buscarDisponibilidad(date, startHour, endHour, city);
+      setEmployees(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error refrescando disponibilidad:", err);
+      setEmployees([]);
+    }
+  };
+
   return (
     <div className="container">
       <FiltrarDisponibilidad onEmployeesUpdate={handleInfo} />
-      <EspaciosDisponibles 
-        employees={employees} 
+      <EspaciosDisponibles
+        employees={employees}
         date={date}
-        startHour={startHour} 
-        endHour={endHour} 
+        startHour={startHour}
+        endHour={endHour}
         city={city}
+        onAssigned={refreshDisponibilidad}
       />
     </div>
   );

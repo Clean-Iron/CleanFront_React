@@ -1,5 +1,5 @@
-import "../styles/Inicio/ButtonInicio.css";
 import Link from "next/link";
+import "../styles/Inicio/ButtonInicio.css";
 
 export default function Home() {
   return (

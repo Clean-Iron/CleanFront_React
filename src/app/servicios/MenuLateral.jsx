@@ -4,8 +4,8 @@ import Link from "next/link";
 const Menu = ({ onNavClick, seccionActiva }) => {
 	return (
 		<div className="menu-lateral">
-			<Link href={"/menu-principal"} className="btn-53">
-				<div className="original">⬅ Regresar</div>
+			<Link href="/menu-principal" className="btn-53">
+				<div className="original">← Regresar</div>
 				<div className="letters">
 					<span>M</span>
 					<span>E</span>
@@ -16,8 +16,11 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 			<div className="menu-buttons">
 				<ul>
 					<li>
-						<Link href="/servicios/resumenGeneral"  className={`menu-btn ${seccionActiva === "resumenGeneral" ? "activo" : ""}`}>
-							📋 Resumen General
+						<Link
+							href="/servicios/resumenGeneral"
+							className={`menu-btn ${seccionActiva === "resumenGeneral" ? "activo" : ""}`}
+						>
+							📈 Resumen General
 						</Link>
 					</li>
 					<li>
@@ -25,7 +28,7 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoServicios" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoServicios")}
 						>
-							📋 Información Tareas
+							📝 Información Tareas
 						</button>
 					</li>
 					<li>
@@ -33,7 +36,7 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoDisponibilidad" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoDisponibilidad")}
 						>
-							Buscar Disponibilidad
+							🔍 Buscar Disponibilidad
 						</button>
 					</li>
 					<li>
@@ -41,7 +44,7 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
 							onClick={() => onNavClick("editarTarea")}
 						>
-							📋 Editar Tarea
+							✏️ Editar Tarea
 						</button>
 					</li>
 				</ul>

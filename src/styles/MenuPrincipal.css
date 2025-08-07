@@ -1,116 +1,66 @@
-.main {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    gap: 0.8em; /* Más espacio entre filas */
+/* Wrapper centrado sin tocar fondo de página */
+.menu-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
 }
 
-.up,
-.down {
-    display: flex;
-    flex-direction: row;
-    gap: 0.8em; /* Más espacio entre botones */
+/* Grid responsivo: de 1 a 4 columnas según ancho */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
 }
 
-.card1,
-.card2,
-.card3,
-.card4 {
-    width: 120px;  /* Más grandes */
-    height: 120px; /* Más grandes */
-    outline: none;
-    border: none;
-    background: rgb(161, 219, 255);
-    box-shadow:
-        rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
-        rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
-
-    /* Centrar contenido */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Estilo común de las cards */
+.menu-card {
+  background: rgb(161, 219, 255);
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
+    rgba(0, 0, 0, 0.3)     0px 1px 3px -1px;
+  padding: 1rem;
+  text-align: center;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.card1 {
-    border-radius: 120px 5px 5px 5px;
+/* Iconos proporcionales */
+.menu-icon {
+  width: 40%;
+  height: auto;
+  margin-bottom: 0.5rem;
 }
 
-.card2 {
-    border-radius: 5px 120px 5px 5px;
+/* Texto bajo el icono */
+.menu-label {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.card3 {
-    border-radius: 5px 5px 5px 120px;
+/* Hover: levanta y recolorea */
+.menu-card:hover {
+  cursor: pointer;
+  transform: translateY(-4px);
+  background-color: #03a9f4;
+  color: white;
+}
+.menu-card:hover .menu-icon {
+  fill: white;
 }
 
-.card4 {
-    border-radius: 5px 5px 120px 5px;
-}
-
-/* Estilos de los íconos */
-.whatsapp,
-.calendario,
-.clientes,
-.empleados {
-    width: 55px; /* Más grandes */
-    height: 55px; /* Más grandes */
-    display: block;
-}
-
-/* Colores */
-.whatsapp {
-    fill: #16c716;
-}
-
-.calendario {
-    fill: #03a9f4;
-}
-
-.clientes {
-    fill: black;
-}
-
-.empleados {
-    fill: #ff9c63;
-}
-
-/* Hover */
-.card1:hover {
-    cursor: pointer;
-    transform: scale(1.15);
-    background-color: #00ff00;
-}
-
-.card2:hover {
-    cursor: pointer;
-    transform: scale(1.15);
-    background-color: #03a9f4;
-}
-
-.card2:hover .calendario {
-    fill: white;
-}
-
-.card3:hover {
-    cursor: pointer;
-    transform: scale(1.15);
-    background-color: rgb(227, 114, 255);
-}
-
-.card3:hover .clientes {
-    fill: white;
-}
-
-.card4:hover {
-    cursor: pointer;
-    transform: scale(1.15);
-    background-color: #8c9eff;
-}
-
-.card4:hover .empleados {
-    fill: white;
-}
+/* Colores originales de cada icono */
+.whatsapp   { fill: #16c716; }
+.calendario { fill: #03a9f4; }
+.clientes   { fill: #333;    }
+.empleados  { fill: #ff9c63; }
