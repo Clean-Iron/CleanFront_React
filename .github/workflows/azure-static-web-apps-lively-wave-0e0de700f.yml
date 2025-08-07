@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # 1) Inyectamos la URL de backend antes del build
+      # 1) Inyectamos la URL del backend antes del build
       - name: Set NEXT_PUBLIC_API_URL
         run: echo "NEXT_PUBLIC_API_URL=${{ secrets.BACKEND_URL }}" >> .env.production
 
@@ -32,7 +32,7 @@ jobs:
       - name: Build and export Next.js static site
         run: |
           npm run build
-          npx next export -o out
+          npx next export       # <-- aquí quitamos el -o
 
       - name: Deploy to Azure Static Web Apps
         id: swa
@@ -41,8 +41,8 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DELIGHTFUL_POND_092100D0F }}
           repo_token:                     ${{ secrets.GITHUB_TOKEN }}
           action:                         upload
-          app_location:                   out
-          api_location:                   ""          # ← así omitimos la carpeta api
+          app_location:                   out   # Next export crea ./out
+          api_location:                   ""    # omitimos /api
           skip_app_build:                 true
 
   close_pull_request_job:
