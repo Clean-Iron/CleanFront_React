@@ -14,7 +14,11 @@ jobs:
     name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v3
-      
+
+      # ① Inyecta la URL del backend en .env.production
+      - name: Set NEXT_PUBLIC_API_URL
+        run: echo "NEXT_PUBLIC_API_URL=${{ secrets.BACKEND_URL }}" >> .env.production
+
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
@@ -24,7 +28,7 @@ jobs:
         run: npm install
       
       - name: Build static site with Next.js
-        run: npm run build
+        run: npm run build && npm run export   # asume que export genera la carpeta 'out'
       
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
