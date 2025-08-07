@@ -9,14 +9,15 @@ on:
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' ||
+        (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
 
     steps:
       - uses: actions/checkout@v3
 
-      # Inyecta la URL del backend en tiempo de build
+      # 1) Inyectamos la URL de backend antes del build
       - name: Set NEXT_PUBLIC_API_URL
         run: echo "NEXT_PUBLIC_API_URL=${{ secrets.BACKEND_URL }}" >> .env.production
 
@@ -26,7 +27,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build and export Next.js static site
         run: |
@@ -34,14 +35,15 @@ jobs:
           npx next export -o out
 
       - name: Deploy to Azure Static Web Apps
-        id: builddeploy
+        id: swa
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_WAVE_0E0DE700F }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "out"
-          skip_app_build: true
+          repo_token:                     ${{ secrets.GITHUB_TOKEN }}
+          action:                         upload
+          app_location:                   out
+          api_location:                   ""          # ← así omitimos la carpeta api
+          skip_app_build:                 true
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -50,8 +52,7 @@ jobs:
 
     steps:
       - name: Close Pull Request
-        id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_WAVE_0E0DE700F }}
-          action: "close"
+          action:                         close
