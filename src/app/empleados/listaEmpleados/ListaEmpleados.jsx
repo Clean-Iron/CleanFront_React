@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { buscarEmpleados } from "@/lib/Services/Logic.js";
-import "../../../styles/Empleados/ListaEmpleados/ListaEmpleados.css";
+import { buscarEmpleados } from "@/lib/Logic.js";
+import "@/styles/Empleados/ListaEmpleados.css";
 
 const ListaEmpleados = () => {
   const [empleados, setEmpleados] = useState([]);
@@ -70,7 +70,7 @@ const ListaEmpleados = () => {
       const documento = (empleado.document || '').toString();
       const telefono = (empleado.phone || '').toString();
 
-      const coincideBusqueda = terminoBusqueda === '' || 
+      const coincideBusqueda = terminoBusqueda === '' ||
         nombreCompleto.includes(terminoBusqueda) ||
         email.includes(terminoBusqueda) ||
         ciudad.includes(terminoBusqueda) ||
@@ -127,8 +127,8 @@ const ListaEmpleados = () => {
               Todas las ciudades
             </button>
             {ciudadesUnicas.map(ciudad => (
-              <button 
-                key={ciudad} 
+              <button
+                key={ciudad}
                 onClick={() => aplicarFiltro('ciudad', ciudad)}
                 className={filtros.ciudad === ciudad ? 'selected' : ''}
               >
@@ -140,25 +140,25 @@ const ListaEmpleados = () => {
       case 'Ordenar':
         return (
           <>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'nombre')}
               className={filtros.ordenamiento === 'nombre' ? 'selected' : ''}
             >
               Por Nombre
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'documento')}
               className={filtros.ordenamiento === 'documento' ? 'selected' : ''}
             >
               Por Documento
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'email')}
               className={filtros.ordenamiento === 'email' ? 'selected' : ''}
             >
               Por Email
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'ciudad')}
               className={filtros.ordenamiento === 'ciudad' ? 'selected' : ''}
             >
@@ -180,8 +180,16 @@ const ListaEmpleados = () => {
   if (loading) {
     return (
       <div className="container">
-        <div className="lista-clientes-content">
-          <div className="loading">Cargando empleados...</div>
+        <div
+          className="lista-clientes-content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div className="no-results">Cargando Empleados...</div>
         </div>
       </div>
     );
@@ -190,9 +198,23 @@ const ListaEmpleados = () => {
   if (error) {
     return (
       <div className="container">
-        <div className="lista-clientes-content">
-          <div className="error">
-            {error}
+        <div
+          className="lista-clientes-content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div
+            className="no-results"
+            style={{ flexDirection: 'column', gap: '1rem' }}
+          >
+            {/* Mensaje de error */}
+            <span>{error}</span>
+
+            {/* Botón abajo del texto */}
             <button onClick={handleConsulta} className="retry-btn">
               Reintentar
             </button>
@@ -270,7 +292,7 @@ const ListaEmpleados = () => {
 
         {/* Contador de resultados */}
         <div className="results-info">
-          {empleadosFiltrados.length === empleados.length 
+          {empleadosFiltrados.length === empleados.length
             ? `Mostrando ${empleados.length} empleados`
             : `Mostrando ${empleadosFiltrados.length} de ${empleados.length} empleados`
           }
@@ -305,7 +327,7 @@ const ListaEmpleados = () => {
             </table>
           ) : (
             <div className="no-results">
-              {busqueda || filtros.ciudad 
+              {busqueda || filtros.ciudad
                 ? "No se encontraron empleados que coincidan con los filtros"
                 : "No hay empleados para mostrar"
               }

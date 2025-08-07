@@ -1,11 +1,10 @@
 'use client';
-
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { buscarEmpleadosByCity, buscarServiciosPorMesDeEmpleado } from "@/lib/Services/Logic.js";
-import { useCiudades } from "@/lib/Hooks/Hooks.js";
-import CalendarioServicios from "./calendarioServicios/CalendarioServicios";
-import CalendarioEspacios from "./calendarioEspacios/CalendarioEspacios";
+import { buscarEmpleadosByCity, buscarServiciosPorMesDeEmpleado } from "@/lib/Logic.js";
+import { useCiudades } from "@/lib/Hooks.js";
+import CalendarioServicios from "./CalendarioServicios";
+import CalendarioEspacios from "./CalendarioEspacios";
 
 const ResumenGeneral = () => {
   const [selectedDate, setSelectedDate] = useState('');
@@ -82,6 +81,21 @@ const ResumenGeneral = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const recargarServicios = () => {
+    if (!selectedEmployee) {
+      setDataServicios([]);
+      return;
+    }
+    const year = selectedYear;
+    const month = selectedMonth + 1;
+    buscarServiciosPorMesDeEmpleado(selectedEmployee.document, year, month)
+      .then(data => setDataServicios(data))
+      .catch(err => {
+        console.error(err);
+        setDataServicios([]);
+      });
+  };
+
   const handleDateSelect = (date) => {
     setSelectedDate(date);
   };
@@ -112,11 +126,13 @@ const ResumenGeneral = () => {
     if (selectedEmployee) {
       return (
         <CalendarioServicios
+          employee={selectedEmployee}
           dataServicios={dataServicios}
           onDateSelect={handleDateSelect}
           currentMonth={selectedMonth}
           currentYear={selectedYear}
           hideNavigation={true}
+          onServiceUpdate={recargarServicios}
         />
       );
     }
@@ -301,7 +317,6 @@ const ResumenGeneral = () => {
             </ul>
           </div>
         </div>
-
         {renderCalendar()}
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import BuscarTarea from "./busquedaTarea/BuscarTarea";
-import ListaTareas from "./listaTareas/ListaTareas";
-import { buscarServiciosConParam } from "@/lib/Services/Logic.js";
-import "../../../styles/Servicios/EditarTarea/EditarTarea.css";
+import BuscarTarea from "./BuscarTarea";
+import ListaTareas from "./ListaTareas";
+import { buscarServiciosConParam } from "@/lib/Logic.js";
+import '@/styles/Servicios/EditarTarea/EditarTarea.css';
 
 const EditarTarea = () => {
   const [servicios, setServicios] = useState(null);

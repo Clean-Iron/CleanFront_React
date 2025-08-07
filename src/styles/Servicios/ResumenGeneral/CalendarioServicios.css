@@ -1,0 +1,275 @@
+.modern-calendar-grid,
+    .modern-weekdays {
+        gap: 0.3rem;
+    }.modern-calendar {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
+}
+
+.modern-month-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.modern-month-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: #374151;
+    text-align: center;
+}
+
+.modern-month-title.centered {
+    width: 100%;
+}
+
+.modern-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.modern-weekday {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 0.5rem 0;
+    background-color: rgba(35, 196, 131, 0.08);
+    border-radius: 0.75rem;
+}
+
+.modern-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    flex-grow: 1;
+    align-content: start;
+}
+
+.modern-date-empty {
+    background-color: transparent;
+    aspect-ratio: 1;
+    min-height: 80px;
+}
+
+/* Contenedor principal de cada día */
+.modern-date-container {
+    aspect-ratio: 1;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    color: #374151;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+    min-height: 80px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-date-container:hover:not(.modern-date-container-disabled) {
+    background-color: #f9fafb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.modern-date-container-today {
+    background-color: #ffffff;
+    border: 2px solid #23c483;
+    box-shadow: 0 2px 8px rgba(35, 196, 131, 0.2);
+}
+
+.modern-date-container-selected {
+    background-color: rgba(35, 196, 131, 0.1);
+    border: 2px solid #23c483;
+    box-shadow: 0 4px 12px rgba(35, 196, 131, 0.3);
+}
+
+.modern-date-container-disabled {
+    background-color: #f9fafb;
+    color: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.modern-date-container-disabled:hover {
+    transform: none;
+    background-color: #f9fafb;
+    box-shadow: none;
+}
+
+/* Número del día - Ahora posicionado a la izquierda */
+.modern-date-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: inherit;
+    text-align: center;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25%;
+    min-width: 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-top-left-radius: 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+    border-right: 1px solid rgba(229, 231, 235, 0.3);
+}
+
+/* Contenedor de los botones - Ahora ocupa el lado derecho */
+.modern-date-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 75%;
+    height: 100%;
+    align-items: stretch;
+}
+
+/* Botones individuales */
+.modern-date-button {
+    width: 100%;
+    height: 50%;
+    border: none;
+    border-radius: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #6b7280;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    backdrop-filter: blur(2px);
+}
+
+.modern-date-button:first-child {
+    border-top-right-radius: 0.75rem;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.modern-date-button:last-child {
+    border-bottom-right-radius: 0.75rem;
+}
+
+.modern-date-button:hover:not(.modern-date-button-disabled) {
+    background-color: rgba(243, 244, 246, 0.9);
+    transform: scale(1.02);
+    z-index: 1;
+}
+
+.modern-date-button-disabled {
+    background-color: rgba(249, 250, 251, 0.8);
+    color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.modern-date-button-disabled:hover {
+    transform: none;
+    background-color: rgba(249, 250, 251, 0.8);
+}
+
+/* Estados especiales para días con selección */
+.modern-date-container-today .modern-date-number {
+    color: #23c483;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.modern-date-container-selected .modern-date-number {
+    color: #23c483;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.modern-date-container-disabled .modern-date-number {
+    color: #d1d5db;
+    background-color: rgba(249, 250, 251, 0.9);
+}
+
+@media (max-width: 768px) {
+    .modern-calendar {
+        padding: 0.75rem;
+    }
+
+    .modern-month-title {
+        font-size: 1.3rem;
+    }
+
+    .modern-date-container,
+    .modern-date-empty {
+        min-height: 70px;
+    }
+
+    .modern-date-number {
+        font-size: 0.8rem;
+        width: 28%;
+        min-width: 18px;
+    }
+
+    .modern-date-buttons {
+        width: 72%;
+    }
+
+    .modern-date-button {
+        font-size: 0.65rem;
+    }
+
+    .modern-weekday {
+        font-size: 0.8rem;
+        padding: 0.4rem 0;
+    }
+
+    .modern-calendar-grid,
+    .modern-weekdays {
+        gap: 0.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modern-calendar {
+        padding: 0.5rem;
+    }
+
+    .modern-month-title {
+        font-size: 1.1rem;
+    }
+
+    .modern-date-container,
+    .modern-date-empty {
+        min-height: 60px;
+    }
+
+    .modern-date-number {
+        font-size: 0.75rem;
+        width: 30%;
+        min-width: 16px;
+    }
+
+    .modern-date-buttons {
+        width: 70%;
+    }
+
+    .modern-date-button {
+        font-size: 0.6rem;
+    }
+
+    .modern-date-buttons {
+        gap: 0;
+    }
+}

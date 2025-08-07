@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import BuscarClientes from "./buscarClientes/BuscarClientes";
-import EliminarClientes from "./eliminarClientes/EliminarClientes";
-import AgregarClientes from "./agregarClientes/AgregarClientes";
-import ModalEditarDirecciones from "./modalEditarDirecciones/ModalEditarDirecciones.jsx";
-import { actualizarCliente } from "@/lib/Services/Logic.js";
-import '@/styles/Empleados/EditarEmpleados/EditarEmpleados.css';
+import BuscarClientes from "./BuscarClientes";
+import EliminarClientes from "./EliminarClientes";
+import AgregarClientes from "./AgregarClientes";
+import ModalEditarDirecciones from "./ModalEditarDirecciones.jsx";
+import { actualizarCliente } from "@/lib/Logic.js";
+import '@/styles/Empleados/EditarEmpleados.css';
 
 const EditarClientes = () => {
   const [activeTab, setActiveTab] = useState("edit");
@@ -25,8 +25,6 @@ const EditarClientes = () => {
 
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
   const ciudadDropdownRef = useRef(null);
-
-  const ciudades = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Bucaramanga", "Cartagena"];
 
   useEffect(() => {
     if (clienteEncontrado) {
@@ -113,36 +111,51 @@ const EditarClientes = () => {
 
   const renderFormulario = () => (
     <div className="empleados-form-grid">
-      <input
-        type="text"
-        placeholder="Nombre"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Apellido"
-        value={apellido}
-        onChange={(e) => setApellido(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Documento"
-        value={documento}
-        onChange={(e) => setDocumento(e.target.value)}
-      />
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Teléfono"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
+      <div className="input-group">
+        <label htmlFor="nombre">Nombre(s)</label>
+        <input
+          id="nombre"
+          type="text"
+          value={nombre}
+          onChange={e => setNombre(e.target.value)}
+        />
+      </div>
+      <div className="input-group">
+        <label htmlFor="apellido">Apellido(s)</label>
+        <input
+          id="apellido"
+          type="text"
+          value={apellido}
+          onChange={e => setApellido(e.target.value)}
+        />
+      </div>
+      <div className="input-group">
+        <label htmlFor="documento">N° Documento</label>
+        <input
+          id="documento"
+          type="text"
+          value={documento}
+          onChange={e => setDocumento(e.target.value)}
+        />
+      </div>
+      <div className="input-group">
+        <label htmlFor="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+      </div>
+      <div className="input-group">
+        <label htmlFor="phone">N° Celular - Telefono</label>
+        <input
+          id="phone"
+          type="text"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+        />
+      </div>
 
       {/* Botón para abrir el modal de direcciones */}
       <button
@@ -160,7 +173,7 @@ const EditarClientes = () => {
         <button type="submit" className="menu-btn" onClick={guardarCambios}>
           💾 GUARDAR CAMBIOS
         </button>
-        <button type="reset" className="menu-btn" onClick={resetBusqueda}>
+        <button type="reset" className="cancel-btn" onClick={resetBusqueda}>
           ❌ CANCELAR
         </button>
       </div>

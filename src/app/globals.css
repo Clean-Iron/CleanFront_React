@@ -82,6 +82,7 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   min-height: 45px;
 }
+
 .modal-chip {
   display: inline-flex;
   align-items: center;
@@ -94,15 +95,18 @@ body {
   border: 1px solid #bbdefb;
   transition: all 0.2s ease;
 }
+
 .modal-chip:hover {
   background-color: #d1e7ff;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .modal-chip-section,
 .modal-chip-container {
   position: relative;
 }
+
 .modal-chip-container {
   min-height: 45px;
 }
@@ -113,6 +117,7 @@ body {
 .dropdown {
   position: relative;
 }
+
 .dropdown-trigger {
   padding: 12px;
   border-radius: 20px;
@@ -128,19 +133,23 @@ body {
   align-items: center;
   color: #333;
 }
+
 .dropdown-trigger:hover,
 .dropdown-trigger:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
+
 .dropdown-trigger .arrow {
   margin-left: 8px;
   transition: transform 0.2s;
 }
+
 .dropdown-trigger.open .arrow {
   transform: rotate(180deg);
 }
+
 .dropdown-content {
   position: absolute;
   top: 45px;
@@ -157,6 +166,7 @@ body {
   max-height: 135px;
   overflow-y: auto;
 }
+
 .dropdown-content button {
   background: none;
   border: none;
@@ -169,14 +179,17 @@ body {
   box-sizing: border-box;
   color: #333;
 }
+
 .dropdown-content button:hover {
   background: #f5f5f5;
 }
+
 .dropdown-content button:disabled {
   color: #999;
   cursor: not-allowed;
   font-weight: 600;
 }
+
 .dropdown-content button:disabled:hover {
   background: none;
 }
@@ -198,6 +211,105 @@ body {
   height: 200px;
 }
 
+/* ====================
+   Botón Reintentar
+   ==================== */
+.retry-btn {
+  padding: 0.6em 1.2em;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: #23c483;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  align-self: center;
+}
+
+.retry-btn:hover {
+  background-color: #1fa374;
+  transform: translateY(-2px);
+  box-shadow: 0px 10px 20px rgba(46, 229, 157, 0.4);
+}
+
+.retry-btn:active {
+  transform: translateY(0);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ====================
+   Botón Cancelar (.btn-cancel)
+   ==================== */
+.cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1em 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #f44336;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.cancel-btn:hover {
+  background-color: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0px 10px 20px rgba(244, 67, 54, 0.4);
+}
+
+.cancel-btn:active {
+  transform: translateY(0);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ====================
+   Botón Eliminar (.delete-btn)
+   ==================== */
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1em 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #ff9800;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.delete-btn:hover {
+  background-color: #e68a00;
+  transform: translateY(-2px);
+  box-shadow: 0px 10px 20px rgba(255, 152, 0, 0.4);
+}
+
+.delete-btn:active {
+  transform: translateY(0);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* =======================================
    Menú lateral y botones de navegación
    ======================================= */
@@ -210,6 +322,7 @@ body {
   flex-direction: column;
   gap: 15px;
 }
+
 .menu-buttons {
   width: 100%;
   display: flex;
@@ -217,10 +330,12 @@ body {
   align-items: center;
   margin-top: 20px;
 }
+
 .menu-buttons li {
   width: 100%;
   margin: 0;
 }
+
 .menu-btn {
   display: flex;
   align-items: center;
@@ -240,12 +355,14 @@ body {
   cursor: pointer;
   text-decoration: none;
 }
+
 .menu-btn:hover {
   background-color: #23c483;
   box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
   color: #fff;
   transform: translateY(-5px);
 }
+
 .menu-btn:active {
   transform: translateY(-2px);
 }
@@ -268,6 +385,7 @@ body {
   margin-bottom: 20px;
   width: 100%;
 }
+
 .btn-53 .original {
   background: #fff;
   color: #000;
@@ -279,27 +397,41 @@ body {
   position: absolute;
   transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1);
 }
+
 .btn-53:hover .original {
   transform: translateY(100%);
 }
+
 .btn-53 .letters {
   display: inline-flex;
 }
+
 .btn-53 span {
   opacity: 0;
   transform: translateY(-15px);
   transition: transform 0.2s cubic-bezier(0.87, 0, 0.13, 1), opacity 0.2s;
 }
+
 .btn-53 span:nth-child(2n) {
   transform: translateY(15px);
 }
+
 .btn-53:hover span {
   opacity: 1;
   transform: translateY(0);
 }
-.btn-53:hover span:nth-child(2) { transition-delay: 0.1s; }
-.btn-53:hover span:nth-child(3) { transition-delay: 0.2s; }
-.btn-53:hover span:nth-child(4) { transition-delay: 0.3s; }
+
+.btn-53:hover span:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.btn-53:hover span:nth-child(3) {
+  transition-delay: 0.2s;
+}
+
+.btn-53:hover span:nth-child(4) {
+  transition-delay: 0.3s;
+}
 
 /* ==========================
    Formulario de búsqueda
@@ -311,6 +443,7 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
+
 .busqueda-form-grid input {
   padding: 12px;
   border-radius: 20px;
@@ -320,12 +453,17 @@ body {
   font-size: 14px;
   width: 100%;
 }
+
 .busqueda-form-grid input:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
-.busqueda-full-width { grid-column: 1 / 3; }
+
+.busqueda-full-width {
+  grid-column: 1 / 3;
+}
+
 .busqueda-form-buttons {
   display: flex;
   justify-content: center;
@@ -338,14 +476,17 @@ body {
    ==================== */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
+
 .modal-container {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
@@ -354,6 +495,7 @@ body {
   max-width: 900px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
+
 .modal-datos-superiores {
   display: flex;
   justify-content: space-between;
@@ -361,13 +503,18 @@ body {
   font-weight: bold;
   color: #333;
 }
+
 .modal-asignacion-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 25px;
   align-items: start;
 }
-.modal-asignacion-full-width { grid-column: 1 / 3; }
+
+.modal-asignacion-full-width {
+  grid-column: 1 / 3;
+}
+
 .modal-asignacion-form-grid label {
   display: block;
   margin-bottom: 8px;
@@ -375,6 +522,7 @@ body {
   color: #333;
   font-size: 14px;
 }
+
 .modal-asignacion-form-grid input,
 .modal-asignacion-form-grid select,
 .modal-asignacion-textarea {
@@ -387,12 +535,14 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .modal-asignacion-form-grid input:focus,
 .modal-asignacion-textarea:focus {
   outline: none;
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
+
 .modal-asignacion-remove-btn {
   margin-left: 6px;
   color: #1976d2;
@@ -402,7 +552,11 @@ body {
   transition: color 0.2s;
   padding: 0 2px;
 }
-.modal-asignacion-remove-btn:hover { color: #d32f2f; }
+
+.modal-asignacion-remove-btn:hover {
+  color: #d32f2f;
+}
+
 .modal-asignacion-add-empleado-btn,
 .modal-asignacion-add-servicio-btn {
   background-color: #4caf50;
@@ -420,12 +574,14 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s;
 }
+
 .modal-asignacion-add-empleado-btn:hover,
 .modal-asignacion-add-servicio-btn:hover {
   background-color: #45a049;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 }
+
 .modal-asignacion-dropdown-chip,
 .modal-asignacion-dropdown-content {
   position: absolute;
@@ -442,6 +598,7 @@ body {
   margin-top: 5px;
   animation: fadeIn 0.2s ease-out;
 }
+
 .modal-asignacion-dropdown-chip button,
 .modal-asignacion-dropdown-content button {
   width: 100%;
@@ -454,18 +611,22 @@ body {
   font-size: 14px;
   color: #333;
 }
+
 .modal-asignacion-dropdown-chip button:hover,
 .modal-asignacion-dropdown-content button:hover {
   background-color: #f5f5f5;
 }
+
 .modal-asignacion-dropdown-chip button:first-child,
 .modal-asignacion-dropdown-content button:first-child {
   border-radius: 10px 10px 0 0;
 }
+
 .modal-asignacion-dropdown-chip button:last-child,
 .modal-asignacion-dropdown-content button:last-child {
   border-radius: 0 0 10px 10px;
 }
+
 .modal-asignacion-no-opciones {
   padding: 12px 15px;
   color: #666;
@@ -473,7 +634,11 @@ body {
   text-align: center;
   font-size: 14px;
 }
-.modal-asignacion-dropdown { position: relative; }
+
+.modal-asignacion-dropdown {
+  position: relative;
+}
+
 .modal-asignacion-dropdown-trigger {
   padding: 12px;
   border-radius: 20px;
@@ -488,24 +653,29 @@ body {
   font-size: 14px;
   color: #333;
 }
+
 .modal-asignacion-dropdown-trigger:hover {
   border-color: #4682B4;
   box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
 }
+
 .modal-asignacion-arrow {
   font-size: 12px;
   color: #666;
   transition: transform 0.2s;
 }
+
 .modal-asignacion-dropdown-trigger.open .modal-asignacion-arrow {
   transform: rotate(180deg);
 }
+
 .modal-asignacion-form-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
   margin-top: 20px;
 }
+
 .modal-asignacion-btn-cancelar,
 .modal-asignacion-btn-confirmar {
   padding: 12px 24px;
@@ -517,19 +687,23 @@ body {
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .modal-asignacion-btn-cancelar {
   background-color: #f44336;
   color: white;
 }
+
 .modal-asignacion-btn-cancelar:hover {
   background-color: #da190b;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
+
 .modal-asignacion-btn-confirmar {
   background-color: #23c483;
   color: white;
 }
+
 .modal-asignacion-btn-confirmar:hover {
   background-color: #1fa374;
   transform: translateY(-1px);
@@ -540,8 +714,15 @@ body {
    Animación genérica
    ====================== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =====================
@@ -552,6 +733,7 @@ body {
   .layout {
     flex-direction: column;
   }
+
   .menu-lateral {
     flex: 0 0 auto;
     width: 100%;
@@ -561,6 +743,7 @@ body {
     flex-wrap: wrap;
     justify-content: center;
   }
+
   .main-content {
     width: 100%;
   }
@@ -573,9 +756,11 @@ body {
     flex-wrap: wrap;
     gap: 0.75rem;
   }
+
   .menu-buttons li {
     flex: 1 1 45%;
   }
+
   .menu-btn,
   .btn-53 {
     font-size: 0.85rem;
@@ -588,17 +773,21 @@ body {
   .layout {
     flex-direction: column;
   }
+
   .menu-lateral {
     padding: 0.5rem;
   }
+
   .menu-buttons li {
     flex: 1 1 100%;
   }
+
   .menu-btn,
   .btn-53 {
     font-size: 0.75rem;
     padding: 0.5em 0.8em;
   }
+
   .container,
   .modal-container {
     margin: 0.5rem;

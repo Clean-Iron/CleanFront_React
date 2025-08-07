@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import Calendario from "./calendario/Calendario";
-import ServiciosDia from "./listaServicios/ServiciosDia";
+import Calendario from "./Calendario";
+import ServiciosDia from "./ServiciosDia";
 
 const InfoServicios = () => {
   const [selectedDate, setSelectedDate] = useState('');

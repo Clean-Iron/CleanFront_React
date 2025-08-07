@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { buscarClientes } from "@/lib/Services/Logic.js";
-import "../../../styles/Clientes/ListaClientes/ListaClientes.css";
+import { buscarClientes } from "@/lib/Logic.js";
+import "@/styles/Clientes/ListaClientes.css";
 
 const ListaClientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -11,7 +11,6 @@ const ListaClientes = () => {
   const [busqueda, setBusqueda] = useState("");
   const [mostrarDirecciones, setMostrarDirecciones] = useState({});
 
-  // Estados para filtros específicos
   const [filtros, setFiltros] = useState({
     ciudad: "",
     tipoId: "",
@@ -79,7 +78,7 @@ const ListaClientes = () => {
       const documento = (cliente.document || '').toString();
       const telefono = (cliente.phone || '').toString();
 
-      const coincideBusqueda = terminoBusqueda === '' || 
+      const coincideBusqueda = terminoBusqueda === '' ||
         nombreCompleto.includes(terminoBusqueda) ||
         email.includes(terminoBusqueda) ||
         ciudad.includes(terminoBusqueda) ||
@@ -146,8 +145,8 @@ const ListaClientes = () => {
               Todas las ciudades
             </button>
             {opcionesUnicas.ciudades.map(ciudad => (
-              <button 
-                key={ciudad} 
+              <button
+                key={ciudad}
                 onClick={() => aplicarFiltro('ciudad', ciudad)}
                 className={filtros.ciudad === ciudad ? 'selected' : ''}
               >
@@ -163,8 +162,8 @@ const ListaClientes = () => {
               Todos los tipos
             </button>
             {opcionesUnicas.tiposId.map(tipo => (
-              <button 
-                key={tipo} 
+              <button
+                key={tipo}
                 onClick={() => aplicarFiltro('tipoId', tipo)}
                 className={filtros.tipoId === tipo ? 'selected' : ''}
               >
@@ -176,25 +175,25 @@ const ListaClientes = () => {
       case 'Ordenar':
         return (
           <>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'nombre')}
               className={filtros.ordenamiento === 'nombre' ? 'selected' : ''}
             >
               Por Nombre
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'documento')}
               className={filtros.ordenamiento === 'documento' ? 'selected' : ''}
             >
               Por Documento
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'email')}
               className={filtros.ordenamiento === 'email' ? 'selected' : ''}
             >
               Por Email
             </button>
-            <button 
+            <button
               onClick={() => aplicarFiltro('ordenamiento', 'ciudad')}
               className={filtros.ordenamiento === 'ciudad' ? 'selected' : ''}
             >
@@ -216,8 +215,16 @@ const ListaClientes = () => {
   if (loading) {
     return (
       <div className="container">
-        <div className="lista-clientes-content">
-          <div className="loading">Cargando clientes...</div>
+        <div
+          className="lista-clientes-content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div className="no-results">Cargando Clientes...</div>
         </div>
       </div>
     );
@@ -226,9 +233,23 @@ const ListaClientes = () => {
   if (error) {
     return (
       <div className="container">
-        <div className="lista-clientes-content">
-          <div className="error">
-            {error}
+        <div
+          className="lista-clientes-content"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div
+            className="no-results"
+            style={{ flexDirection: 'column', gap: '1rem' }}
+          >
+            {/* Mensaje de error */}
+            <span>{error}</span>
+
+            {/* Botón abajo del texto */}
             <button onClick={handleConsulta} className="retry-btn">
               Reintentar
             </button>
@@ -306,7 +327,7 @@ const ListaClientes = () => {
 
         {/* Contador de resultados */}
         <div className="results-info">
-          {clientesFiltrados.length === clientes.length 
+          {clientesFiltrados.length === clientes.length
             ? `Mostrando ${clientes.length} clientes`
             : `Mostrando ${clientesFiltrados.length} de ${clientes.length} clientes`
           }
@@ -357,15 +378,8 @@ const ListaClientes = () => {
                                     <p><strong>Dirección:</strong> {address.address}</p>
                                     <p><strong>Ciudad:</strong> {address.city}</p>
                                   </div>
-                                  <div className="direccion-acciones">
-                                    <button className="action-button edit-button-small" title="Editar dirección">✏️</button>
-                                    <button className="action-button delete-button-small" title="Eliminar dirección">🗑️</button>
-                                  </div>
                                 </div>
                               ))}
-                              <div className="direccion-card add-direccion">
-                                <button className="add-direccion-button">+ Añadir dirección</button>
-                              </div>
                             </div>
                           </div>
                         </td>

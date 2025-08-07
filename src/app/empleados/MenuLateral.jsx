@@ -1,12 +1,11 @@
 import React from "react";
-//import "../../styles/Empleados/MenuLateral.css";
 import Link from "next/link";
 
 const Sidebar = ({ onNavClick, seccionActiva }) => {
 	return (
 		<div className="menu-lateral">
-			<Link href={"/menu-principal"} className="btn-53">
-				<div className="original">⬅ Regresar</div>
+			<Link href="/menu-principal" className="btn-53">
+				<div className="original">← Regresar</div>
 				<div className="letters">
 					<span>M</span>
 					<span>E</span>
@@ -21,23 +20,23 @@ const Sidebar = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoGeneral")}
 						>
-							📋 Información General
+							ℹ️ Información General
 						</button>
 					</li>
 					<li>
 						<button
-							className={`menu-btn ${seccionActiva === "listaClientes" ? "activo" : ""}`}
+							className={`menu-btn ${seccionActiva === "listaEmpleados" ? "activo" : ""}`}
 							onClick={() => onNavClick("listaEmpleados")}
 						>
-							📋 Lista de Empleados
+							👥 Lista de Empleados
 						</button>
 					</li>
 					<li>
 						<button
-							className={`menu-btn ${seccionActiva === "agregarCliente" ? "activo" : ""}`}
+							className={`menu-btn ${seccionActiva === "editarEmpleados" ? "activo" : ""}`}
 							onClick={() => onNavClick("editarEmpleados")}
 						>
-							➕ Editar Empleado
+							✏️ Editar Empleado
 						</button>
 					</li>
 					<li>
