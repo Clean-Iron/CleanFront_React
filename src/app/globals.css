@@ -118,6 +118,22 @@ body {
   position: relative;
 }
 
+.dropdown input {
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #B8D4F0;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  width: 100%;
+}
+
+.dropdown input:focus {
+  outline: none;
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
+}
+
 .dropdown-trigger {
   padding: 12px;
   border-radius: 20px;
@@ -434,8 +450,8 @@ body {
 }
 
 /* ==========================
-   Formulario de búsqueda
-   ========================== */
+  Formulario de búsqueda
+========================== */
 .busqueda-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

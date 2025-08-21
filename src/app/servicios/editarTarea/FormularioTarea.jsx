@@ -10,6 +10,8 @@ import { useTimeOptions } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils'
 
 const FormularioTarea = ({ service, onClose, onUpdate }) => {
+	const [date, setDate] = useState(service.serviceDate);
+
 	// Lista de opciones de hora en formato { value: 'HH:mm', label: 'h:mm AM/PM' }
 	const timeOptions = useTimeOptions({ startHour: 6, endHour: 18, stepMinutes: 30 });
 	const statuses = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA'];
@@ -86,6 +88,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 	const handleGuardar = async () => {
 		const datos = {
 			...service,
+			date: date,
 			startHour,
 			endHour,
 			state: currentState,
@@ -116,6 +119,12 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 					className="modal-datos-superiores"
 					style={{ justifyContent: 'flex-start', gap: '2rem' }}
 				>
+					<input
+						type="date"
+						value={date}
+						onChange={(e) => setDate(e.target.value)}
+					/>
+
 					{/* Hora Inicio */}
 					<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 						<span>Hora Inicio</span>

@@ -1,5 +1,11 @@
+'use client';
 import React, { useState, useEffect, useRef } from "react";
-import { obtenerServicios, obtenerClientesConDireccionCiudad, asignarServicio } from '@/lib/Logic.js';
+import {
+  obtenerServicios,
+  obtenerClientesConDireccionCiudad,
+  asignarServicio
+} from '@/lib/Logic.js';
+import { useTimeOptions } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils';
 import '@/styles/Servicios/Disponibilidad/ModalAsignacion.css';
 
@@ -8,8 +14,8 @@ const ModalAsignacion = ({
   onClose,
   empleado,
   date,
-  startHour,
-  endHour,
+  startHour: startHourProp,
+  endHour: endHourProp,
   city,
   allEmployees = [],
   onAssigned
@@ -20,24 +26,58 @@ const ModalAsignacion = ({
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [clientesZona, setClientesZona] = useState([]);
   const [comentarios, setComentarios] = useState("");
+
   const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
   const [mostrarDropdownClientes, setMostrarDropdownClientes] = useState(false);
   const [mostrarDropdownServicios, setMostrarDropdownServicios] = useState(false);
 
+  // --- NUEVO: búsqueda de clientes tipo BuscarTarea ---
+  const [clienteText, setClienteText] = useState("");
+  const [clientesFiltrados, setClientesFiltrados] = useState([]);
+  const clienteRef = useRef(null);
+
   const [currentRecurrency, setCurrentRecurrency] = useState('PUNTUAL');
 
-  const [stateOpen, setStateOpen] = useState(false);
+  // Inputs de hora (igual a FormularioTarea)
+  const timeOptions = useTimeOptions({ startHour: 6, endHour: 18, stepMinutes: 30 });
+  const [startHour, setStartHour] = useState(startHourProp || '');
+  const [endHour, setEndHour] = useState(endHourProp || '');
+  const [startTimeOpen, setStartTimeOpen] = useState(false);
+  const [endTimeOpen, setEndTimeOpen] = useState(false);
 
   // Refs para detectar clicks fuera
   const recurrencyRef = useRef(null);
+  const startRef = useRef(null);
+  const endRef = useRef(null);
 
-  const recurrency = ['PUNTUAL', 'QUINCENAL', 'MENSUAL', 'FRECUENTE'];
+  const [stateOpen, setStateOpen] = useState(false);
+  const recurrency = ['PUNTUAL', 'FRECUENTE', 'QUINCENAL', 'MENSUAL'];
+
+  useEffect(() => {
+    if (show) {
+      setStartHour(startHourProp || '');
+      setEndHour(endHourProp || '');
+    }
+  }, [show, startHourProp, endHourProp]);
 
   // Cerrar dropdowns al hacer click fuera
   useEffect(() => {
     const handleClickOutside = e => {
-
       if (recurrencyRef.current && !recurrencyRef.current.contains(e.target)) setStateOpen(false);
+      if (startRef.current && !startRef.current.contains(e.target)) setStartTimeOpen(false);
+      if (endRef.current && !endRef.current.contains(e.target)) setEndTimeOpen(false);
+
+      if (clienteRef.current && !clienteRef.current.contains(e.target)) {
+        setMostrarDropdownClientes(false);
+      }
+      if (!e.target.closest('.modal-asignacion-dropdown-chip') &&
+          !e.target.closest('.modal-asignacion-add-empleado-btn')) {
+        setMostrarDropdownEmpleados(false);
+      }
+      if (!e.target.closest('.modal-asignacion-dropdown-chip') &&
+          !e.target.closest('.modal-asignacion-add-servicio-btn')) {
+        setMostrarDropdownServicios(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -46,20 +86,24 @@ const ModalAsignacion = ({
   useEffect(() => {
     if (show) {
       obtenerServicios()
-        .then((data) => {
-          setServiciosDisponibles(data);
-        })
+        .then((data) => setServiciosDisponibles(data))
         .catch((error) => {
           console.error("Error al obtener servicios:", error);
           setServiciosDisponibles([]);
         });
+
       obtenerClientesConDireccionCiudad(city)
         .then((data) => {
-          setClientesZona(data);
+          setClientesZona(data || []);
+          setClientesFiltrados(data || []);
+          // reset selección/búsqueda al abrir
+          setClienteSeleccionado(null);
+          setClienteText("");
         })
         .catch((error) => {
           console.error("Error al obtener clientes por ciudad:", error);
           setClientesZona([]);
+          setClientesFiltrados([]);
         });
     }
   }, [show, city]);
@@ -88,12 +132,45 @@ const ModalAsignacion = ({
 
   const handleSeleccionarCliente = (cliente) => {
     setClienteSeleccionado(cliente);
+    setClienteText(`${cliente.name} ${cliente.surname}`);
     setMostrarDropdownClientes(false);
   };
+
+  // --- NUEVO: filtrar clientes como en BuscarTarea ---
+  const filtrarClientes = (valor) => {
+    setClienteText(valor);
+    setMostrarDropdownClientes(true);
+    const q = valor.trim().toLowerCase();
+    if (!q) { setClientesFiltrados(clientesZona); return; }
+    setClientesFiltrados(
+      clientesZona.filter(c => {
+        const full = `${c.name ?? ''} ${c.surname ?? ''}`.toLowerCase();
+        const doc  = (c.document ?? '').toString().toLowerCase();
+        const addr = (c.addresses?.find(a => a.city === city)?.address ?? '').toLowerCase();
+        return full.includes(q) || doc.includes(q) || addr.includes(q);
+      })
+    );
+  };
+
+  const onClienteKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (clientesFiltrados.length > 0) handleSeleccionarCliente(clientesFiltrados[0]);
+    } else if (e.key === 'Escape') {
+      setMostrarDropdownClientes(false);
+    }
+  };
+
+  const labelFor = (value) =>
+    timeOptions.find(opt => opt.value === value)?.label || (value ? formatTo12h(value) : '');
 
   const handleAsignar = async () => {
     if (!clienteSeleccionado || servicios.length === 0) {
       alert("Seleccione un cliente y al menos un servicio");
+      return;
+    }
+    if (!startHour || !endHour) {
+      alert("Seleccione la hora de inicio y la hora de fin");
       return;
     }
 
@@ -127,14 +204,69 @@ const ModalAsignacion = ({
     }
   };
 
+  if (!show) return null;
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
-        <div className="modal-datos-superiores">
-          <span><strong>Fecha:</strong> {date}</span>
-          <span><strong>Hora:</strong> {formatTo12h(startHour)} - {formatTo12h(endHour)}</span>
-          <span><strong>Ciudad:</strong> {city}</span>
+        <div className="modal-datos-superiores" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>{date}</span>
 
+          {/* Hora Inicio */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Hora Inicio</span>
+            <div className="dropdown" ref={startRef}>
+              <button
+                type="button"
+                className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
+                onClick={() => setStartTimeOpen(o => !o)}
+              >
+                <span>{labelFor(startHour) || 'Hora inicio'}</span>
+                <span className="arrow">▼</span>
+              </button>
+              {startTimeOpen && (
+                <div className="dropdown-content">
+                  {timeOptions.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => { setStartHour(value); setStartTimeOpen(false); }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Hora Fin */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Hora Fin</span>
+            <div className="dropdown" ref={endRef}>
+              <button
+                type="button"
+                className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
+                onClick={() => setEndTimeOpen(o => !o)}
+              >
+                <span>{labelFor(endHour) || 'Hora fin'}</span>
+                <span className="arrow">▼</span>
+              </button>
+              {endTimeOpen && (
+                <div className="dropdown-content">
+                  {timeOptions.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => { setEndHour(value); setEndTimeOpen(false); }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recurrencia */}
           <div className="dropdown" ref={recurrencyRef}>
             <button
               type="button"
@@ -147,13 +279,7 @@ const ModalAsignacion = ({
             {stateOpen && (
               <div className="dropdown-content">
                 {recurrency.map(st => (
-                  <button
-                    key={st}
-                    onClick={() => {
-                      setCurrentRecurrency(st);
-                      setStateOpen(false);
-                    }}
-                  >
+                  <button key={st} onClick={() => { setCurrentRecurrency(st); setStateOpen(false); }}>
                     {st}
                   </button>
                 ))}
@@ -161,7 +287,6 @@ const ModalAsignacion = ({
             )}
           </div>
         </div>
-
 
         <div className="modal-asignacion-form-grid">
           {/* Empleados */}
@@ -197,36 +322,42 @@ const ModalAsignacion = ({
                         </button>
                       ))
                   )}
-                  {allEmployees.length > 0 && allEmployees.filter(e => e.document !== empleado.document && !empleadosAdicionales.find(a => a.document === e.document)).length === 0 && (
-                    <div className="modal-asignacion-no-opciones">Todos los empleados ya están asignados</div>
-                  )}
+                  {allEmployees.length > 0 &&
+                    allEmployees.filter(e => e.document !== empleado.document && !empleadosAdicionales.find(a => a.document === e.document)).length === 0 && (
+                      <div className="modal-asignacion-no-opciones">Todos los empleados ya están asignados</div>
+                    )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Clientes */}
+          {/* Clientes (input + dropdown filtrable como BuscarTarea) */}
           <div>
             <label>Clientes:</label>
-            <div className="modal-asignacion-dropdown">
-              <div
-                className={`modal-asignacion-dropdown-trigger ${mostrarDropdownClientes ? "open" : ""}`}
-                onClick={() => setMostrarDropdownClientes(!mostrarDropdownClientes)}
-              >
-                {clienteSeleccionado
-                  ? `${clienteSeleccionado.name} ${clienteSeleccionado.surname}`
-                  : "Seleccione cliente"
-                }
-                <span className="modal-asignacion-arrow">▼</span>
-              </div>
+            <div className="modal-asignacion-dropdown" ref={clienteRef}>
+              <input
+                type="text"
+                placeholder="Nombre del Cliente"
+                value={clienteText}
+                onChange={(e) => filtrarClientes(e.target.value)}
+                onFocus={() => {
+                  setMostrarDropdownClientes(true);
+                  setClientesFiltrados(clientesZona);
+                  // si ya hay seleccionado y no hay texto, precarga el nombre para edición
+                  if (!clienteText && clienteSeleccionado) {
+                    setClienteText(`${clienteSeleccionado.name} ${clienteSeleccionado.surname}`);
+                  }
+                }}
+                onKeyDown={onClienteKeyDown}
+              />
               {mostrarDropdownClientes && (
                 <div className="modal-asignacion-dropdown-content">
-                  {clientesZona.length === 0 ? (
+                  {clientesFiltrados.length === 0 ? (
                     <div className="modal-asignacion-no-opciones">
-                      No hay clientes disponibles en {city}
+                      {clientesZona.length === 0 ? `No hay clientes disponibles en ${city}` : 'Sin resultados'}
                     </div>
                   ) : (
-                    clientesZona.map((cliente) => {
+                    clientesFiltrados.map((cliente) => {
                       const direccionCiudad = cliente.addresses?.find(addr => addr.city === city);
                       return (
                         <button
@@ -236,8 +367,8 @@ const ModalAsignacion = ({
                         >
                           {cliente.name} {cliente.surname}
                           {direccionCiudad && (
-                            <span key={`${cliente.document}-address`} className="modal-asignacion-cliente-direccion">
-                              - {direccionCiudad.address}
+                            <span className="modal-asignacion-cliente-direccion">
+                              &nbsp;- {direccionCiudad.address}
                             </span>
                           )}
                         </button>

@@ -12,6 +12,7 @@ const ResumenGeneral = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [city, setCity] = useState('');
   const { ciudades, isLoading, isError } = useCiudades();
+
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [dataServicios, setDataServicios] = useState([]);
@@ -19,41 +20,48 @@ const ResumenGeneral = () => {
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  const [employeeDropdownOpen, setEmployeeDropdownOpen] = useState(false);
+
+  const [employeeText, setEmployeeText] = useState("");
+  const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+  const employeeRef = useRef(null);
 
   const monthDropdownRef = useRef(null);
   const yearDropdownRef = useRef(null);
   const cityDropdownRef = useRef(null);
-  const employeeDropdownRef = useRef(null);
 
-  const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
-  // Al cambiar la ciudad, traemos empleados
+  // Empleados por ciudad
   useEffect(() => {
     if (city) {
       buscarEmpleadosByCity(city)
         .then(data => {
-          setEmployees(data);
+          const list = data || [];
+          setEmployees(list);
           setSelectedEmployee(null);
+          setEmployeeText("");
+          setEmpleadosFiltrados(list); // para que al abrir muestre todo
         })
         .catch(() => {
           setEmployees([]);
           setSelectedEmployee(null);
+          setEmployeeText("");
+          setEmpleadosFiltrados([]);
         });
     } else {
       setEmployees([]);
       setSelectedEmployee(null);
+      setEmployeeText("");
+      setEmpleadosFiltrados([]);
     }
   }, [city]);
 
-  // Cargar datos de servicios al cambiar empleado, mes o año
+  // Servicios por empleado/mes/año
   useEffect(() => {
-    if (!selectedEmployee) {
-      setDataServicios([]);
-      return;
-    }
+    if (!selectedEmployee) { setDataServicios([]); return; }
     const year = selectedYear;
     const month = selectedMonth + 1;
     buscarServiciosPorMesDeEmpleado(selectedEmployee.document, year, month)
@@ -61,68 +69,58 @@ const ResumenGeneral = () => {
       .catch(err => { console.error(err); setDataServicios([]); });
   }, [selectedEmployee, selectedMonth, selectedYear]);
 
-  // Cerrar dropdowns al hacer clic fuera
+  // Cerrar dropdowns al hacer clic fuera (incluye empleado)
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (monthDropdownRef.current && !monthDropdownRef.current.contains(e.target)) {
-        setMonthDropdownOpen(false);
-      }
-      if (yearDropdownRef.current && !yearDropdownRef.current.contains(e.target)) {
-        setYearDropdownOpen(false);
-      }
-      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
-        setCityDropdownOpen(false);
-      }
-      if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(e.target)) {
-        setEmployeeDropdownOpen(false);
-      }
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(e.target)) setMonthDropdownOpen(false);
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(e.target)) setYearDropdownOpen(false);
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) setCityDropdownOpen(false);
+      if (employeeRef.current && !employeeRef.current.contains(e.target)) setShowEmployeeDropdown(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const recargarServicios = () => {
-    if (!selectedEmployee) {
-      setDataServicios([]);
-      return;
-    }
+    if (!selectedEmployee) { setDataServicios([]); return; }
     const year = selectedYear;
     const month = selectedMonth + 1;
     buscarServiciosPorMesDeEmpleado(selectedEmployee.document, year, month)
       .then(data => setDataServicios(data))
-      .catch(err => {
-        console.error(err);
-        setDataServicios([]);
-      });
+      .catch(err => { console.error(err); setDataServicios([]); });
   };
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-  };
-
+  const handleDateSelect = (date) => setSelectedDate(date);
   const handleButtonClick = (date, idx, label) => {
     console.log(`${label} seleccionado para ${date}, empleado: ${selectedEmployee?.name || 'ninguno'}`);
   };
 
-  const handleMonthSelect = (name, idx) => {
-    setSelectedMonth(idx);
-    setMonthDropdownOpen(false);
+  const handleMonthSelect = (_, idx) => { setSelectedMonth(idx); setMonthDropdownOpen(false); };
+  const handleYearSelect = (y) => { setSelectedYear(y); setYearDropdownOpen(false); };
+  const handleCitySelect = (c) => { setCity(c); setCityDropdownOpen(false); };
+
+  // === Lógica de filtrado como en BuscarTarea ===
+  const filtrarEmpleados = (valor) => {
+    setEmployeeText(valor);
+    setShowEmployeeDropdown(true);
+    const q = valor.trim().toLowerCase();
+    if (!q) { setEmpleadosFiltrados(employees); return; }
+    setEmpleadosFiltrados(
+      employees.filter(emp => {
+        const full = `${emp.name ?? ''} ${emp.surname ?? ''}`.toLowerCase();
+        const doc  = (emp.document ?? '').toString().toLowerCase();
+        return full.includes(q) || doc.includes(q);
+      })
+    );
   };
-  const handleYearSelect = (year) => {
-    setSelectedYear(year);
-    setYearDropdownOpen(false);
-  };
-  const handleCitySelect = (c) => {
-    setCity(c);
-    setCityDropdownOpen(false);
-  };
+
   const handleEmployeeSelect = (emp) => {
     setSelectedEmployee(emp);
-    setEmployeeDropdownOpen(false);
+    setEmployeeText(`${emp.name} ${emp.surname}`);
+    setShowEmployeeDropdown(false);
   };
 
   const renderCalendar = () => {
-    // Si hay empleado seleccionado -> CalendarioServicios (2 botones)
     if (selectedEmployee) {
       return (
         <CalendarioServicios
@@ -136,7 +134,6 @@ const ResumenGeneral = () => {
         />
       );
     }
-    // Si NO hay empleado -> CalendarioEspacios (3 botones)
     return (
       <CalendarioEspacios
         onDateSelect={handleDateSelect}
@@ -170,9 +167,7 @@ const ResumenGeneral = () => {
         }}>
           <Link href="/servicios" className="btn-53">
             <div className="original">⬅ Regresar</div>
-            <div className="letters">
-              <span>M</span><span>E</span><span>N</span><span>Ú</span>
-            </div>
+            <div className="letters"><span>M</span><span>E</span><span>N</span><span>Ú</span></div>
           </Link>
 
           <div className="menu-buttons">
@@ -275,31 +270,20 @@ const ResumenGeneral = () => {
               {/* Empleado */}
               {employees.length > 0 && (
                 <li>
-                  <div className="dropdown" ref={employeeDropdownRef}>
-                    <button
-                      type="button"
-                      className={`dropdown-trigger ${employeeDropdownOpen ? "open" : ""} ${selectedEmployee ? "employee-selected" : ""}`}
-                      onClick={() => setEmployeeDropdownOpen(!employeeDropdownOpen)}
-                    >
-                      <span>
-                        {selectedEmployee
-                          ? `${selectedEmployee.name} ${selectedEmployee.surname}`
-                          : "Selec. empleado"}
-                      </span>
-                      <span className="arrow">▼</span>
-                    </button>
-                    {employeeDropdownOpen && (
+                  <div className="dropdown" ref={employeeRef}>
+                    <input
+                      type="text"
+                      placeholder="Selec. empleado"
+                      value={employeeText}
+                      onChange={(e) => filtrarEmpleados(e.target.value)}
+                      onFocus={() => {
+                        setShowEmployeeDropdown(true);
+                        setEmpleadosFiltrados(employees);
+                      }}
+                    />
+                    {showEmployeeDropdown && empleadosFiltrados.length > 0 && (
                       <div className="dropdown-content">
-                        {selectedEmployee && (
-                          <button
-                            type="button"
-                            className="clear-option"
-                            onClick={() => handleEmployeeSelect(null)}
-                          >
-                            Limpiar selección
-                          </button>
-                        )}
-                        {employees.map(emp => (
+                        {empleadosFiltrados.map(emp => (
                           <button
                             key={emp.document}
                             type="button"
@@ -317,7 +301,29 @@ const ResumenGeneral = () => {
             </ul>
           </div>
         </div>
-        {renderCalendar()}
+
+        {selectedEmployee ? (
+          <CalendarioServicios
+            employee={selectedEmployee}
+            dataServicios={dataServicios}
+            onDateSelect={setSelectedDate}
+            currentMonth={selectedMonth}
+            currentYear={selectedYear}
+            hideNavigation={true}
+            onServiceUpdate={recargarServicios}
+          />
+        ) : (
+          <CalendarioEspacios
+            onDateSelect={setSelectedDate}
+            onButtonClick={(date, idx, label) =>
+              console.log(`${label} seleccionado para ${date}, empleado: ${selectedEmployee?.name || 'ninguno'}`)
+            }
+            currentMonth={selectedMonth}
+            currentYear={selectedYear}
+            hideNavigation={true}
+            buttonLabels={['DISPONIBLE', 'OCUPADO', 'PERMISO/VAC']}
+          />
+        )}
       </div>
     </div>
   );

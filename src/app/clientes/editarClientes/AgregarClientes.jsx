@@ -34,12 +34,12 @@ const AgregarClientes = () => {
   };
 
   const handleSubmit = async () => {
-    if (!nombre || !apellido || !documento || !email || !tipoDocumento) {
+    if (!nombre || !documento || !email || !tipoDocumento || !addresses.length === 0) {
       alert("Por favor completa todos los campos obligatorios.");
       return;
     }
 
-    const nuevoEmpleado = {
+    const nuevoCliente = {
       name: nombre,
       surname: apellido,
       document: documento,
@@ -50,7 +50,7 @@ const AgregarClientes = () => {
     };
 
     try {
-      await agregarCliente(nuevoEmpleado);
+      await agregarCliente(nuevoCliente);
       alert("Cliente agregado exitosamente.");
       resetBusqueda();
     } catch (error) {

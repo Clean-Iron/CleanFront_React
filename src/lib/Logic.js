@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base de la API, definida en .env
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Instancia de axios con configuración común
 const api = axios.create({
@@ -16,7 +16,6 @@ export const obtenerServicios = async () => {
 };
 
 export const asignarServicio = async (schedule) => {
-  console.log('Asignando servicio:', schedule);
   const { data } = await api.post('/schedule', schedule);
   return data;
 };
@@ -46,6 +45,10 @@ export const actualizarCliente = async (id, datos) => {
   await api.put(`/client/${id}`, datos);
 };
 
+export const eliminarCliente = async (id) => {
+  await api.delete(`/client/${id}`);
+};
+
 // Empleados
 export const buscarEmpleados = async () => {
   const { data } = await api.get('/employee');
@@ -58,7 +61,7 @@ export const buscarEmpleadoById = async (id) => {
 };
 
 export const agregarEmpleado = async (empleado) => {
-  const { data } = await api.post('/employee/new', empleado);
+  const { data } = await api.post('/employee', empleado);
   return data;
 };
 
@@ -112,7 +115,7 @@ export const buscarServiciosConParam = async (nombre, apellido, selectedCity, da
 
 
 export const actualizarServicio = async (id, datos) => {
-  console.log('Actualizando servicio con ID:', id, 'y datos:', datos);
+  console.log('Actualizando servicio:', id, datos);
   const { data } = await api.patch(`/schedule/${id}`, datos);
   return data;
 };

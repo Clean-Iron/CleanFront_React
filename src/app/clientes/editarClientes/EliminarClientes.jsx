@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { eliminarEmpleado } from "@/lib/Logic.js";
+import { eliminarCliente } from "@/lib/Logic.js";
 const EliminarClientes = ({ cliente, onVolver }) => {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
@@ -20,9 +20,9 @@ const EliminarClientes = ({ cliente, onVolver }) => {
   const handleEliminar = async () => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar al cliente ${nombre} ${apellido}?`)) {
       try {
-        await eliminarEmpleado(cliente.document);
+        await eliminarCliente(cliente.document);
       } catch (error) {
-        alert("Error al agregar Cliente.");
+        alert("Error al eliminar Cliente.");
         console.error(error);
       }
       alert("Cliente eliminado correctamente ✅");
