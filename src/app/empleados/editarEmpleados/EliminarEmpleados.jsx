@@ -13,7 +13,6 @@ const EliminarEmpleados = ({ empleadoData, onVolver }) => {
   const [estado, setEstado] = useState("");
   const [fechaIngreso, setFechaIngreso] = useState("");
 
-  // Fill form fields when employee data is received
   useEffect(() => {
     if (empleadoData) {
       setNombre(empleadoData.name || "");

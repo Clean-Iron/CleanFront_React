@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base de la API, definida en .env
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = /*process.env.NEXT_PUBLIC_API_URL ||*/ 'http://localhost:8080';
 
 // Instancia de axios con configuración común
 const api = axios.create({
@@ -18,6 +18,48 @@ export const obtenerServicios = async () => {
 export const asignarServicio = async (schedule) => {
   const { data } = await api.post('/schedule', schedule);
   return data;
+};
+
+export const buscarServiciosPorMes = async (ciudad, year, month) => {
+  const { data } = await api.get(`/schedule/servicesCity/${ciudad}`, {
+    params: { year, month }
+  });
+  return data;
+};
+
+export const buscarServiciosPorMesDeEmpleado = async (doc, year, month) => {
+  const { data } = await api.get(`/schedule/servicesEmployee/${doc}`, {
+    params: { year, month }
+  });
+  return data;
+};
+
+export const buscarServicios = async (date) => {
+  const { data } = await api.get(`/schedule/${date}`);
+  return data;
+};
+
+export const buscarServiciosConParam = async (nombre, apellido, selectedCity, date) => {
+  const endpoint = `/schedule/${date}/filter`;
+
+  const params = {};
+  if (selectedCity) params.city = selectedCity;
+  if (nombre) params.name = nombre;
+  if (apellido) params.surname = apellido;
+
+  const config = Object.keys(params).length ? { params } : {};
+
+  const { data } = await api.get(endpoint, config);
+  return data;
+};
+
+export const actualizarServicio = async (id, datos) => {
+  const { data } = await api.patch(`/schedule/${id}`, datos);
+  return data;
+};
+
+export const eliminarServicio = async (id) => {
+  await api.delete(`/schedule/${id}`);
 };
 
 // Clientes
@@ -56,7 +98,7 @@ export const buscarEmpleados = async () => {
 };
 
 export const buscarEmpleadoById = async (id) => {
-  const { data } = await api.get(`/employee/id/${id}`);
+  const { data } = await api.get(`/employee/${id}`);
   return data;
 };
 
@@ -79,47 +121,9 @@ export const eliminarEmpleado = async (id) => {
   await api.delete(`/employee/delete/${id}`);
 };
 
-// Disponibilidad y agenda
 export const buscarDisponibilidad = async (date, startHour, endHour, city) => {
   const { data } = await api.get('/employee/available', {
     params: { date, startHour, endHour, city }
   });
   return data;
-};
-
-export const buscarServiciosPorMesDeEmpleado = async (doc, year, month) => {
-  const { data } = await api.get(`/schedule/servicesEmployee/${doc}`, {
-    params: { year, month }
-  });
-  return data;
-};
-
-export const buscarServicios = async (date) => {
-  const { data } = await api.get(`/schedule/${date}`);
-  return data;
-};
-
-export const buscarServiciosConParam = async (nombre, apellido, selectedCity, date) => {
-  const endpoint = `/schedule/${date}/filter`;
-
-  const params = {};
-  if (selectedCity) params.city = selectedCity;
-  if (nombre) params.name = nombre;
-  if (apellido) params.surname = apellido;
-
-  const config = Object.keys(params).length ? { params } : {};
-
-  const { data } = await api.get(endpoint, config);
-  return data;
-};
-
-
-export const actualizarServicio = async (id, datos) => {
-  console.log('Actualizando servicio:', id, datos);
-  const { data } = await api.patch(`/schedule/${id}`, datos);
-  return data;
-};
-
-export const eliminarServicio = async (id) => {
-  await api.delete(`/schedule/${id}`);
 };

@@ -250,3 +250,148 @@
         transform: translateY(0);
     }
 }
+
+/* ===== Ajustes para evitar solapamiento de horas ===== */
+.timeline-scale {
+    display: flex;
+    /* distribuye equidistante */
+    justify-content: space-between;
+    align-items: center;
+    height: 16px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    white-space: nowrap;
+    /* no cortar etiquetas */
+    gap: 0.25rem;
+}
+
+.timeline-scale .tick {
+    position: static;
+    /* ya no absoluto */
+    transform: none;
+}
+
+/* (resto se mantiene) */
+.modal-espacios-servicios {
+    max-width: 900px;
+    width: 92vw;
+    max-height: 85vh;
+    overflow: auto;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem
+}
+
+.mess-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+.mess-title {
+    font-weight: 600
+}
+
+.mess-date {
+    color: #111827
+}
+
+.mess-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1
+}
+
+.mess-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem
+}
+
+.mess-employee-block {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: .75rem;
+    padding: .9rem
+}
+
+.mess-employee-name {
+    margin: 0 0 .5rem 0;
+    font-size: 1rem;
+    color: #111827
+}
+
+.mess-employee-name .doc {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: .9em
+}
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem
+}
+
+.timeline-bar {
+    display: flex;
+    width: 100%;
+    height: 16px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #f3f4f6;
+    box-shadow: inset 0 0 0 1px #e5e7eb
+}
+
+.segment {
+    height: 100%;
+    display: block
+}
+
+.segment.free {
+    background: #22c55e
+}
+
+.segment.busy {
+    background: #ef4444
+}
+
+.timeline-legend {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: .8rem;
+    color: #374151
+}
+
+.timeline-legend .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 6px
+}
+
+.timeline-legend .swatch.free {
+    background: #22c55e
+}
+
+.timeline-legend .swatch.busy {
+    background: #ef4444
+}
+
+.mess-busy-details summary {
+    cursor: pointer;
+    color: #374151;
+    margin-top: .25rem
+}
+
+.busy-list {
+    list-style: none;
+    padding-left: 0;
+    margin: .25rem 0 0 0;
+    color: #6b7280
+}

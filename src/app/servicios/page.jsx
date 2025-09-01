@@ -8,21 +8,20 @@ import InfoDisponibilidad from "./disponibilidad/InfoDisponibilidad";
 import EditarTarea from "./editarTarea/EditarTarea";
 
 const Servicios = () => {
-  const [componenteActual, setComponenteActual] = useState("infoServicios");
+  const [componenteActual, setComponenteActual] = useState("InfoDisponibilidad");
   // Función para cambiar el componente actual
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
   };
-  
-  // Renderizado condicional del componente seleccionado
+
   const renderComponente = () => {
     switch (componenteActual) {
       case "resumenGeneral":
         return <ResumenGeneral />;
-      case "infoServicios":
-        return <InfoServicios />;
       case "infoDisponibilidad":
         return <InfoDisponibilidad />;
+      case "infoServicios":
+        return <InfoServicios />;
       case "editarTarea":
         return <EditarTarea />;
       /*
@@ -32,13 +31,13 @@ const Servicios = () => {
         return <Configuracion />;
       */
       default:
-        return <InfoServicios />;
+        return <InfoDisponibilidad />;
     }
   };
-  
+
   return (
     <div className="flex">
-      <Menu onNavClick={cambiarComponente} seccionActiva={componenteActual}/>
+      <Menu onNavClick={cambiarComponente} seccionActiva={componenteActual} />
       {renderComponente()}
     </div>
   );

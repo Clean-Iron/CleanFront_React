@@ -13,7 +13,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 	const [date, setDate] = useState(service.serviceDate);
 
 	// Lista de opciones de hora en formato { value: 'HH:mm', label: 'h:mm AM/PM' }
-	const timeOptions = useTimeOptions({ startHour: 6, endHour: 18, stepMinutes: 30 });
+	const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
 	const statuses = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA'];
 
 	// Servicios / empleados asignados

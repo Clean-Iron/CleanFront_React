@@ -40,7 +40,6 @@ const EspaciosDisponibles = ({ employees, date, startHour, endHour, city, onAssi
           date={date}
           startHour={startHour}
           endHour={endHour}
-          city={city}
           allEmployees={employees}
           onAssigned={() => {
             setShowModal(false);

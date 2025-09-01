@@ -16,15 +16,24 @@ const EditarClientes = () => {
   const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [comentarios, setComentarios] = useState("");
   const [direcciones, setDirecciones] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
   const [mensajeError, setMensajeError] = useState("");
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEliminarForm, setMostrarEliminarForm] = useState(false);
   const [mostrarModalDirecciones, setMostrarModalDirecciones] = useState(false);
 
+  const [tipoIdDropdownOpen, setTipoIdDropdownOpen] = useState(false);
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
+
+  const tipoIdDropdownRef = useRef(null);
   const ciudadDropdownRef = useRef(null);
+
+  const tipoId = [
+    "CC", "TI", "NIT", "CE", "PA"
+  ];
 
   useEffect(() => {
     if (clienteEncontrado) {
@@ -34,6 +43,7 @@ const EditarClientes = () => {
       setDocumento(clienteEncontrado.document || "");
       setEmail(clienteEncontrado.email || "");
       setPhone(clienteEncontrado.phone || "");
+      setComentarios(clienteEncontrado.comments || "");
       setDirecciones(clienteEncontrado.addresses || []);
       setSelectedCity(clienteEncontrado.city || "");
     }
@@ -41,6 +51,9 @@ const EditarClientes = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
+        setTipoIdDropdownOpen(false);
+      }
       if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
         setCiudadDropdownOpen(false);
       }
@@ -89,11 +102,11 @@ const EditarClientes = () => {
       phone: phone,
       addresses: direcciones,
       city: selectedCity,
-      document: documento
+      document: documento,
+      comments: comentarios
     };
 
     try {
-      console.log(datosActualizados);
       await actualizarCliente(clienteEncontrado.document, datosActualizados);
       alert("Cliente actualizado correctamente ✅");
     } catch (error) {
@@ -111,60 +124,113 @@ const EditarClientes = () => {
 
   const renderFormulario = () => (
     <div className="empleados-form-grid">
-      <div className="input-group">
-        <label htmlFor="nombre">Nombre(s)</label>
-        <input
-          id="nombre"
-          type="text"
-          value={nombre}
-          onChange={e => setNombre(e.target.value)}
-        />
-      </div>
-      <div className="input-group">
-        <label htmlFor="apellido">Apellido(s)</label>
-        <input
-          id="apellido"
-          type="text"
-          value={apellido}
-          onChange={e => setApellido(e.target.value)}
-        />
-      </div>
-      <div className="input-group">
-        <label htmlFor="documento">N° Documento</label>
-        <input
-          id="documento"
-          type="text"
-          value={documento}
-          onChange={e => setDocumento(e.target.value)}
-        />
-      </div>
-      <div className="input-group">
-        <label htmlFor="email">Correo electrónico</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-      </div>
-      <div className="input-group">
-        <label htmlFor="phone">N° Celular - Telefono</label>
-        <input
-          id="phone"
-          type="text"
-          value={phone}
-          onChange={e => setPhone(e.target.value)}
-        />
-      </div>
-
-      {/* Botón para abrir el modal de direcciones */}
-      <button
-        type="button"
-        className="menu-btn"
-        onClick={() => setMostrarModalDirecciones(true)}
+      <div
+        className="empleados-full-width empleados-form-grid"
+        style={{
+          maxHeight: '45vh',   // por ejemplo, mitad de la ventana
+          overflowY: 'auto',   // activa scroll interno
+          paddingRight: '8px'  // para evitar que el scroll tape contenido
+        }}
       >
-        📍 Editar Direcciones ({direcciones.length})
-      </button>
+        <div className="input-group">
+          <label htmlFor="nombre">Nombre(s)</label>
+          <input
+            id="nombre"
+            type="text"
+            value={nombre}
+            onChange={e => setNombre(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="apellido">Apellido(s)</label>
+          <input
+            id="apellido"
+            type="text"
+            value={apellido}
+            onChange={e => setApellido(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="tipoDocumento">Tipo ID</label>
+          <div className="dropdown" ref={tipoIdDropdownRef}>
+            <button
+              id="tipoDocumento"
+              type="button"
+              className={`dropdown-trigger ${tipoIdDropdownOpen ? "open" : ""}`}
+              onClick={() => setTipoIdDropdownOpen(o => !o)}
+            >
+              <span>{typeId || "Seleccionar Tipo ID"}</span>
+              <span className="arrow">▼</span>
+            </button>
+            {tipoIdDropdownOpen && (
+              <div className="dropdown-content">
+                {tipoId.map((tipo, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setTypeId(tipo);
+                      setTipoIdDropdownOpen(false);
+                    }}
+                  >
+                    {tipo}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="documento">N° Documento</label>
+          <input
+            id="documento"
+            type="text"
+            value={documento}
+            onChange={e => setDocumento(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="email">Correo electrónico</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+        </div>
+
+        {/* Botón para abrir el modal de direcciones */}
+        <button
+          type="button"
+          className="menu-btn"
+          onClick={() => setMostrarModalDirecciones(true)}
+        >
+          📍 Editar Direcciones ({direcciones.length})
+        </button>
+
+        <div className="input-group">
+          <label htmlFor="phone">N° Celular - Telefono</label>
+          <input
+            id="phone"
+            type="text"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label>Comentarios</label>
+          <textarea
+            className="modal-asignacion-textarea"
+            value={comentarios}
+            onChange={e => setComentarios(e.target.value)}
+          />
+        </div>
+      </div>
 
       <div className="empleados-form-buttons empleados-full-width">
         <button type="button" className="menu-btn" onClick={resetBusqueda}>

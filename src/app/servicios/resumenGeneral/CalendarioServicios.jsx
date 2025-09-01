@@ -1,63 +1,37 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import '@/styles/Servicios/ResumenGeneral/CalendarioServicios.css';
 import FormularioTarea from '../editarTarea/FormularioTarea';
 import ModalAsignacion from '../disponibilidad/ModalAsignacion';
-import { formatTo12h } from '@/lib/Utils'
+import { formatTo12h } from '@/lib/Utils';
 
 const CalendarioServicios = ({
   employee,
   dataServicios = [],
-  onDateSelect,
-  onButtonClick,
-  initialDate = null,
-  minDate = null,
-  maxDate = null,
   currentMonth = null,
   currentYear = null,
-  hideNavigation = false,
   onServiceUpdate,
-  buttonLabels = ['TURNO 1', 'TURNO 2']
+  buttonLabels = ['TURNO 1', 'TURNO 2'],
+  // opcionales por si luego quieres deshabilitar rangos
+  minDate = null,
+  maxDate = null,
 }) => {
-  // Estado del calendario
-  const [currentDate, setCurrentDate] = useState(() => {
-    if (currentMonth !== null && currentYear !== null) {
-      return new Date(currentYear, currentMonth, 1);
-    }
-    return new Date();
-  });
-  const [selectedDate, setSelectedDate] = useState(() => {
-    if (initialDate) {
-      const date = new Date(initialDate);
-      return isNaN(date.getTime()) ? new Date() : date;
-    }
-    return new Date();
-  });
-  const [selectedButton, setSelectedButton] = useState(null);
+  const now = useMemo(() => new Date(), []);
+  const year = currentYear ?? now.getFullYear();
+  const month = currentMonth ?? now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Estados para el modal
+  // Modales
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  // Estados para el modal de asignación
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [assignInfo, setAssignInfo] = useState({ date: '', shiftIndex: 0 });
 
-  useEffect(() => {
-    if (currentMonth !== null && currentYear !== null) {
-      setCurrentDate(new Date(currentYear, currentMonth, 1));
-    }
-  }, [currentMonth, currentYear]);
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
   const startDay = useMemo(() => {
-    const day = new Date(year, month, 1).getDay();
-    return day === 0 ? 6 : day - 1;
+    const d = new Date(year, month, 1).getDay();
+    return d === 0 ? 6 : d - 1; // Lunes=0
   }, [year, month]);
 
   const formatDateToYYYYMMDD = useCallback((date) => {
-    if (!date || isNaN(date.getTime())) return '';
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
@@ -66,49 +40,22 @@ const CalendarioServicios = ({
 
   const isToday = useCallback((day) => {
     const today = new Date();
-    return (
-      day === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear()
-    );
+    return day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
   }, [month, year]);
 
-  const isSelected = useCallback((day) => {
-    return (
-      selectedDate.getDate() === day &&
-      selectedDate.getMonth() === month &&
-      selectedDate.getFullYear() === year
-    );
-  }, [selectedDate, month, year]);
-
   const isDateDisabled = useCallback((day) => {
+    if (!minDate && !maxDate) return false;
     const date = new Date(year, month, day);
     return (minDate && date < minDate) || (maxDate && date > maxDate);
   }, [year, month, minDate, maxDate]);
 
-  const handleButtonClick = useCallback((day, buttonIndex) => {
-    if (isDateDisabled(day)) return;
-    const dateObj = new Date(year, month, day);
-    const dateString = formatDateToYYYYMMDD(dateObj);
-    setSelectedDate(dateObj);
-    setSelectedButton({ day, buttonIndex, date: dateString });
-    onDateSelect?.(dateString);
-    onButtonClick?.(dateString, buttonIndex, buttonLabels[buttonIndex]);
-  }, [year, month, isDateDisabled, formatDateToYYYYMMDD, onDateSelect, onButtonClick, buttonLabels]);
-
-  const isButtonSelected = useCallback((day, buttonIndex) => {
-    return selectedButton?.day === day && selectedButton?.buttonIndex === buttonIndex;
-  }, [selectedButton]);
-
   const days = useMemo(() => {
-    const allDays = [];
+    const all = [];
 
-    // Huecos antes del primer día
     for (let i = 0; i < startDay; i++) {
-      allDays.push(<div key={`empty-${i}`} className="modern-date-empty" />);
+      all.push(<div key={`empty-${i}`} className="modern-date-empty" />);
     }
 
-    // Cada día
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(year, month, day);
       const dateString = formatDateToYYYYMMDD(dateObj);
@@ -121,18 +68,13 @@ const CalendarioServicios = ({
       const totalHours = serviciosDelDia.reduce((sum, s) => sum + (s.totalServiceHours || 0), 0);
       const fullDay = totalHours >= 8;
 
-      const isTodayDate = isToday(day);
-      const isSelectedDay = isSelected(day);
-      const isDisabled = isDateDisabled(day);
-
       const containerClasses = [
         'modern-date-container',
-        isTodayDate && 'modern-date-container-today',
-        isSelectedDay && 'modern-date-container-selected',
-        isDisabled && 'modern-date-container-disabled'
+        isToday(day) && 'modern-date-container-today',
+        isDateDisabled(day) && 'modern-date-container-disabled',
       ].filter(Boolean).join(' ');
 
-      allDays.push(
+      all.push(
         <div key={`day-${day}`} className={containerClasses}>
           <div className="modern-date-number">{day}</div>
           <div className="modern-date-buttons">
@@ -151,26 +93,19 @@ const CalendarioServicios = ({
                 case 'MENSUAL': bgColor = '#EF4444'; break;
               }
 
-              let contenido = null;
-              if (servicio) {
-                contenido = (
+              const content = servicio
+                ? (
                   <>
                     <div>{`${formatTo12h(servicio.startHour)} ${formatTo12h(servicio.endHour)}`}</div>
                     <div className="modern-btn-client">{servicio.clientCompleteName}</div>
                   </>
-                );
-              } else if (!fullDay) {
-                contenido = buttonLabels[index];
-              }
+                )
+                : (!fullDay ? buttonLabels[index] : null);
 
-              const btnStyle = bgColor
-                ? { backgroundColor: bgColor, color: '#FFFFFF' }
-                : {};
-
+              const btnStyle = bgColor ? { backgroundColor: bgColor, color: '#fff' } : {};
               const btnClasses = [
                 'modern-date-button',
-                isButtonSelected(day, index) && 'modern-date-button-selected',
-                isDisabled && 'modern-date-button-disabled'
+                isDateDisabled(day) && 'modern-date-button-disabled',
               ].filter(Boolean).join(' ');
 
               return (
@@ -178,22 +113,18 @@ const CalendarioServicios = ({
                   key={`${day}-${index}`}
                   className={btnClasses}
                   style={btnStyle}
-                  disabled={isDisabled}
-                  aria-pressed={isButtonSelected(day, index)}
+                  disabled={isDateDisabled(day)}
                   onClick={() => {
-                    handleButtonClick(day, index);
-                    // Si hay servicio, abrimos el modal pasando ese servicio
                     if (servicio) {
                       setSelectedService(servicio);
                       setModalOpen(true);
                     } else if (!fullDay) {
-                      // Turno libre → abrimos ModalAsignacion
                       setAssignInfo({ date: dateString, shiftIndex: index });
                       setAssignModalOpen(true);
                     }
                   }}
                 >
-                  {contenido}
+                  {content}
                 </button>
               );
             })}
@@ -201,50 +132,35 @@ const CalendarioServicios = ({
         </div>
       );
     }
+    return all;
+  }, [startDay, daysInMonth, year, month, dataServicios, isToday, isDateDisabled, formatDateToYYYYMMDD, buttonLabels]);
 
-    return allDays;
-  }, [
-    startDay, daysInMonth, isToday, isSelected, isDateDisabled,
-    handleButtonClick, isButtonSelected, dataServicios,
-    formatDateToYYYYMMDD, buttonLabels
-  ]);
-
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   return (
     <div className="modern-calendar" role="application" aria-label="Calendario de selección de fechas">
       <div className="modern-month-header">
-        <h2 className={`modern-month-title ${hideNavigation ? 'centered' : ''}`}>
+        <h2 className="modern-month-title centered">
           {monthNames[month]} {year}
         </h2>
       </div>
+
       <div className="modern-weekdays">
-        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((dayName, i) => (
-          <div key={i} className="modern-weekday">{dayName}</div>
+        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((n, i) => (
+          <div key={i} className="modern-weekday">{n}</div>
         ))}
       </div>
-      <div className="modern-calendar-grid">
-        {days}
-      </div>
 
-      {/* Aquí renderizamos el modal cuando se abra */}
+      <div className="modern-calendar-grid">{days}</div>
+
       {modalOpen && selectedService && (
         <FormularioTarea
           service={selectedService}
-          onClose={() => {
-            setModalOpen(false);
-            setSelectedService(null);
-          }}
-          onUpdate={() => {
-            setModalOpen(false);
-            setSelectedService(null);
-            onServiceUpdate?.();
-          }}
+          onClose={() => { setModalOpen(false); setSelectedService(null); }}
+          onUpdate={() => { setModalOpen(false); setSelectedService(null); onServiceUpdate?.(); }}
         />
       )}
+
       {assignModalOpen && (
         <ModalAsignacion
           show={assignModalOpen}
@@ -253,11 +169,7 @@ const CalendarioServicios = ({
           date={assignInfo.date}
           startHour={assignInfo.shiftIndex === 0 ? '06:00' : '14:00'}
           endHour={assignInfo.shiftIndex === 0 ? '14:00' : '22:00'}
-          city={employee?.city}
-          onAssigned={() => {
-            setAssignModalOpen(false);
-            onServiceUpdate?.();
-          }}
+          onAssigned={() => { setAssignModalOpen(false); onServiceUpdate?.(); }}
         />
       )}
     </div>

@@ -1,4 +1,3 @@
-// src/components/Servicios/Disponibilidad/FiltrarDisponibilidad.jsx
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { buscarDisponibilidad } from '@/lib/Logic.js';
@@ -7,12 +6,12 @@ import '@/styles/Servicios/Disponibilidad/FiltrarDisponibilidad.css';
 
 const FiltrarDisponibilidad = ({ onEmployeesUpdate }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [startHour, setStartHour] = useState('10:00');
-  const [endHour, setEndHour] = useState('13:00');
+  const [startHour, setStartHour] = useState('10:00:00');
+  const [endHour, setEndHour] = useState('13:00:00');
   const [city, setCity] = useState('');
 
   const { ciudades, isLoading: ciudadesLoading } = useCiudades();
-  const timeOptions = useTimeOptions({ startHour: 6, endHour: 18, stepMinutes: 30 });
+  const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
 
   const [startHourDropdownOpen, setStartHourDropdownOpen] = useState(false);
   const [endHourDropdownOpen, setEndHourDropdownOpen] = useState(false);

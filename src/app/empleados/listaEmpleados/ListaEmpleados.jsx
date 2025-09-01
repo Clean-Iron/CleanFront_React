@@ -13,7 +13,7 @@ const ListaEmpleados = () => {
   // Estados para filtros específicos
   const [filtros, setFiltros] = useState({
     ciudad: "",
-    ordenamiento: "nombre" // nombre, documento, email
+    ordenamiento: "nombre"
   });
 
   useEffect(() => {

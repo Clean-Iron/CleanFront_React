@@ -1,206 +1,219 @@
 'use client';
-import React, { useState, useEffect, useRef } from "react";
-import {
-  obtenerServicios,
-  obtenerClientesConDireccionCiudad,
-  asignarServicio
-} from '@/lib/Logic.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { obtenerServicios, buscarClientes, asignarServicio } from '@/lib/Logic.js';
 import { useTimeOptions } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils';
-import '@/styles/Servicios/Disponibilidad/ModalAsignacion.css';
+import ModalFrecuenciaFechas from './ModalFrecuenciaFechas';
 
-const ModalAsignacion = ({
+const RECURRENCES = ['NINGUNA', 'PUNTUAL', 'FRECUENTE', 'QUINCENAL', 'MENSUAL'];
+
+export default function ModalAsignacion({
   show,
   onClose,
   empleado,
   date,
   startHour: startHourProp,
   endHour: endHourProp,
-  city,
   allEmployees = [],
-  onAssigned
-}) => {
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [empleadosAdicionales, setEmpleadosAdicionales] = useState([]);
-  const [servicios, setServicios] = useState([]);
-  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
-  const [clientesZona, setClientesZona] = useState([]);
-  const [comentarios, setComentarios] = useState("");
-
-  const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
-  const [mostrarDropdownClientes, setMostrarDropdownClientes] = useState(false);
-  const [mostrarDropdownServicios, setMostrarDropdownServicios] = useState(false);
-
-  // --- NUEVO: búsqueda de clientes tipo BuscarTarea ---
-  const [clienteText, setClienteText] = useState("");
-  const [clientesFiltrados, setClientesFiltrados] = useState([]);
-  const clienteRef = useRef(null);
-
-  const [currentRecurrency, setCurrentRecurrency] = useState('PUNTUAL');
-
-  // Inputs de hora (igual a FormularioTarea)
-  const timeOptions = useTimeOptions({ startHour: 6, endHour: 18, stepMinutes: 30 });
-  const [startHour, setStartHour] = useState(startHourProp || '');
-  const [endHour, setEndHour] = useState(endHourProp || '');
-  const [startTimeOpen, setStartTimeOpen] = useState(false);
-  const [endTimeOpen, setEndTimeOpen] = useState(false);
-
-  // Refs para detectar clicks fuera
+  onAssigned,
+}) {
   const recurrencyRef = useRef(null);
   const startRef = useRef(null);
   const endRef = useRef(null);
+  const clienteRef = useRef(null);
+  const empleadosRef = useRef(null);
+  const serviciosRef = useRef(null);
+
+  const [startHour, setStartHour] = useState(startHourProp || '');
+  const [endHour, setEndHour] = useState(endHourProp || '');
+  const [currentRecurrency, setCurrentRecurrency] = useState('NINGUNA');
+  const [showDatesModal, setShowDatesModal] = useState(false);
+  const [selectedDates, setSelectedDates] = useState([]);
 
   const [stateOpen, setStateOpen] = useState(false);
-  const recurrency = ['PUNTUAL', 'FRECUENTE', 'QUINCENAL', 'MENSUAL'];
+  const [startTimeOpen, setStartTimeOpen] = useState(false);
+  const [endTimeOpen, setEndTimeOpen] = useState(false);
+
+  const [empleadosAdicionales, setEmpleadosAdicionales] = useState([]);
+  const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
+
+  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
+  const [servicios, setServicios] = useState([]);
+  const [mostrarDropdownServicios, setMostrarDropdownServicios] = useState(false);
+
+  const [clientes, setClientes] = useState([]);
+  const [clientesFiltrados, setClientesFiltrados] = useState([]);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [direccionSeleccionada, setDireccionSeleccionada] = useState(null);
+  const [clienteText, setClienteText] = useState('');
+  const [mostrarDropdownClientes, setMostrarDropdownClientes] = useState(false);
+
+  const [comentarios, setComentarios] = useState('');
+
+  const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
+  const labelFor = (value) =>
+    timeOptions.find(opt => opt.value === value)?.label || (value ? formatTo12h(value) : '');
 
   useEffect(() => {
-    if (show) {
-      setStartHour(startHourProp || '');
-      setEndHour(endHourProp || '');
-    }
+    if (!show) return;
+    setStartHour(startHourProp || '');
+    setEndHour(endHourProp || '');
   }, [show, startHourProp, endHourProp]);
 
-  // Cerrar dropdowns al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = e => {
-      if (recurrencyRef.current && !recurrencyRef.current.contains(e.target)) setStateOpen(false);
-      if (startRef.current && !startRef.current.contains(e.target)) setStartTimeOpen(false);
-      if (endRef.current && !endRef.current.contains(e.target)) setEndTimeOpen(false);
+    if (!show) return;
 
-      if (clienteRef.current && !clienteRef.current.contains(e.target)) {
-        setMostrarDropdownClientes(false);
-      }
-      if (!e.target.closest('.modal-asignacion-dropdown-chip') &&
-          !e.target.closest('.modal-asignacion-add-empleado-btn')) {
-        setMostrarDropdownEmpleados(false);
-      }
-      if (!e.target.closest('.modal-asignacion-dropdown-chip') &&
-          !e.target.closest('.modal-asignacion-add-servicio-btn')) {
-        setMostrarDropdownServicios(false);
-      }
+    obtenerServicios()
+      .then((data) => setServiciosDisponibles(data || []))
+      .catch(() => setServiciosDisponibles([]));
+
+    buscarClientes()
+      .then((data) => {
+        setClientes(data || []);
+        setClientesFiltrados(data || []);
+        setClienteSeleccionado(null);
+        setDireccionSeleccionada(null);
+        setClienteText('');
+      })
+      .catch(() => {
+        setClientes([]);
+        setClientesFiltrados([]);
+      });
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+
+    const isInside = (ref, target) => ref?.current && ref.current.contains(target);
+
+    const handleOutside = (e) => {
+      const t = e.target;
+
+      if (startTimeOpen && !isInside(startRef, t)) setStartTimeOpen(false);
+      if (endTimeOpen && !isInside(endRef, t)) setEndTimeOpen(false);
+      if (stateOpen && !isInside(recurrencyRef, t)) setStateOpen(false);
+      if (mostrarDropdownClientes && !isInside(clienteRef, t)) setMostrarDropdownClientes(false);
+      if (mostrarDropdownEmpleados && !isInside(empleadosRef, t)) setMostrarDropdownEmpleados(false);
+      if (mostrarDropdownServicios && !isInside(serviciosRef, t)) setMostrarDropdownServicios(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  useEffect(() => {
-    if (show) {
-      obtenerServicios()
-        .then((data) => setServiciosDisponibles(data))
-        .catch((error) => {
-          console.error("Error al obtener servicios:", error);
-          setServiciosDisponibles([]);
-        });
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [
+    show,
+    startTimeOpen,
+    endTimeOpen,
+    stateOpen,
+    mostrarDropdownClientes,
+    mostrarDropdownEmpleados,
+    mostrarDropdownServicios,
+  ]);
 
-      obtenerClientesConDireccionCiudad(city)
-        .then((data) => {
-          setClientesZona(data || []);
-          setClientesFiltrados(data || []);
-          // reset selección/búsqueda al abrir
-          setClienteSeleccionado(null);
-          setClienteText("");
-        })
-        .catch((error) => {
-          console.error("Error al obtener clientes por ciudad:", error);
-          setClientesZona([]);
-          setClientesFiltrados([]);
-        });
-    }
-  }, [show, city]);
-
+  // Empleados
   const handleAgregarEmpleado = (nuevo) => {
-    if (!empleadosAdicionales.some(e => e.document === nuevo.document)) {
-      setEmpleadosAdicionales([...empleadosAdicionales, nuevo]);
-      setMostrarDropdownEmpleados(false);
-    }
+    setEmpleadosAdicionales((prev) =>
+      prev.some(e => e.document === nuevo.document) ? prev : [...prev, nuevo]
+    );
+    setMostrarDropdownEmpleados(false);
   };
-
   const handleEliminarEmpleado = (document) => {
-    setEmpleadosAdicionales(empleadosAdicionales.filter(e => e.document !== document));
+    setEmpleadosAdicionales((prev) => prev.filter(e => e.document !== document));
   };
 
-  const handleAgregarServicio = (nuevoServicio) => {
-    if (!servicios.some(s => s.id === nuevoServicio.id)) {
-      setServicios([...servicios, nuevoServicio]);
-      setMostrarDropdownServicios(false);
-    }
+  // Servicios
+  const handleAgregarServicio = (nuevo) => {
+    setServicios((prev) => prev.some(s => s.id === nuevo.id) ? prev : [...prev, nuevo]);
+    setMostrarDropdownServicios(false);
   };
-
   const handleEliminarServicio = (id) => {
-    setServicios(servicios.filter(serv => serv.id !== id));
+    setServicios((prev) => prev.filter(s => s.id !== id));
   };
 
-  const handleSeleccionarCliente = (cliente) => {
-    setClienteSeleccionado(cliente);
-    setClienteText(`${cliente.name} ${cliente.surname}`);
-    setMostrarDropdownClientes(false);
-  };
-
-  // --- NUEVO: filtrar clientes como en BuscarTarea ---
+  // Clientes
   const filtrarClientes = (valor) => {
     setClienteText(valor);
     setMostrarDropdownClientes(true);
     const q = valor.trim().toLowerCase();
-    if (!q) { setClientesFiltrados(clientesZona); return; }
+    if (!q) { setClientesFiltrados(clientes); return; }
     setClientesFiltrados(
-      clientesZona.filter(c => {
+      clientes.filter(c => {
         const full = `${c.name ?? ''} ${c.surname ?? ''}`.toLowerCase();
-        const doc  = (c.document ?? '').toString().toLowerCase();
-        const addr = (c.addresses?.find(a => a.city === city)?.address ?? '').toLowerCase();
-        return full.includes(q) || doc.includes(q) || addr.includes(q);
+        const doc = (c.document ?? '').toString().toLowerCase();
+        const addrBlob = (c.addresses ?? [])
+          .map(a => `${a.address ?? ''} ${a.city ?? ''}`.toLowerCase())
+          .join(' | ');
+        return full.includes(q) || doc.includes(q) || addrBlob.includes(q);
       })
     );
+  };
+
+  const handleSeleccionarCliente = (cliente, direccion) => {
+    setClienteSeleccionado(cliente);
+    setDireccionSeleccionada(direccion);
+    setClienteText(
+      `${cliente.name} ${cliente.surname} — ${direccion?.address ?? ''}${direccion?.city ? ` (${direccion.city})` : ''}`
+    );
+    setMostrarDropdownClientes(false);
   };
 
   const onClienteKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (clientesFiltrados.length > 0) handleSeleccionarCliente(clientesFiltrados[0]);
+      if (clientesFiltrados.length > 0) {
+        const c = clientesFiltrados[0];
+        const addr = (c.addresses && c.addresses.length > 0) ? c.addresses[0] : null;
+        handleSeleccionarCliente(c, addr);
+      }
     } else if (e.key === 'Escape') {
       setMostrarDropdownClientes(false);
     }
   };
 
-  const labelFor = (value) =>
-    timeOptions.find(opt => opt.value === value)?.label || (value ? formatTo12h(value) : '');
+  // abrir modal de fechas si corresponde
+  const openDatesIfNeeded = (value) => {
+    setCurrentRecurrency(value);
+    if (value !== 'NINGUNA') setShowDatesModal(true);
+    else setSelectedDates([]);
+  };
 
+  // Enviar ARRAY al API
   const handleAsignar = async () => {
     if (!clienteSeleccionado || servicios.length === 0) {
-      alert("Seleccione un cliente y al menos un servicio");
+      alert('Seleccione un cliente y al menos un servicio');
       return;
     }
     if (!startHour || !endHour) {
-      alert("Seleccione la hora de inicio y la hora de fin");
+      alert('Seleccione la hora de inicio y la hora de fin');
+      return;
+    }
+    if (!direccionSeleccionada) {
+      alert('Seleccione una dirección para el servicio');
       return;
     }
 
-    const direccion = clienteSeleccionado.addresses.find(addr => addr.city === city);
-    if (!direccion) {
-      alert("El cliente no tiene dirección en esta ciudad");
-      return;
-    }
+    const fechas = (selectedDates.length > 0) ? selectedDates : [date];
 
-    const schedule = {
+    const schedules = fechas.map((d) => ({
       client: clienteSeleccionado,
-      serviceAddress: direccion,
+      serviceAddress: direccionSeleccionada,
       employees: [empleado, ...empleadosAdicionales],
       services: servicios,
-      date: date,
-      startHour: startHour,
-      endHour: endHour,
+      date: d,
+      startHour,
+      endHour,
       comments: comentarios,
-      state: "PROGRAMADA",
-      recurrenceType: currentRecurrency,
-    };
+      state: 'PROGRAMADA',
+      recurrenceType: currentRecurrency === 'NINGUNA' ? 'PUNTUAL' : currentRecurrency,
+    }));
 
     try {
-      await asignarServicio(schedule);
-      alert("Servicio asignado correctamente");
+      await asignarServicio(schedules);
+      alert(`Servicio(s) asignado(s) correctamente (${schedules.length})`);
       onAssigned?.();
       onClose();
     } catch (err) {
       console.error(err);
-      alert("Error al asignar servicio");
+      alert('Error al asignar servicio(s)');
     }
   };
 
@@ -209,61 +222,50 @@ const ModalAsignacion = ({
   return (
     <div className="modal-overlay">
       <div className="modal-container">
-        <div className="modal-datos-superiores" style={{ gap: '1rem', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>{date}</span>
+        {/* Superiores */}
+        <div className="modal-datos-superiores">
+          <span>{date}</span>
 
           {/* Hora Inicio */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>Hora Inicio</span>
-            <div className="dropdown" ref={startRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
-                onClick={() => setStartTimeOpen(o => !o)}
-              >
-                <span>{labelFor(startHour) || 'Hora inicio'}</span>
-                <span className="arrow">▼</span>
-              </button>
-              {startTimeOpen && (
-                <div className="dropdown-content">
-                  {timeOptions.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => { setStartHour(value); setStartTimeOpen(false); }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="dropdown" ref={startRef}>
+            <button
+              type="button"
+              className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
+              onClick={() => setStartTimeOpen(o => !o)}
+            >
+              <span>{labelFor(startHour) || 'Hora inicio'}</span>
+              <span className="arrow">▼</span>
+            </button>
+            {startTimeOpen && (
+              <div className="dropdown-content">
+                {timeOptions.map(({ value, label }) => (
+                  <button key={value} onClick={() => { setStartHour(value); setStartTimeOpen(false); }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Hora Fin */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>Hora Fin</span>
-            <div className="dropdown" ref={endRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
-                onClick={() => setEndTimeOpen(o => !o)}
-              >
-                <span>{labelFor(endHour) || 'Hora fin'}</span>
-                <span className="arrow">▼</span>
-              </button>
-              {endTimeOpen && (
-                <div className="dropdown-content">
-                  {timeOptions.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => { setEndHour(value); setEndTimeOpen(false); }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="dropdown" ref={endRef}>
+            <button
+              type="button"
+              className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
+              onClick={() => setEndTimeOpen(o => !o)}
+            >
+              <span>{labelFor(endHour) || 'Hora fin'}</span>
+              <span className="arrow">▼</span>
+            </button>
+            {endTimeOpen && (
+              <div className="dropdown-content">
+                {timeOptions.map(({ value, label }) => (
+                  <button key={value} onClick={() => { setEndHour(value); setEndTimeOpen(false); }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Recurrencia */}
@@ -278,8 +280,8 @@ const ModalAsignacion = ({
             </button>
             {stateOpen && (
               <div className="dropdown-content">
-                {recurrency.map(st => (
-                  <button key={st} onClick={() => { setCurrentRecurrency(st); setStateOpen(false); }}>
+                {RECURRENCES.map(st => (
+                  <button key={st} onClick={() => { openDatesIfNeeded(st); setStateOpen(false); }}>
                     {st}
                   </button>
                 ))}
@@ -288,13 +290,14 @@ const ModalAsignacion = ({
           </div>
         </div>
 
+        {/* Form */}
         <div className="modal-asignacion-form-grid">
           {/* Empleados */}
           <div className="modal-chip-section">
-            <label>Empleados:</label>
-            <div className="modal-chip-container">
+            <label>Empleados</label>
+            <div className="modal-chip-container" ref={empleadosRef}>
               <div className="chips">
-                <div className="modal-chip">{empleado.name} {empleado.surname}</div>
+                <div className="modal-chip">{empleado?.name} {empleado?.surname}</div>
                 {empleadosAdicionales.map(emp => (
                   <div className="modal-chip" key={emp.document}>
                     {emp.name} {emp.surname}
@@ -315,25 +318,21 @@ const ModalAsignacion = ({
                     <div className="modal-asignacion-no-opciones">No hay empleados disponibles</div>
                   ) : (
                     allEmployees
-                      .filter(e => e.document !== empleado.document && !empleadosAdicionales.find(a => a.document === e.document))
+                      .filter(e => e.document !== empleado?.document && !empleadosAdicionales.find(a => a.document === e.document))
                       .map(e => (
                         <button key={e.document} onClick={() => handleAgregarEmpleado(e)}>
                           {e.name} {e.surname}
                         </button>
                       ))
                   )}
-                  {allEmployees.length > 0 &&
-                    allEmployees.filter(e => e.document !== empleado.document && !empleadosAdicionales.find(a => a.document === e.document)).length === 0 && (
-                      <div className="modal-asignacion-no-opciones">Todos los empleados ya están asignados</div>
-                    )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Clientes (input + dropdown filtrable como BuscarTarea) */}
+          {/* Clientes */}
           <div>
-            <label>Clientes:</label>
+            <label>Clientes</label>
             <div className="modal-asignacion-dropdown" ref={clienteRef}>
               <input
                 type="text"
@@ -342,8 +341,7 @@ const ModalAsignacion = ({
                 onChange={(e) => filtrarClientes(e.target.value)}
                 onFocus={() => {
                   setMostrarDropdownClientes(true);
-                  setClientesFiltrados(clientesZona);
-                  // si ya hay seleccionado y no hay texto, precarga el nombre para edición
+                  setClientesFiltrados(clientes);
                   if (!clienteText && clienteSeleccionado) {
                     setClienteText(`${clienteSeleccionado.name} ${clienteSeleccionado.surname}`);
                   }
@@ -354,25 +352,33 @@ const ModalAsignacion = ({
                 <div className="modal-asignacion-dropdown-content">
                   {clientesFiltrados.length === 0 ? (
                     <div className="modal-asignacion-no-opciones">
-                      {clientesZona.length === 0 ? `No hay clientes disponibles en ${city}` : 'Sin resultados'}
+                      {clientes.length === 0 ? 'No hay clientes disponibles' : 'Sin resultados'}
                     </div>
                   ) : (
-                    clientesFiltrados.map((cliente) => {
-                      const direccionCiudad = cliente.addresses?.find(addr => addr.city === city);
-                      return (
-                        <button
-                          key={cliente.document}
-                          onClick={() => handleSeleccionarCliente(cliente)}
-                          className={clienteSeleccionado?.document === cliente.document ? "selected" : ""}
-                        >
-                          {cliente.name} {cliente.surname}
-                          {direccionCiudad && (
+                    clientesFiltrados.flatMap((c) => {
+                      const dirs = Array.isArray(c.addresses) && c.addresses.length > 0 ? c.addresses : [null];
+                      return dirs.map((addr, idx) => {
+                        const key = `${c.document}-${addr?.id ?? idx}`;
+                        const isSelected =
+                          clienteSeleccionado?.document === c.document &&
+                          (!!direccionSeleccionada &&
+                            ((direccionSeleccionada.id && addr?.id && direccionSeleccionada.id === addr.id) ||
+                              (direccionSeleccionada.address === addr?.address && direccionSeleccionada.city === addr?.city)));
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => handleSeleccionarCliente(c, addr)}
+                            className={isSelected ? 'selected' : ''}
+                            disabled={!addr}
+                            title={addr ? `${addr.address}${addr.city ? ` (${addr.city})` : ''}` : 'Sin dirección'}
+                          >
+                            {c.name} {c.surname}
                             <span className="modal-asignacion-cliente-direccion">
-                              &nbsp;- {direccionCiudad.address}
+                              &nbsp;— {addr ? `${addr.address}${addr.city ? ` (${addr.city})` : ''}` : 'Sin dirección'}
                             </span>
-                          )}
-                        </button>
-                      );
+                          </button>
+                        );
+                      });
                     })
                   )}
                 </div>
@@ -382,8 +388,8 @@ const ModalAsignacion = ({
 
           {/* Servicios */}
           <div className="modal-chip-section">
-            <label>Servicios:</label>
-            <div className="modal-chip-container">
+            <label>Servicios</label>
+            <div className="modal-chip-container" ref={serviciosRef}>
               <div className="chips">
                 {servicios.map((serv) => (
                   <div className="modal-chip" key={serv.id}>
@@ -403,14 +409,14 @@ const ModalAsignacion = ({
                 <div className="modal-asignacion-dropdown-chip">
                   {serviciosDisponibles.length === 0 ? (
                     <div className="modal-asignacion-no-opciones">No hay servicios disponibles</div>
-                  ) : serviciosDisponibles.filter(s => !servicios.some(serv => serv.id === s.id)).length === 0 ? (
+                  ) : serviciosDisponibles.filter(s => !servicios.some(sel => sel.id === s.id)).length === 0 ? (
                     <div className="modal-asignacion-no-opciones">Todos los servicios ya están asignados</div>
                   ) : (
                     serviciosDisponibles
-                      .filter(s => !servicios.some(serv => serv.id === s.id))
-                      .map((servicio) => (
-                        <button key={servicio.id} onClick={() => handleAgregarServicio(servicio)}>
-                          {servicio.description}
+                      .filter(s => !servicios.some(sel => sel.id === s.id))
+                      .map((s) => (
+                        <button key={s.id} onClick={() => handleAgregarServicio(s)}>
+                          {s.description}
                         </button>
                       ))
                   )}
@@ -421,25 +427,52 @@ const ModalAsignacion = ({
 
           {/* Comentarios */}
           <div>
-            <label>Comentarios:</label>
+            <label>Comentarios</label>
             <textarea
               placeholder="Comentarios adicionales"
               rows={3}
               className="modal-asignacion-textarea"
               value={comentarios}
               onChange={(e) => setComentarios(e.target.value)}
-            ></textarea>
+            />
           </div>
 
-          {/* Botones de acción */}
+          {/* Resumen de fechas elegidas */}
+          {selectedDates.length > 0 && (
+            <div className="modal-chip-section">
+              <label>Fechas seleccionadas</label>
+              <div className="modal-chip-container">
+                <div className="chips">
+                  {selectedDates.map(d => (
+                    <div key={d} className="modal-chip">{d}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Botones */}
           <div className="modal-asignacion-form-buttons modal-asignacion-full-width">
             <button type="button" onClick={onClose} className="modal-asignacion-btn-cancelar">Cancelar</button>
-            <button type="button" className="modal-asignacion-btn-confirmar" onClick={handleAsignar}>Asignar</button>
+            <button type="button" className="modal-asignacion-btn-confirmar" onClick={handleAsignar}>
+              Asignar {selectedDates.length > 0 ? `(${selectedDates.length})` : ''}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modal de frecuencia/fechas */}
+      <ModalFrecuenciaFechas
+        show={showDatesModal}
+        onClose={() => setShowDatesModal(false)}
+        recurrence={currentRecurrency}
+        baseDate={date}
+        occurrences={4}
+        onConfirm={(dates) => {
+          setSelectedDates(dates);
+          setShowDatesModal(false);
+        }}
+      />
     </div>
   );
-};
-
-export default ModalAsignacion;
+}

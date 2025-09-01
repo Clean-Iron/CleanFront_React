@@ -8,8 +8,6 @@ import "@/styles/Empleados/EditarEmpleados.css";
 
 const EditarEmpleados = () => {
   const [activeTab, setActiveTab] = useState("edit");
-  const [selectedCargo, setSelectedCargo] = useState("");
-  const [selectedEstado, setSelectedEstado] = useState("");
   const [busquedaDocumento, setBusquedaDocumento] = useState("");
   const [empleadoEncontrado, setEmpleadoEncontrado] = useState(null);
   const [nombre, setNombre] = useState("");
@@ -18,17 +16,23 @@ const EditarEmpleados = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
   const [fechaIngreso, setFechaIngreso] = useState("");
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [mensajeError, setMensajeError] = useState("");
+  const [comentarios, setComentarios] = useState("");
+  const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
 
+  const [selectedCargo, setSelectedCargo] = useState("");
+  const [selectedEstado, setSelectedEstado] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
+  const [mensajeError, setMensajeError] = useState("");
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEliminarForm, setMostrarEliminarForm] = useState(false);
 
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
-  const ciudadDropdownRef = useRef(null);
+  const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
+  const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
 
+  const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
   const estadoDropdownRef = useRef(null);
 
@@ -47,6 +51,7 @@ const EditarEmpleados = () => {
       setEmail(empleadoEncontrado.email || "");
       setPhone(empleadoEncontrado.phone || "");
       setDireccion(empleadoEncontrado.addressResidence || "");
+      setComentarios(empleadoEncontrado.comments || "");
       setSelectedCity(empleadoEncontrado.city || "");
       if (empleadoEncontrado.entryDate) {
         setFechaIngreso(empleadoEncontrado.entryDate);
@@ -72,16 +77,12 @@ const EditarEmpleados = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
-  const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
-
   const manejarResultadoBusqueda = (datos) => {
     if (datos) {
       setEmpleadoEncontrado(datos);
       setSelectedCargo(datos.position);
       setSelectedEstado(datos.state ? "Activo" : "Inactivo");
 
-      // Handle different behaviors based on active tab
       if (activeTab === "edit") {
         setMostrarFormulario(true);
       } else if (activeTab === "delete") {
@@ -110,6 +111,7 @@ const EditarEmpleados = () => {
       document: documento,
       fechaIngreso,
       position: selectedCargo,
+      comments: comentarios,
       state: selectedEstado === "Activo"
     };
 
@@ -305,6 +307,15 @@ const EditarEmpleados = () => {
             type="date"
             value={fechaIngreso}
             onChange={e => setFechaIngreso(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label>Comentarios</label>
+          <textarea
+            className="modal-asignacion-textarea"
+            value={comentarios}
+            onChange={e => setComentarios(e.target.value)}
           />
         </div>
       </div>

@@ -7,7 +7,6 @@ const fetcher = url => fetch(url).then(res => {
 })
 
 export function useCiudades() {
-  // NEXT_PUBLIC_API_URL se inyecta vía .env.development o .env.production
   const apiBase = process.env.NEXT_PUBLIC_API_URL
 
   // Si no existe la variable, SWR no hace la petición
@@ -28,7 +27,7 @@ export function useCiudades() {
  * - value: "HH:mm" (para enviar al backend como LocalTime)
  * - label: "h:mm AM/PM" (o el formato local)
  */
-export function useTimeOptions({ startHour = 6, endHour = 18, stepMinutes = 30 } = {}) {
+export function useTimeOptions({ startHour = 0, endHour = 24, stepMinutes = 30 } = {}) {
   return useMemo(() => {
     const opts = []
     for (let h = startHour; h < endHour; h++) {

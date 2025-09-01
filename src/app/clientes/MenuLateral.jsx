@@ -20,7 +20,7 @@ const Sidebar = ({ onNavClick, seccionActiva }) => {
 							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoGeneral")}
 						>
-							ℹ️ Información General
+							ℹ️ Lista Tareas Cliente
 						</button>
 					</li>
 					<li>

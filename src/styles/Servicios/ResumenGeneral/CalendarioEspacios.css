@@ -59,7 +59,7 @@
     min-height: 120px;
 }
 
-/* Contenedor principal de cada día */
+/* Día */
 .calendar-date-container {
     aspect-ratio: 1;
     border-radius: 0.75rem;
@@ -108,7 +108,7 @@
     box-shadow: none;
 }
 
-/* Número del día - Ahora posicionado a la izquierda */
+/* Número del día a la izquierda */
 .calendar-date-number {
     font-size: 1rem;
     font-weight: 600;
@@ -126,20 +126,19 @@
     border-right: 1px solid rgba(229, 231, 235, 0.3);
 }
 
-/* Contenedor de los botones - Ahora ocupa el lado derecho */
+/* Contenedor de botones a la derecha */
 .calendar-date-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0;
     width: 75%;
     height: 100%;
     align-items: stretch;
 }
 
-/* Botones individuales - Base */
+/* Base de botones (ahora dos, 50%/50%) */
 .calendar-date-button {
     width: 100%;
-    height: 33.33%;
+    height: 50%;
     border: none;
     border-radius: 0;
     font-size: 0.65rem;
@@ -154,7 +153,58 @@
     position: relative;
 }
 
-/* Primer botón - DISPONIBLE (Verde) */
+/* Contenido interno del botón en columna (no cambia .calendar-date-button) */
+.calendar-date-button .btn-content {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+}
+
+/* Contenedor de la línea de slots */
+.calendar-date-button .slots-line {
+    display: inline-flex;
+    flex-direction: column;
+    /* ← apila top y 8h en dos renglones */
+    align-items: center;
+    margin-top: 2px;
+    line-height: 1.05;
+    max-width: 95%;
+}
+
+/* Primera fila: 4h y 5h */
+.calendar-date-button .slots-top {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: inherit;
+    white-space: nowrap;
+    /* cabe holgado; si no cabe, quita esta línea */
+}
+
+/* Segunda fila: 8h siempre visible */
+.calendar-date-button .slots-8h {
+    display: block;
+    margin-top: 1px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+/* (por si quedó alguna regla vieja) forzamos a permitir cortes si quieres una sola línea */
+.calendar-date-button .slots-line {
+    white-space: normal !important;
+}
+
+@media (max-width: 480px) {
+
+    .calendar-date-button .slots-top,
+    .calendar-date-button .slots-8h {
+        font-size: 0.56rem;
+    }
+}
+
+
+/* 0 = DISPONIBLE (Verde) */
 .calendar-date-button-0 {
     background-color: rgba(34, 197, 94, 0.1);
     color: #16a34a;
@@ -162,40 +212,12 @@
     border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 }
 
-/* Segundo botón - OCUPADO (Rojo) */
-.calendar-date-button-1 {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-}
-
-/* Tercer botón - PERMISO/VACACIONES (Azul) */
-.calendar-date-button-2 {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-    border-bottom-right-radius: 0.75rem;
-}
-
-/* Estados hover para cada botón */
 .calendar-date-button-0:hover:not(.calendar-date-button-disabled) {
     background-color: rgba(34, 197, 94, 0.2);
     transform: scale(1.02);
     z-index: 1;
 }
 
-.calendar-date-button-1:hover:not(.calendar-date-button-disabled) {
-    background-color: rgba(239, 68, 68, 0.2);
-    transform: scale(1.02);
-    z-index: 1;
-}
-
-.calendar-date-button-2:hover:not(.calendar-date-button-disabled) {
-    background-color: rgba(59, 130, 246, 0.2);
-    transform: scale(1.02);
-    z-index: 1;
-}
-
-/* Estados seleccionados para cada botón */
 .calendar-date-button-0.calendar-date-button-selected {
     background-color: rgba(34, 197, 94, 0.9) !important;
     color: #ffffff !important;
@@ -205,16 +227,20 @@
     z-index: 1;
 }
 
-.calendar-date-button-1.calendar-date-button-selected {
-    background-color: rgba(239, 68, 68, 0.9) !important;
-    color: #ffffff !important;
-    font-weight: 600;
-    transform: scale(1.05);
-    box-shadow: inset 0 2px 6px rgba(239, 68, 68, 0.3);
+/* 1 = PERMISO/VAC (Azul) */
+.calendar-date-button-1 {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-bottom-right-radius: 0.75rem;
+}
+
+.calendar-date-button-1:hover:not(.calendar-date-button-disabled) {
+    background-color: rgba(59, 130, 246, 0.2);
+    transform: scale(1.02);
     z-index: 1;
 }
 
-.calendar-date-button-2.calendar-date-button-selected {
+.calendar-date-button-1.calendar-date-button-selected {
     background-color: rgba(59, 130, 246, 0.9) !important;
     color: #ffffff !important;
     font-weight: 600;
@@ -223,7 +249,7 @@
     z-index: 1;
 }
 
-/* Estados deshabilitados */
+/* Estado deshabilitado */
 .calendar-date-button-disabled {
     background-color: rgba(249, 250, 251, 0.8) !important;
     color: #d1d5db !important;
@@ -235,13 +261,8 @@
     background-color: rgba(249, 250, 251, 0.8) !important;
 }
 
-/* Estados especiales para días con selección */
-.calendar-date-container-today .calendar-date-number {
-    color: #23c483;
-    font-weight: 700;
-    background-color: rgba(255, 255, 255, 0.95);
-}
-
+/* Estados especiales del número de día */
+.calendar-date-container-today .calendar-date-number,
 .calendar-date-container-selected .calendar-date-number {
     color: #23c483;
     font-weight: 700;
@@ -253,7 +274,7 @@
     background-color: rgba(249, 250, 251, 0.9);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .three-button-calendar {
         padding: 0.75rem;
@@ -315,13 +336,10 @@
 
     .calendar-date-buttons {
         width: 70%;
+        gap: 0;
     }
 
     .calendar-date-button {
         font-size: 0.55rem;
-    }
-
-    .calendar-date-buttons {
-        gap: 0;
     }
 }

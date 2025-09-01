@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { buscarServicios } from '@/lib/Logic.js';
 import DetalleServicioModal from './DetalleServicioModal';
+import { useCiudades } from '@/lib/Hooks';
 import '@/styles/Servicios/InfoServicios/ServiciosDia.css';
 
 /**
@@ -11,13 +12,16 @@ import '@/styles/Servicios/InfoServicios/ServiciosDia.css';
 const ServiciosDía = ({ selectedDate }) => {
   const [statusFilter, setStatusFilter] = useState('todos'); // 'todos', 'programada', 'completada', 'cancelada'
   const [cityFilter, setCityFilter] = useState('todas');
+  const { ciudades, isLoading: ciudadesLoading } = useCiudades();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
 
   /**
    * Función para transformar los datos de la API al formato esperado por el componente
@@ -116,9 +120,6 @@ const ServiciosDía = ({ selectedDate }) => {
       cargarServicios();
     }
   }, [selectedDate]);
-
-  // Obtener lista de ciudades únicas
-  const cities = ['todas', ...new Set(services.map(service => service.city))];
 
   // Filtrar servicios según los filtros aplicados
   const filteredServices = services.filter(service => {
@@ -257,23 +258,36 @@ const ServiciosDía = ({ selectedDate }) => {
 
             {showCityDropdown && (
               <div className="dropdown-menu">
-                {cities.map(city => (
-                  <div
-                    key={city}
-                    className={`dropdown-item ${cityFilter === city ? 'active' : ''}`}
-                    onClick={() => {
-                      setCityFilter(city);
-                      setShowCityDropdown(false);
-                    }}
-                  >
-                    {city === 'todas' ? 'Todas' : city}
-                  </div>
-                ))}
+                <div
+                  className={`dropdown-item ${cityFilter === 'todas' ? 'active' : ''}`}
+                  onClick={() => {
+                    setCityFilter('todas');
+                    setShowCityDropdown(false);
+                  }}
+                >
+                  Todas
+                </div>
+                {ciudadesLoading ? (
+                  <div className="dropdown-item disabled">Cargando ciudades…</div>
+                ) : (
+                  (ciudades || []).map((ciu) => (
+                    <div
+                      key={ciu}
+                      className={`dropdown-item ${cityFilter === ciu ? 'active' : ''}`}
+                      onClick={() => {
+                        setCityFilter(ciu);
+                        setShowCityDropdown(false);
+                      }}
+                    >
+                      {ciu}
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>
         </div>
-      </div>
+      </div >
 
       <div className="services-list">
         {loading ? (
@@ -332,7 +346,7 @@ const ServiciosDía = ({ selectedDate }) => {
           setSelectedService(null);
         }}
       />
-    </div>
+    </div >
   );
 };
 

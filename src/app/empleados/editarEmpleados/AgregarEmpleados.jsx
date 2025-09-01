@@ -9,15 +9,17 @@ const AgregarEmpleados = () => {
   const [email, setEmail] = useState("");
   const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
   const [fechaIngreso, setFechaIngreso] = useState("");
-  const [selectedCargo, setSelectedCargo] = useState("");
-  const [selectedEstado, setSelectedEstado] = useState("");
-  const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
-  const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
+  const [comentarios, setComentarios] = useState('');
 
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCargo, setSelectedCargo] = useState("");
+  const [selectedEstado, setSelectedEstado] = useState("");
+
+  const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
+  const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
+  const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
 
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
@@ -63,6 +65,7 @@ const AgregarEmpleados = () => {
       city: selectedCity,
       entryDate: fechaIngreso,
       position: selectedCargo,
+      comments: comentarios,
       state: selectedEstado === "Activo"
     };
 
@@ -89,9 +92,6 @@ const AgregarEmpleados = () => {
       const confirmar = window.confirm("¿Deseas borrar todos los campos?");
       if (confirmar) {
         resetBusqueda();
-        setPhone("");
-        setDireccion("");
-        setSelectedCity("");
       }
     }
   };
@@ -106,6 +106,7 @@ const AgregarEmpleados = () => {
     setSelectedEstado("");
     setPhone("");
     setDireccion("");
+    setComentarios("");
     setSelectedCity("");
   };
 
@@ -292,6 +293,15 @@ const AgregarEmpleados = () => {
             type="date"
             value={fechaIngreso}
             onChange={e => setFechaIngreso(e.target.value)}
+          />
+        </div>
+
+        <div className="input-group">
+          <label>Comentarios</label>
+          <textarea
+            className="modal-asignacion-textarea"
+            value={comentarios}
+            onChange={e => setComentarios(e.target.value)}
           />
         </div>
       </div>

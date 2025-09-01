@@ -7,7 +7,6 @@ import CalendarioServicios from "./CalendarioServicios";
 import CalendarioEspacios from "./CalendarioEspacios";
 
 const ResumenGeneral = () => {
-  const [selectedDate, setSelectedDate] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [city, setCity] = useState('');
@@ -24,17 +23,16 @@ const ResumenGeneral = () => {
   const [employeeText, setEmployeeText] = useState("");
   const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
-  const employeeRef = useRef(null);
 
+  const employeeRef = useRef(null);
   const monthDropdownRef = useRef(null);
   const yearDropdownRef = useRef(null);
   const cityDropdownRef = useRef(null);
 
-  const months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
-  // Empleados por ciudad
   useEffect(() => {
     if (city) {
       buscarEmpleadosByCity(city)
@@ -43,7 +41,7 @@ const ResumenGeneral = () => {
           setEmployees(list);
           setSelectedEmployee(null);
           setEmployeeText("");
-          setEmpleadosFiltrados(list); // para que al abrir muestre todo
+          setEmpleadosFiltrados(list);
         })
         .catch(() => {
           setEmployees([]);
@@ -90,11 +88,6 @@ const ResumenGeneral = () => {
       .catch(err => { console.error(err); setDataServicios([]); });
   };
 
-  const handleDateSelect = (date) => setSelectedDate(date);
-  const handleButtonClick = (date, idx, label) => {
-    console.log(`${label} seleccionado para ${date}, empleado: ${selectedEmployee?.name || 'ninguno'}`);
-  };
-
   const handleMonthSelect = (_, idx) => { setSelectedMonth(idx); setMonthDropdownOpen(false); };
   const handleYearSelect = (y) => { setSelectedYear(y); setYearDropdownOpen(false); };
   const handleCitySelect = (c) => { setCity(c); setCityDropdownOpen(false); };
@@ -108,7 +101,7 @@ const ResumenGeneral = () => {
     setEmpleadosFiltrados(
       employees.filter(emp => {
         const full = `${emp.name ?? ''} ${emp.surname ?? ''}`.toLowerCase();
-        const doc  = (emp.document ?? '').toString().toLowerCase();
+        const doc = (emp.document ?? '').toString().toLowerCase();
         return full.includes(q) || doc.includes(q);
       })
     );
@@ -118,32 +111,6 @@ const ResumenGeneral = () => {
     setSelectedEmployee(emp);
     setEmployeeText(`${emp.name} ${emp.surname}`);
     setShowEmployeeDropdown(false);
-  };
-
-  const renderCalendar = () => {
-    if (selectedEmployee) {
-      return (
-        <CalendarioServicios
-          employee={selectedEmployee}
-          dataServicios={dataServicios}
-          onDateSelect={handleDateSelect}
-          currentMonth={selectedMonth}
-          currentYear={selectedYear}
-          hideNavigation={true}
-          onServiceUpdate={recargarServicios}
-        />
-      );
-    }
-    return (
-      <CalendarioEspacios
-        onDateSelect={handleDateSelect}
-        onButtonClick={handleButtonClick}
-        currentMonth={selectedMonth}
-        currentYear={selectedYear}
-        hideNavigation={true}
-        buttonLabels={['DISPONIBLE', 'OCUPADO', 'PERMISO/VAC']}
-      />
-    );
   };
 
   return (
@@ -306,22 +273,15 @@ const ResumenGeneral = () => {
           <CalendarioServicios
             employee={selectedEmployee}
             dataServicios={dataServicios}
-            onDateSelect={setSelectedDate}
             currentMonth={selectedMonth}
             currentYear={selectedYear}
-            hideNavigation={true}
             onServiceUpdate={recargarServicios}
           />
         ) : (
           <CalendarioEspacios
-            onDateSelect={setSelectedDate}
-            onButtonClick={(date, idx, label) =>
-              console.log(`${label} seleccionado para ${date}, empleado: ${selectedEmployee?.name || 'ninguno'}`)
-            }
+            city={city}
             currentMonth={selectedMonth}
             currentYear={selectedYear}
-            hideNavigation={true}
-            buttonLabels={['DISPONIBLE', 'OCUPADO', 'PERMISO/VAC']}
           />
         )}
       </div>
