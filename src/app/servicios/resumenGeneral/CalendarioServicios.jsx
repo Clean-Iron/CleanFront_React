@@ -61,8 +61,8 @@ const CalendarioServicios = ({
       const dateString = formatDateToYYYYMMDD(dateObj);
 
       const serviciosDelDia = dataServicios.filter(s => s.serviceDate === dateString);
-      const morningService = serviciosDelDia.find(s => s.startHour < '13:00:00');
-      const afternoonService = serviciosDelDia.find(s => s.startHour >= '13:00:00');
+      const morningService = serviciosDelDia.find(s => s.startHour < '12:00:00');
+      const afternoonService = serviciosDelDia.find(s => s.startHour >= '12:00:00');
       const orderedServices = [morningService, afternoonService];
 
       const totalHours = serviciosDelDia.reduce((sum, s) => sum + (s.totalServiceHours || 0), 0);

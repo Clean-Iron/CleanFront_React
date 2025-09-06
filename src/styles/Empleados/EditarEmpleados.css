@@ -162,7 +162,6 @@
 /* ============================== */
 /*        Elementos de grid       */
 /* ============================== */
-/* Para que elementos ocupen toda la fila */
 .empleados-full-width {
   grid-column: 1 / 4;
 }
@@ -193,5 +192,4 @@
     flex-direction: column;
     gap: 15px;
   }
-
 }

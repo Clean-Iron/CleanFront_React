@@ -57,7 +57,6 @@ const ResumenGeneral = () => {
     }
   }, [city]);
 
-  // Servicios por empleado/mes/año
   useEffect(() => {
     if (!selectedEmployee) { setDataServicios([]); return; }
     const year = selectedYear;
@@ -92,7 +91,6 @@ const ResumenGeneral = () => {
   const handleYearSelect = (y) => { setSelectedYear(y); setYearDropdownOpen(false); };
   const handleCitySelect = (c) => { setCity(c); setCityDropdownOpen(false); };
 
-  // === Lógica de filtrado como en BuscarTarea ===
   const filtrarEmpleados = (valor) => {
     setEmployeeText(valor);
     setShowEmployeeDropdown(true);

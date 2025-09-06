@@ -9,7 +9,6 @@ import EditarEmpleados from "./editarEmpleados/EditarEmpleados";
 const Empleados = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
   
-  // Función para cambiar el componente actual
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
   };

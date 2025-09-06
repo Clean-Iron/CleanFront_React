@@ -5,9 +5,7 @@ import Sidebar from "./MenuLateral";
 import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
 import ListaClientes from "./listaClientes/ListaClientes.jsx";
 import EditarEmpleados from "./editarClientes/EditarClientes";
-/*
-import Reportes from "./Reportes";
-import Configuracion from "./Configuracion";*/
+import ListaServicios from "./listaServicios/ListaServicios.jsx";
 
 const Clientes = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
@@ -26,16 +24,16 @@ const Clientes = () => {
         return <ListaClientes />;
       case "editarClientes":
         return <EditarEmpleados />;
+      case "listaServicios":
+        return <ListaServicios />;
       /*
-      case "agregarCliente":
-        return <AgregarCliente />;
       case "reportes":
         return <Reportes />;
       case "configuracion":
         return <Configuracion />;
       */
       default:
-        return <InfoGeneral />;
+        return <ListaClientes />;
     }
   };
   

@@ -18,34 +18,6 @@
   margin-bottom: 20px;
 }
 
-.container-input {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.input {
-  width: 220px;
-  /* 📏 Ligeramente más ancho para mejor usabilidad */
-  padding: 12px 40px 12px 40px;
-  border-radius: 9999px;
-  border: solid 1px #333;
-  transition: all 0.3s ease-in-out;
-  outline: none;
-  opacity: 0.8;
-  font-size: 14px;
-  box-sizing: border-box;
-  /* Añadido para consistencia de tamaño */
-}
-
-.search-icon {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translate(0, -50%);
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
 .clear-search {
   position: absolute;
   top: 50%;
@@ -67,42 +39,6 @@
 
 .clear-search:hover {
   color: #333;
-}
-
-.input:focus {
-  opacity: 1;
-  width: 280px;
-  /* 📏 Se expande al enfocar */
-  box-shadow: 0 0 0 2px rgba(35, 196, 131, 0.3);
-}
-
-.input:focus+.search-icon {
-  opacity: 1;
-}
-
-/* 🎛 Botón de Filtrar */
-.filter-btn {
-  margin-left: 15px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.filter-icon {
-  font-size: 14px;
-}
-
-/* 🎭 Animación de filtros */
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* 📌 Contenedor de los filtros */
@@ -134,7 +70,6 @@
   outline: none;
   text-align: center;
   box-sizing: border-box;
-  /* Añadido para consistencia */
 }
 
 .menu-btn-listaclientes:hover {
@@ -154,215 +89,59 @@
   box-shadow: 0px 8px 15px rgba(46, 229, 157, 0.4);
 }
 
-/* ❌ Botón de Cerrar (X) */
-.close-btn {
-  background: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 10px;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.3s;
-  margin-left: 5px;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
-}
-
-.close-btn:hover {
-  background: #d63b3b;
-  transform: scale(1.1);
-}
-
-/* Contenedor de resultados */
-.resultados-container {
-  width: 100%;
-  padding: 10px 0;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
-}
-
-.resultados-titulo {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.busqueda-info {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
-  font-style: italic;
-}
-
-/* Estilos de la tabla principal */
+/* Contenedor con scroll dentro del recuadro */
 .tabla-clientes-container {
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: calc(100% - 60px);
   overflow-x: auto;
-  /* Para manejar posible desbordamiento horizontal */
   overflow-y: auto;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px #E8F4FD;
   box-sizing: border-box;
 }
 
 .tabla-clientes {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: 14px;
-  table-layout: fixed;
-  /* Mantiene las columnas con anchos fijos */
-  min-width: 100%;
-  /* Asegura que la tabla ocupe el ancho completo siempre */
 }
 
-.tabla-clientes thead {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 1;
-}
-
-.tabla-clientes th {
-  background-color: #f8f9fa;
+.tabla-clientes thead th {
+  background-color: #E8F4FD;
   color: #495057;
-  padding: 12px 15px;
   font-weight: 600;
   text-align: left;
   border-bottom: 2px solid #dee2e6;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
 }
 
-/* Forzar ancho de columnas específicas para la tabla principal */
-.tabla-clientes th:nth-child(1),
-.tabla-clientes td:nth-child(1) {
-  /* Nombre */
-  width: 20%;
-  min-width: 150px;
-}
-
-.tabla-clientes th:nth-child(2),
-.tabla-clientes td:nth-child(2) {
-  /* Número */
-  width: 12%;
-  min-width: 100px;
-}
-
-.tabla-clientes th:nth-child(3),
-.tabla-clientes td:nth-child(3) {
-  /* ID */
-  width: 5%;
-  min-width: 200px;
-}
-
-.tabla-clientes th:nth-child(4),
-.tabla-clientes td:nth-child(4) {
-  /* Documento */
-  width: 10%;
-  min-width: 100px;
-}
-
-.tabla-clientes th:nth-child(5),
-.tabla-clientes td:nth-child(5) {
-  /* Email */
-  width: 15%;
-  min-width: 80px;
-}
-
-.tabla-clientes th:nth-child(6),
-.tabla-clientes td:nth-child(6) {
-  /* Acciones */
-  width: 10%;
-  min-width: 100px;
-}
-
-/* Corregir visualización de filas expandibles */
-tr.cliente-row+tr.direcciones-row {
-  display: table-row;
-  width: 100%;
-}
-
-/* Asegurar que el colspan ocupa todo el ancho */
-.direcciones-row td {
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Celdas compactas en una línea para no “amontonar” */
+.tabla-clientes th,
 .tabla-clientes td {
+  white-space: nowrap;
   padding: 12px 15px;
-  color: #212529;
   vertical-align: middle;
   box-sizing: border-box;
-  /* Añadido para consistencia */
-  word-break: break-word;
-  /* Previene que el texto desborde */
 }
 
 .cliente-row {
   border-bottom: 1px solid #e9ecef;
-  transition: background-color 0.2s;
+  transition: background-color .2s;
 }
 
 .cliente-row:hover {
   background-color: #f8f9fa;
 }
-
-.no-results {
-  padding: 20px;
-  text-align: center;
-  color: #666;
-}
-
-/* Estilos para el botón de direcciones */
-.direcciones-toggle {
-  background-color: #e9ecef;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #495057;
-  font-size: 13px;
-  transition: all 0.2s;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
-}
-
-.direcciones-toggle:hover {
-  background-color: #dee2e6;
-}
-
-.action-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
-}
-
-.action-button:hover {
-  background-color: #f0f0f0;
-}
-
-/* Estilos para el panel expandible de direcciones */
 .direcciones-row {
   background-color: #f8f9fa;
-  width: 100%;
+}
+
+.direcciones-cell {
+  padding: 0;
+  white-space: normal;
 }
 
 .direcciones-container {
@@ -370,13 +149,13 @@ tr.cliente-row+tr.direcciones-row {
   max-height: 300px;
   overflow-y: auto;
   width: 100%;
-  /* Ocupar todo el ancho disponible */
   box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .direcciones-container h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
   color: #495057;
   font-size: 15px;
 }
@@ -387,23 +166,18 @@ tr.cliente-row+tr.direcciones-row {
   gap: 15px;
   margin-top: 10px;
   width: 100%;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
 }
 
 .direccion-card {
   border: 1px solid #dee2e6;
   border-radius: 8px;
   padding: 15px;
-  background-color: white;
+  background-color: #fff;
   display: flex;
   flex-direction: column;
-  position: relative;
-  min-width: 250px;
-  max-width: 300px;
-  flex: 1;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
+  flex: 1 1 260px;
+  min-width: 240px;
+  max-width: 320px;
 }
 
 .direccion-tipo {
@@ -415,26 +189,29 @@ tr.cliente-row+tr.direcciones-row {
   font-weight: bold;
   align-self: flex-start;
   margin-bottom: 10px;
-  box-sizing: border-box;
-  /* Añadido para consistencia */
 }
 
+.direccion-datos,
 .direccion-datos p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
   margin: 5px 0;
   font-size: 13px;
 }
 
-/* Media queries para responsividad */
-@media screen and (max-width: 768px) {
-  .filter-buttons {
-    flex-wrap: wrap;
-  }
+/* Botón de direcciones */
+.direcciones-toggle {
+  background-color: #e9ecef;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #495057;
+  font-size: 13px;
+  transition: background-color .2s;
+}
 
-  .direccion-card {
-    min-width: 100%;
-  }
-
-  .input:focus {
-    width: 100%;
-  }
+.direcciones-toggle:hover {
+  background-color: #dee2e6;
 }
