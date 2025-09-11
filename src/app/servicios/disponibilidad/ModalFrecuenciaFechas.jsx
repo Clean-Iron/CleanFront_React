@@ -10,7 +10,7 @@ const toYmd = (d) => {
 export default function ModalFrecuenciaFechas({
   show,
   onClose,
-  recurrence = 'NINGUNA', // 'NINGUNA' | 'PUNTUAL' | 'FRECUENTE' | 'QUINCENAL' | 'MENSUAL' (no autogenera)
+  recurrence = 'NINGUNA', // 'NINGUNA' | 'PUNTUAL' | 'FRECUENTE' | 'QUINCENAL' | 'MENSUAL'
   baseDate,                // 'YYYY-MM-DD' (opcional)
   onConfirm,               // (dates: string[]) => void
 }) {
@@ -68,7 +68,6 @@ export default function ModalFrecuenciaFechas({
   return (
     <div className="modal-overlay">
       <div className="modal-container">
-        {/* Contenido */}
         <div className="modal-asignacion-form-grid">
           <div>
             <label>Selecciona fecha</label>

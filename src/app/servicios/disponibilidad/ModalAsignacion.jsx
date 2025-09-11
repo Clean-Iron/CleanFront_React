@@ -290,7 +290,6 @@ export default function ModalAsignacion({
           </div>
         </div>
 
-        {/* Form */}
         <div className="modal-asignacion-form-grid">
           {/* Empleados */}
           <div className="modal-chip-section">

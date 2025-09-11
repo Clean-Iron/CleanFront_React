@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base de la API, definida en .env
-const API_BASE_URL = /*process.env.NEXT_PUBLIC_API_URL ||*/ 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Instancia de axios con configuración común
 const api = axios.create({

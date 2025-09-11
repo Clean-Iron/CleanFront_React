@@ -150,8 +150,6 @@ const ModalEspaciosServicios = ({
                                 </div>
                             </div>
 
-                            {/* Se eliminó la sección "Espacios disponibles" como pediste */}
-
                             {mergedBusy.length > 0 && (
                                 <details className="mess-busy-details">
                                     <summary>Ver espacios asignados</summary>
