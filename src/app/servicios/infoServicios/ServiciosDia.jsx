@@ -70,6 +70,7 @@ const ServiciosDía = ({ selectedDate }) => {
         id: serviceObj.id,
         time: formatTime(serviceObj.startHour, serviceObj.endHour),
         hours: serviceObj.totalServiceHours,
+        breakTime: serviceObj.breakMinutes,
         type: formatServices(serviceObj.services) || 'Servicio no especificado',
         client: serviceObj.clientCompleteName ||
           `${serviceObj.clientName || ''} ${serviceObj.clientSurname || ''}`.trim() ||
@@ -322,6 +323,7 @@ const ServiciosDía = ({ selectedDate }) => {
               </div>
               <div className="service-details">
                 <p><strong>Número de Horas:</strong> {service.hours}</p>
+                <p><strong>Descanso:</strong> {service.breakTime} min</p>
                 <p><strong>Cliente:</strong> {service.client}</p>
                 <p><strong>Dirección:</strong> {service.address}</p>
                 <p><strong>Ciudad:</strong> {service.city}</p>

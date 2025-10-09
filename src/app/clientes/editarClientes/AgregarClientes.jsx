@@ -120,7 +120,7 @@ const AgregarClientes = () => {
               className={`dropdown-trigger ${tipoIdDropdownOpen ? "open" : ""}`}
               onClick={() => setTipoIdDropdownOpen(o => !o)}
             >
-              <span>{tipoDocumento || "Seleccionar Tipo ID"}</span>
+              <span>{tipoDocumento || "Selecc. Tipo ID"}</span>
               <span className="arrow">▼</span>
             </button>
             {tipoIdDropdownOpen && (

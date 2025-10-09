@@ -20,12 +20,14 @@ export default function ModalAsignacion({
   const recurrencyRef = useRef(null);
   const startRef = useRef(null);
   const endRef = useRef(null);
+  const breakRef = useRef(null);
   const clienteRef = useRef(null);
   const empleadosRef = useRef(null);
   const serviciosRef = useRef(null);
 
   const [startHour, setStartHour] = useState(startHourProp || '');
   const [endHour, setEndHour] = useState(endHourProp || '');
+  const [breakMinutes, setBreakMinutes] = useState(0);              // ← descanso (0–60)
   const [currentRecurrency, setCurrentRecurrency] = useState('NINGUNA');
   const [showDatesModal, setShowDatesModal] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
@@ -33,6 +35,7 @@ export default function ModalAsignacion({
   const [stateOpen, setStateOpen] = useState(false);
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
+  const [breakOpen, setBreakOpen] = useState(false);                // ← toggle descanso
 
   const [empleadosAdicionales, setEmpleadosAdicionales] = useState([]);
   const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
@@ -54,10 +57,13 @@ export default function ModalAsignacion({
   const labelFor = (value) =>
     timeOptions.find(opt => opt.value === value)?.label || (value ? formatTo12h(value) : '');
 
+  const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5); // 0,5,...,60
+
   useEffect(() => {
     if (!show) return;
     setStartHour(startHourProp || '');
     setEndHour(endHourProp || '');
+    setBreakMinutes(0); // default cada vez que abres
   }, [show, startHourProp, endHourProp]);
 
   useEffect(() => {
@@ -88,9 +94,9 @@ export default function ModalAsignacion({
 
     const handleOutside = (e) => {
       const t = e.target;
-
       if (startTimeOpen && !isInside(startRef, t)) setStartTimeOpen(false);
       if (endTimeOpen && !isInside(endRef, t)) setEndTimeOpen(false);
+      if (breakOpen && !isInside(breakRef, t)) setBreakOpen(false);
       if (stateOpen && !isInside(recurrencyRef, t)) setStateOpen(false);
       if (mostrarDropdownClientes && !isInside(clienteRef, t)) setMostrarDropdownClientes(false);
       if (mostrarDropdownEmpleados && !isInside(empleadosRef, t)) setMostrarDropdownEmpleados(false);
@@ -103,6 +109,7 @@ export default function ModalAsignacion({
     show,
     startTimeOpen,
     endTimeOpen,
+    breakOpen,
     stateOpen,
     mostrarDropdownClientes,
     mostrarDropdownEmpleados,
@@ -169,7 +176,6 @@ export default function ModalAsignacion({
     }
   };
 
-  // abrir modal de fechas si corresponde
   const openDatesIfNeeded = (value) => {
     setCurrentRecurrency(value);
     if (value !== 'NINGUNA') setShowDatesModal(true);
@@ -201,6 +207,7 @@ export default function ModalAsignacion({
       date: d,
       startHour,
       endHour,
+      breakMinutes,                           
       comments: comentarios,
       state: 'PROGRAMADA',
       recurrenceType: currentRecurrency === 'NINGUNA' ? 'PUNTUAL' : currentRecurrency,
@@ -228,6 +235,7 @@ export default function ModalAsignacion({
 
           {/* Hora Inicio */}
           <div className="dropdown" ref={startRef}>
+            <span>Hora Inicio</span>
             <button
               type="button"
               className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
@@ -249,6 +257,7 @@ export default function ModalAsignacion({
 
           {/* Hora Fin */}
           <div className="dropdown" ref={endRef}>
+            <span>Hora Fin</span>
             <button
               type="button"
               className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
@@ -268,8 +277,36 @@ export default function ModalAsignacion({
             )}
           </div>
 
+          {/* Descanso */}
+          <div className="dropdown" ref={breakRef}>
+            <span>Descanso</span>
+            <button
+              type="button"
+              className={`dropdown-trigger ${breakOpen ? 'open' : ''}`}
+              onClick={() => setBreakOpen(o => !o)}
+              title="Minutos de descanso que se descuentan del total (0–60)"
+            >
+              <span>{`${breakMinutes} min`}</span>
+              <span className="arrow">▼</span>
+            </button>
+            {breakOpen && (
+              <div className="dropdown-content">
+                {breakOptions.map(m => (
+                  <button
+                    key={m}
+                    className={breakMinutes === m ? 'selected' : ''}
+                    onClick={() => { setBreakMinutes(m); setBreakOpen(false); }}
+                  >
+                    {m} min
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Recurrencia */}
           <div className="dropdown" ref={recurrencyRef}>
+            <span>Frecuencia</span>
             <button
               type="button"
               className={`dropdown-trigger ${stateOpen ? 'open' : ''}`}
@@ -424,18 +461,6 @@ export default function ModalAsignacion({
             </div>
           </div>
 
-          {/* Comentarios */}
-          <div>
-            <label>Comentarios</label>
-            <textarea
-              placeholder="Comentarios adicionales"
-              rows={3}
-              className="modal-asignacion-textarea"
-              value={comentarios}
-              onChange={(e) => setComentarios(e.target.value)}
-            />
-          </div>
-
           {/* Resumen de fechas elegidas */}
           {selectedDates.length > 0 && (
             <div className="modal-chip-section">
@@ -450,13 +475,25 @@ export default function ModalAsignacion({
             </div>
           )}
 
-          {/* Botones */}
-          <div className="modal-asignacion-form-buttons modal-asignacion-full-width">
-            <button type="button" onClick={onClose} className="modal-asignacion-btn-cancelar">Cancelar</button>
-            <button type="button" className="modal-asignacion-btn-confirmar" onClick={handleAsignar}>
-              Asignar {selectedDates.length > 0 ? `(${selectedDates.length})` : ''}
-            </button>
+          {/* Comentarios */}
+          <div>
+            <label>Comentarios</label>
+            <textarea
+              placeholder="Comentarios adicionales"
+              rows={3}
+              className="modal-asignacion-textarea"
+              value={comentarios}
+              onChange={(e) => setComentarios(e.target.value)}
+            />
           </div>
+        </div>
+
+        {/* Botones */}
+        <div className="modal-asignacion-form-buttons">
+          <button type="button" onClick={onClose} className="modal-asignacion-btn-cancelar">Cancelar</button>
+          <button type="button" className="modal-asignacion-btn-confirmar" onClick={handleAsignar}>
+            Asignar {selectedDates.length > 0 ? `(${selectedDates.length})` : ''}
+          </button>
         </div>
       </div>
 

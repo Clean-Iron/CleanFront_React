@@ -10,12 +10,10 @@ import ListaServicios from "./listaServicios/ListaServicios.jsx";
 const Clientes = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
   
-  // Función para cambiar el componente actual
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
   };
   
-  // Renderizado condicional del componente seleccionado
   const renderComponente = () => {
     switch (componenteActual) {
       case "infoGeneral":
@@ -26,12 +24,6 @@ const Clientes = () => {
         return <EditarEmpleados />;
       case "listaServicios":
         return <ListaServicios />;
-      /*
-      case "reportes":
-        return <Reportes />;
-      case "configuracion":
-        return <Configuracion />;
-      */
       default:
         return <ListaClientes />;
     }

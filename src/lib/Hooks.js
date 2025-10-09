@@ -1,25 +1,46 @@
+'use client';
+
 import useSWR from 'swr'
 import { useMemo } from 'react'
+
+const API_BASE_URL = /*process.env.NEXT_PUBLIC_API_URL ||*/ 'http://localhost:8080';
 
 const fetcher = url => fetch(url).then(res => {
   if (!res.ok) throw new Error('Error al cargar ciudades')
   return res.json()
 })
 
-export function useCiudades() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL
+const sanitize = (s) =>
+  String(s)
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '') // elimina símbolos raros, mantiene letras con tildes
+    .replace(/\s+/g, ' ')               // colapsa espacios
+    .trim();
 
-  // Si no existe la variable, SWR no hace la petición
+export function useCiudades() {
   const { data, error } = useSWR(
-    apiBase ? `${apiBase}/address/cities` : null,
+    API_BASE_URL ? `${API_BASE_URL}/address/cities` : null,
     fetcher
   )
 
   return {
-    ciudades: data || [],            // Array de strings
-    isLoading: !error && !data,       // true mientras carga
-    isError: !!error                  // true si hubo error
+    ciudades: data || [],            
+    isLoading: !error && !data,       
+    isError: !!error                  
   }
+}
+
+export function useServiceStates() {
+
+  const { data, error } = useSWR(
+    API_BASE_URL ? `${API_BASE_URL}/schedule/servicesStates` : null,
+    fetcher
+  );
+
+  return {
+    serviceStates: (data || []).map(sanitize),
+    isLoading: !!isLoading,
+    isError: !!error
+  };
 }
 
 /**

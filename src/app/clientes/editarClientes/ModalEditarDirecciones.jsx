@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCiudades } from "@/lib/Hooks";
 
 const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
@@ -7,7 +7,6 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
 
   const [direcciones, setDirecciones] = useState([]);
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState({});
-  const ciudadDropdownRefs = useRef({});
 
   useEffect(() => {
     const arr = Array.isArray(cliente.addresses) ? cliente.addresses : [];
@@ -27,20 +26,6 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
     }
     setDirecciones(inicial);
   }, [cliente.addresses]);
-
-  // Manejar clicks fuera del dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      Object.keys(ciudadDropdownRefs.current).forEach(id => {
-        if (ciudadDropdownRefs.current[id] && !ciudadDropdownRefs.current[id].contains(event.target)) {
-          setCiudadDropdownOpen(prev => ({ ...prev, [id]: false }));
-        }
-      });
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleDireccionChange = (id, campo, valor) => {
     setDirecciones(prev =>
@@ -97,128 +82,68 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
   if (!cliente) return null;
 
   return (
-    <div className="modal-overlay" style={{ overflowY: 'auto' }} onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div>
-          <div>
-            {direcciones.map((direccion) => (
-              <div key={direccion.id} style={{ marginBottom: '15px' }}>
-                <div className="modal-asignacion-form-grid" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                  flexWrap: 'wrap'
-                }}>
-                  {/* Campo Dirección - Más ancho */}
-                  <input
-                    type="text"
-                    placeholder="Dirección"
-                    value={direccion.address}
-                    onChange={(e) => handleDireccionChange(direccion.id, 'address', e.target.value)}
-                    style={{
-                      flex: '2',
-                      minWidth: '250px'
-                    }}
-                  />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ height: '55vh' }}>
+        <div style={{ height: '40vh', overflowY: 'auto' }}>
+          {direcciones.map((direccion) => (
+            <div key={direccion.id} className="direccion-row" >
+              {/* Dirección */}
+              <input
+                type="text"
+                placeholder="Dirección"
+                value={direccion.address}
+                onChange={(e) => handleDireccionChange(direccion.id, 'address', e.target.value)}
+              />
 
-                  {/* Campo Descripción - Tamaño medio */}
-                  <input
-                    type="text"
-                    placeholder="Descripción"
-                    value={direccion.description}
-                    onChange={(e) => handleDireccionChange(direccion.id, 'description', e.target.value)}
-                    style={{
-                      flex: '1',
-                      minWidth: '150px'
-                    }}
-                  />
+              {/* Descripción */}
+              <input
+                type="text"
+                placeholder="Descripción"
+                value={direccion.description}
+                onChange={(e) => handleDireccionChange(direccion.id, 'description', e.target.value)}
+              />
 
-                  {/* Dropdown Ciudad - Tamaño fijo */}
-                  <div
-                    className="dropdown"
-                    ref={el => ciudadDropdownRefs.current[direccion.id] = el}
-                    style={{
-                      minWidth: '180px',
-                      flex: '0 0 auto',
-                      position: 'relative'
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className={`dropdown-trigger ${ciudadDropdownOpen[direccion.id] ? "open" : ""}`}
-                      onClick={() => toggleCiudadDropdown(direccion.id)}
-                      style={{ width: '100%' }}
-                    >
-                      <span>{direccion.city || "Seleccionar ciudad"}</span>
-                      <span className="arrow">▼</span>
-                    </button>
-                    {ciudadDropdownOpen[direccion.id] && (
-                      <div
-                        className="dropdown-content"
-                        style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: '0',
-                          right: '0',
-                          zIndex: 9999,
-                          backgroundColor: 'white',
-                          border: '1px solid #ccc',
-                          borderRadius: '4px',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                          maxHeight: '200px',
-                          overflowY: 'auto'
-                        }}
+              {/* Ciudad (dropdown) */}
+              <div
+                className="dropdown"
+              >
+                <button
+                  type="button"
+                  className={`dropdown-trigger ${ciudadDropdownOpen[direccion.id] ? 'open' : ''}`}
+                  onClick={() => toggleCiudadDropdown(direccion.id)}
+                >
+                  <span>{direccion.city || 'Seleccionar ciudad'}</span>
+                  <span className="arrow">▼</span>
+                </button>
+
+                {ciudadDropdownOpen[direccion.id] && (
+                  <div className="dropdown-content">
+                    {ciudadesLoading && <div>Cargando ciudades...</div>}
+                    {ciudadesError && <div>Error al cargar ciudades</div>}
+                    {!ciudadesLoading && !ciudadesError && ciudades.map((ciu, idx) => (
+                      <button
+                        key={`${direccion.id}-${ciu}`}
+                        type="button"
+                        onClick={() => handleCiudadSelect(direccion.id, ciu)}
                       >
-                        {ciudadesLoading && <div>Cargando ciudades...</div>}
-                        {ciudadesError && <div>Error al cargar ciudades</div>}
-                        {!ciudadesLoading && !ciudadesError && ciudades.map((ciu, idx) => (
-                          <button
-                            key={`${direccion.id}-${ciu}`}
-                            type="button"
-                            onClick={() => handleCiudadSelect(direccion.id, ciu)}
-                            style={{
-                              display: 'block',
-                              width: '100%',
-                              padding: '8px 12px',
-                              textAlign: 'left',
-                              border: 'none',
-                              backgroundColor: 'transparent',
-                              cursor: 'pointer',
-                              borderBottom: idx < ciudades.length - 1 ? '1px solid #eee' : 'none'
-                            }}
-                            onMouseEnter={e => e.target.style.backgroundColor = '#f5f5f5'}
-                            onMouseLeave={e => e.target.style.backgroundColor = 'transparent'}
-                          >
-                            {ciu}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                        {ciu}
+                      </button>
+                    ))}
                   </div>
-
-                  {/* Botón Eliminar - Circular */}
-                  <button
-                    type="button"
-                    className="menu-btn"
-                    onClick={() => eliminarDireccion(direccion.id)}
-                    style={{
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      fontSize: '18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '0',
-                      flex: '0 0 auto'
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
+                )}
               </div>
-            ))}
-          </div>
+
+              {/* Eliminar */}
+              <button
+                type="button"
+                className="btn-delete-round"
+                onClick={() => eliminarDireccion(direccion.id)}
+                title="Eliminar dirección"
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
 
         <div className="modal-asignacion-form-buttons">

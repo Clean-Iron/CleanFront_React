@@ -24,19 +24,13 @@ const Servicios = () => {
         return <InfoServicios />;
       case "editarTarea":
         return <EditarTarea />;
-      /*
-      case "reportes":
-        return <Reportes />;
-      case "configuracion":
-        return <Configuracion />;
-      */
       default:
         return <InfoDisponibilidad />;
     }
   };
 
   return (
-    <div className="flex">
+    <div className="layout">
       <Menu onNavClick={cambiarComponente} seccionActiva={componenteActual} />
       {renderComponente()}
     </div>

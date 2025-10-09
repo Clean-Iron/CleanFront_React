@@ -24,7 +24,6 @@ export const viewport = {
   viewportFit: "cover", // mejora para pantallas con notch
 };
 
-
 export default function RootLayout({ children }) {
   return (
     <html lang="es">

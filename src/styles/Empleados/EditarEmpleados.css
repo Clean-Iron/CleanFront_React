@@ -153,9 +153,10 @@
 /*   Contenedor de botones form   */
 /* ============================== */
 .empleados-form-buttons {
+  position: sticky;
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  justify-content: flex-end;
+  gap: 15px;
   align-items: center;
 }
 

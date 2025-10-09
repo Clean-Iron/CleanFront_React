@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useMemo } from "react";
 import { buscarClientes } from "@/lib/Logic.js";
 import { useCiudades } from "@/lib/Hooks";
@@ -12,7 +14,10 @@ import {
   TableBody,
   Menu,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Chip,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 
 const ListaClientes = () => {
@@ -29,6 +34,10 @@ const ListaClientes = () => {
     ordenamiento: "nombre",
   });
 
+  // 🔵 NUEVO: switch para filtrar por estado
+  // ON = Activos; OFF = Inactivos
+  const [soloActivos, setSoloActivos] = useState(true);
+
   const { ciudades, isLoading: loadingCiudades } = useCiudades();
 
   const [menuKey, setMenuKey] = useState(null);
@@ -42,7 +51,10 @@ const ListaClientes = () => {
         setLoading(true);
         setError(null);
         const data = await buscarClientes();
-        setClientes(Array.isArray(data) ? data : []);
+        // Normaliza state a boolean
+        const toBool = (v) => v === true || v === "true";
+        const arr = (Array.isArray(data) ? data : []).map(c => ({ ...c, state: toBool(c?.state) }));
+        setClientes(arr);
       } catch (e) {
         console.error("Error al buscar clientes:", e);
         setError("Error al cargar los clientes");
@@ -93,7 +105,10 @@ const ListaClientes = () => {
 
       const okTipo = !filtros.tipoId || norm(cliente.typeId?.trim()) === norm(filtros.tipoId);
 
-      return okBusqueda && okCiudad && okTipo;
+      // 🔵 NUEVO: filtro por estado según el switch
+      const okEstado = soloActivos ? cliente.state === true : cliente.state === false;
+
+      return okBusqueda && okCiudad && okTipo && okEstado;
     });
 
     r.sort((a, b) => {
@@ -115,7 +130,7 @@ const ListaClientes = () => {
     });
 
     return r;
-  }, [clientes, busqueda, filtros]);
+  }, [clientes, busqueda, filtros, soloActivos]);
 
   if (loading) {
     return (
@@ -208,6 +223,18 @@ const ListaClientes = () => {
             )}
           </div>
 
+          {/* 🔵 NUEVO: Switch Activos/Inactivos */}
+          <FormControlLabel
+            sx={{ ml: 2 }}
+            label={soloActivos ? "Activos" : "Inactivos"}
+            control={
+              <Switch
+                checked={soloActivos}
+                onChange={(e) => setSoloActivos(e.target.checked)}
+              />
+            }
+          />
+
           <div className="filter-buttons">
             {["Ciudad", "Tipo ID", "Ordenar"].map((f) => (
               <button
@@ -249,6 +276,7 @@ const ListaClientes = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Documento</TableCell>
                 <TableCell>Email</TableCell>
+                <TableCell>Estado</TableCell>
                 <TableCell>Direcciones</TableCell>
               </TableRow>
             </TableHead>
@@ -268,14 +296,23 @@ const ListaClientes = () => {
                       <TableCell>{cliente.document || "—"}</TableCell>
                       <TableCell>{cliente.email || "—"}</TableCell>
                       <TableCell>
+                        {cliente.state === undefined || cliente.state === null ? "—" : (
+                          <Chip
+                            size="small"
+                            label={cliente.state ? "ACTIVO" : "INACTIVO"}
+                            color={cliente.state ? "success" : "default"}
+                            variant={cliente.state ? "filled" : "outlined"}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <button
                           className="direcciones-toggle"
                           onClick={() =>
                             setMostrarDirecciones((prev) => ({
                               ...prev,
                               [cliente.document]: !prev[cliente.document],
-                            }))
-                          }
+                            }))}
                         >
                           {cliente.addresses?.length || 0}{" "}
                           {mostrarDirecciones[cliente.document] ? "▲" : "▼"}
@@ -310,7 +347,7 @@ const ListaClientes = () => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" style={{ color: "#666", padding: "24px 16px" }}>
+                  <TableCell colSpan={7} align="center" style={{ color: "#666", padding: "24px 16px" }}>
                     {busqueda || filtros.ciudad || filtros.tipoId
                       ? "No se encontraron clientes que coincidan con los filtros"
                       : "No hay clientes para mostrar"}

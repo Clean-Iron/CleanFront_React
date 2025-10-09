@@ -101,8 +101,7 @@ const ListaServicios = () => {
 					}
 				}
 			} catch {
-				setClientes([]);
-				setClientesFiltrados([]);
+				setClientes([]); setClientesFiltrados([]);
 			}
 		})();
 	}, []);
@@ -264,6 +263,7 @@ const ListaServicios = () => {
 								<TableCell>Fecha</TableCell>
 								<TableCell>Hora</TableCell>
 								<TableCell>Horas</TableCell>
+								<TableCell>Descanso</TableCell>{/* ← NUEVA COLUMNA */}
 								<TableCell>Estado</TableCell>
 								<TableCell>Ciudad</TableCell>
 								<TableCell>Dirección</TableCell>
@@ -274,7 +274,7 @@ const ListaServicios = () => {
 						<TableBody>
 							{buscando ? (
 								<TableRow>
-									<TableCell colSpan={7} align="center">
+									<TableCell colSpan={8} align="center">
 										<div className="no-results">
 											<CircularProgress size={24} sx={{ borderBottom: 'none' }} />
 										</div>
@@ -282,7 +282,7 @@ const ListaServicios = () => {
 								</TableRow>
 							) : dataServicios.length === 0 ? (
 								<TableRow>
-									<TableCell colSpan={7} align="center" sx={{ borderBottom: 'none' }}>
+									<TableCell colSpan={8} align="center" sx={{ borderBottom: 'none' }}>
 										{puedeBuscar ? 'Sin datos para los filtros seleccionados' : 'Selecciona filtros y presiona Buscar'}
 									</TableCell>
 								</TableRow>
@@ -293,7 +293,10 @@ const ListaServicios = () => {
 									const fecha = fmtFecha(getN(s, ['serviceDate']));
 									const hi = fmtHora(getN(s, ['startHour']));
 									const hf = fmtHora(getN(s, ['endHour']));
-									const horas = getN(s, ['totalServiceHours', 'totalServiceH ours']) ?? 0;
+									const horas = getN(s, ['totalServiceHours']) ?? 0;
+
+									const descansoMin = Number(getN(s, ['breakMinutes'])) || 0;
+
 									const estado = getN(s, ['state']) ?? '—';
 									const ciudad = getN(s, ['city']) ?? '—';
 									const dir = getN(s, ['addressService']) ?? '—';
@@ -309,6 +312,7 @@ const ListaServicios = () => {
 											<TableCell>{fecha}</TableCell>
 											<TableCell>{hi} - {hf}</TableCell>
 											<TableCell>{Number(horas).toFixed(2)}</TableCell>
+											<TableCell>{`${descansoMin} min`}</TableCell>
 											<TableCell>{estado}</TableCell>
 											<TableCell>{ciudad}</TableCell>
 											<TableCell>{dir}</TableCell>
@@ -325,10 +329,10 @@ const ListaServicios = () => {
 
 									const filaDetalles = mostrarDetalles[id] ? (
 										<TableRow key={`det-${id}`} className="direcciones-row">
-											<TableCell className="direcciones-cell" colSpan={7}>
+											<TableCell className="direcciones-cell" colSpan={8}>
 												<div className="direcciones-container">
 													<div className="direcciones-grid">
-														{/* Empleados primero */}
+														{/* Empleados */}
 														<div className="direccion-card">
 															<div className="direccion-tipo"><strong>Empleados</strong></div>
 															<div className="direccion-datos">
@@ -338,6 +342,7 @@ const ListaServicios = () => {
 															</div>
 														</div>
 
+														{/* Servicios */}
 														<div className="direccion-card">
 															<div className="direccion-tipo"><strong>Servicios</strong></div>
 															<div className="direccion-datos">
@@ -361,6 +366,7 @@ const ListaServicios = () => {
 											</TableCell>
 										</TableRow>
 									) : null;
+
 									return [fila, filaDetalles].filter(Boolean);
 								})
 							)}

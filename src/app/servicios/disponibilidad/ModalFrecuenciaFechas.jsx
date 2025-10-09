@@ -95,24 +95,25 @@ export default function ModalFrecuenciaFechas({
               </div>
             </div>
           </div>
-
-          {/* Botones */}
-          <div className="modal-asignacion-form-buttons modal-asignacion-full-width">
-            <button onClick={onClose} className="modal-asignacion-btn-cancelar">Cerrar</button>
-            <button type="button" onClick={clearAll} className="modal-asignacion-btn-cancelar">
-              Restablecer al mismo día
-            </button>
-            <button
-              type="button"
-              className="modal-asignacion-btn-confirmar"
-              onClick={() => onConfirm?.(ordered)}
-              disabled={ordered.length === 0}
-              title={ordered.length === 0 ? 'Agrega al menos una fecha' : ''}
-            >
-              Usar {ordered.length} fecha(s)
-            </button>
-          </div>
         </div>
+
+        {/* Botones */}
+        <div className="modal-asignacion-form-buttons">
+          <button onClick={onClose} className="modal-asignacion-btn-cancelar">Cerrar</button>
+          <button type="button" onClick={clearAll} className="modal-asignacion-btn-cancelar">
+            Restablecer al mismo día
+          </button>
+          <button
+            type="button"
+            className="modal-asignacion-btn-confirmar"
+            onClick={() => onConfirm?.(ordered)}
+            disabled={ordered.length === 0}
+            title={ordered.length === 0 ? 'Agrega al menos una fecha' : ''}
+          >
+            Usar {ordered.length} fecha(s)
+          </button>
+        </div>
+
       </div>
     </div>
   );

@@ -8,11 +8,11 @@ import EditarEmpleados from "./editarEmpleados/EditarEmpleados";
 
 const Empleados = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
-  
+
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
   };
-  
+
   // Renderizado condicional del componente seleccionado
   const renderComponente = () => {
     switch (componenteActual) {
@@ -20,22 +20,15 @@ const Empleados = () => {
         return <InfoGeneral />;
       case "listaEmpleados":
         return <ListaEmpleados />;
-      
       case "editarEmpleados":
         return <EditarEmpleados />;
-      /*
-      case "reportes":
-        return <Reportes />;
-      case "configuracion":
-        return <Configuracion />;
-      */
       default:
         return <InfoGeneral />;
     }
   };
-  
+
   return (
-    <div className="flex">
+    <div className="layout">
       <Sidebar onNavClick={cambiarComponente} seccionActiva={componenteActual} />
       {renderComponente()}
     </div>

@@ -10,6 +10,7 @@ const DetalleServicioModal = ({ service, onClose }) => {
                 <div className="modal-datos-superiores">
                     <span>Hora: {service.time}</span>
                     <span>Número de Horas: {service.hours}</span>
+                    <span>Descanso: {service.breakTime} min</span>
                     <span>Estado: {service.state}</span>
                 </div>
 
