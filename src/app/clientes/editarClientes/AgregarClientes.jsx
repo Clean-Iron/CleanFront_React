@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from "react";
 import ModalEditarDirecciones from "./ModalEditarDirecciones.jsx";
 import { agregarCliente } from "@/lib/Logic.js";
+import { Switch, Chip } from "@mui/material";
 
 const AgregarClientes = () => {
   const [nombre, setNombre] = useState("");
@@ -9,7 +12,9 @@ const AgregarClientes = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [tipoDocumento, setTipoDocumento] = useState("");
-  const [comentarios, setComentarios] = useState('');
+  const [comentarios, setComentarios] = useState("");
+
+  const [activo, setActivo] = useState(true);
 
   const [direcciones, setDirecciones] = useState([]);
   const [mostrarModalDirecciones, setMostrarModalDirecciones] = useState(false);
@@ -17,9 +22,7 @@ const AgregarClientes = () => {
 
   const tipoIdDropdownRef = useRef(null);
 
-  const tipoId = [
-    "CC", "TI", "NIT", "CE", "PA"
-  ];
+  const tipoId = ["CC", "TI", "NIT", "CE", "PT"];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -35,21 +38,33 @@ const AgregarClientes = () => {
     setDirecciones(nuevasDirecciones);
   };
 
+  // --- Uppercase helper y handlers (tipear/pegar) ---
+  const uc = (v) => (v ?? "").toString().toUpperCase();
+  const onNombre = (e) => setNombre(uc(e.target.value));
+  const onApellido = (e) => setApellido(uc(e.target.value));
+  const onDocumento = (e) => setDocumento(uc(e.target.value));
+  const onEmail = (e) => setEmail(uc(e.target.value));
+  const onPhone = (e) => setPhone(uc(e.target.value));
+  const onComentarios = (e) => setComentarios(uc(e.target.value));
+
+  const inputUpperStyle = { textTransform: "uppercase" };
+
   const handleSubmit = async () => {
-    if (!nombre || !documento || !email || !tipoDocumento || !direcciones.length === 0) {
+    if (!nombre || !documento || !email || !tipoDocumento || direcciones.length === 0) {
       alert("Por favor completa todos los campos obligatorios.");
       return;
     }
 
     const nuevoCliente = {
-      name: nombre,
-      surname: apellido,
-      document: documento,
-      email: email,
-      phone: phone,
-      typeId: tipoDocumento,
+      name: nombre.trim(),               // ya en MAYÚSCULAS
+      surname: apellido.trim(),
+      document: documento.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      typeId: tipoDocumento.trim(),      // dropdown en mayúsculas
       addresses: direcciones,
-      comments: comentarios
+      comments: comentarios.trim(),
+      state: activo,
     };
 
     try {
@@ -57,16 +72,16 @@ const AgregarClientes = () => {
       alert("Cliente agregado exitosamente.");
       resetBusqueda();
     } catch (error) {
-      alert("Error al agregar cliente.");
       console.error(error);
+      alert("Error al agregar cliente.");
     }
   };
 
   const handleCancelar = () => {
-    const hayCamposLlenos = nombre || apellido || documento || email || phone || tipoDocumento;
-    if (hayCamposLlenos) {
-      const confirmar = window.confirm("¿Deseas borrar todos los campos?");
-      if (confirmar) resetBusqueda();
+    const hayCamposLlenos =
+      nombre || apellido || documento || email || phone || tipoDocumento || comentarios || direcciones.length > 0;
+    if (hayCamposLlenos && window.confirm("¿Deseas borrar todos los campos?")) {
+      resetBusqueda();
     }
   };
 
@@ -79,58 +94,45 @@ const AgregarClientes = () => {
     setTipoDocumento("");
     setComentarios("");
     setDirecciones([]);
+    setActivo(true);
   };
 
   return (
     <div className="empleados-form-grid">
       <div
         className="empleados-full-width empleados-form-grid"
-        style={{
-          maxHeight: '45vh',   // por ejemplo, mitad de la ventana
-          overflowY: 'auto',   // activa scroll interno
-          paddingRight: '8px'  // para evitar que el scroll tape contenido
-        }}
+        style={{ maxHeight: "45vh", overflowY: "auto", paddingRight: "8px" }}
       >
         <div className="input-group">
           <label htmlFor="nombre">Nombre(s)</label>
-          <input
-            id="nombre"
-            type="text"
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-          />
+          <input id="nombre" type="text" value={nombre} onChange={onNombre} style={inputUpperStyle} />
         </div>
 
         <div className="input-group">
           <label htmlFor="apellido">Apellido(s)</label>
-          <input
-            id="apellido"
-            type="text"
-            value={apellido}
-            onChange={e => setApellido(e.target.value)}
-          />
+          <input id="apellido" type="text" value={apellido} onChange={onApellido} style={inputUpperStyle} />
         </div>
 
-        <div className="input-group">
+        <div className="input-group" ref={tipoIdDropdownRef}>
           <label htmlFor="tipoDocumento">Tipo ID</label>
-          <div className="dropdown" ref={tipoIdDropdownRef}>
+          <div className="dropdown">
             <button
               id="tipoDocumento"
               type="button"
               className={`dropdown-trigger ${tipoIdDropdownOpen ? "open" : ""}`}
-              onClick={() => setTipoIdDropdownOpen(o => !o)}
+              onClick={() => setTipoIdDropdownOpen((o) => !o)}
             >
               <span>{tipoDocumento || "Selecc. Tipo ID"}</span>
               <span className="arrow">▼</span>
             </button>
             {tipoIdDropdownOpen && (
               <div className="dropdown-content">
-                {tipoId.map((tipo, index) => (
+                {tipoId.map((tipo) => (
                   <button
-                    key={index}
+                    key={tipo}
                     type="button"
                     onClick={() => {
-                      setTipoDocumento(tipo);
+                      setTipoDocumento(tipo.toUpperCase());  // asegura MAYÚSCULAS
                       setTipoIdDropdownOpen(false);
                     }}
                   >
@@ -144,39 +146,30 @@ const AgregarClientes = () => {
 
         <div className="input-group">
           <label htmlFor="documento">N° Documento</label>
-          <input
-            id="documento"
-            type="text"
-            value={documento}
-            onChange={e => setDocumento(e.target.value)}
-          />
+          <input id="documento" type="text" value={documento} onChange={onDocumento} style={inputUpperStyle} />
         </div>
 
         <div className="input-group">
           <label htmlFor="email">Correo electrónico</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
+          <input id="email" type="email" value={email} onChange={onEmail} style={inputUpperStyle} />
         </div>
 
-        <button
-          type="button"
-          className="menu-btn"
-          onClick={() => setMostrarModalDirecciones(true)}
-        >
+        <button type="button" className="menu-btn" onClick={() => setMostrarModalDirecciones(true)}>
           📍 Editar Direcciones ({direcciones.length})
         </button>
 
         <div className="input-group">
           <label htmlFor="phone">N° Celular - Telefono</label>
-          <input
-            id="phone"
-            type="text"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
+          <input id="phone" type="text" value={phone} onChange={onPhone} style={inputUpperStyle} />
+        </div>
+
+        <div className="input-group" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Switch checked={activo} onChange={(e) => setActivo(e.target.checked)} />
+          <Chip
+            size="small"
+            label={activo ? "ACTIVO" : "INACTIVO"}
+            color={activo ? "success" : "default"}
+            variant={activo ? "filled" : "outlined"}
           />
         </div>
 
@@ -185,7 +178,8 @@ const AgregarClientes = () => {
           <textarea
             className="modal-asignacion-textarea"
             value={comentarios}
-            onChange={e => setComentarios(e.target.value)}
+            onChange={onComentarios}
+            style={inputUpperStyle}
           />
         </div>
       </div>

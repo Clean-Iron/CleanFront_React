@@ -34,8 +34,7 @@ const ListaClientes = () => {
     ordenamiento: "nombre",
   });
 
-  // 🔵 NUEVO: switch para filtrar por estado
-  // ON = Activos; OFF = Inactivos
+  // Switch Activos (ON) / Inactivos (OFF)
   const [soloActivos, setSoloActivos] = useState(true);
 
   const { ciudades, isLoading: loadingCiudades } = useCiudades();
@@ -51,7 +50,6 @@ const ListaClientes = () => {
         setLoading(true);
         setError(null);
         const data = await buscarClientes();
-        // Normaliza state a boolean
         const toBool = (v) => v === true || v === "true";
         const arr = (Array.isArray(data) ? data : []).map(c => ({ ...c, state: toBool(c?.state) }));
         setClientes(arr);
@@ -105,7 +103,7 @@ const ListaClientes = () => {
 
       const okTipo = !filtros.tipoId || norm(cliente.typeId?.trim()) === norm(filtros.tipoId);
 
-      // 🔵 NUEVO: filtro por estado según el switch
+      // Filtro por estado según el switch
       const okEstado = soloActivos ? cliente.state === true : cliente.state === false;
 
       return okBusqueda && okCiudad && okTipo && okEstado;
@@ -223,10 +221,17 @@ const ListaClientes = () => {
             )}
           </div>
 
-          {/* 🔵 NUEVO: Switch Activos/Inactivos */}
+          {/* Switch con Chip como etiqueta (igual que en editar cliente) */}
           <FormControlLabel
             sx={{ ml: 2 }}
-            label={soloActivos ? "Activos" : "Inactivos"}
+            label={
+              <Chip
+                size="small"
+                label={soloActivos ? "ACTIVOS" : "INACTIVOS"}
+                color={soloActivos ? "success" : "default"}
+                variant={soloActivos ? "filled" : "outlined"}
+              />
+            }
             control={
               <Switch
                 checked={soloActivos}
@@ -312,8 +317,7 @@ const ListaClientes = () => {
                             setMostrarDirecciones((prev) => ({
                               ...prev,
                               [cliente.document]: !prev[cliente.document],
-                            }))}
-                        >
+                            }))}>
                           {cliente.addresses?.length || 0}{" "}
                           {mostrarDirecciones[cliente.document] ? "▲" : "▼"}
                         </button>

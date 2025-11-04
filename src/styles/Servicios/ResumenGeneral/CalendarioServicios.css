@@ -1,3 +1,8 @@
+.calendar-body {
+	max-height: 100dvh;
+	overflow-y: auto;
+}
+
 .modern-calendar-grid,
     .modern-weekdays {
         gap: 0.3rem;
@@ -7,7 +12,6 @@
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     box-sizing: border-box;
 }
 
@@ -32,10 +36,17 @@
 }
 
 .modern-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    position: sticky;
+	top: 20px;
+	z-index: 8;
+	backdrop-filter: saturate(110%) blur(4px);
+	border-radius: 12px;
+
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 0.3rem;
+	padding: 0.5rem 0.25rem;
+	margin-bottom: 1rem;
 }
 
 .modern-weekday {

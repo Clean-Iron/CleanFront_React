@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from "react";
 import { agregarEmpleado } from "@/lib/Logic.js";
 import { useCiudades } from "@/lib/Hooks";
+import { Switch, Chip } from "@mui/material";
 
 const AgregarEmpleados = () => {
   const [nombre, setNombre] = useState("");
@@ -11,19 +14,21 @@ const AgregarEmpleados = () => {
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [comentarios, setComentarios] = useState('');
+  const [comentarios, setComentarios] = useState("");
 
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCargo, setSelectedCargo] = useState("");
-  const [selectedEstado, setSelectedEstado] = useState("");
+  const [activo, setActivo] = useState(true);
 
   const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
-  const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
+
+  const [selectedTipoId, setSelectedTipoId] = useState("");
+  const [tipoIdDropdownOpen, setTipoIdDropdownOpen] = useState(false);
 
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
-  const estadoDropdownRef = useRef(null);
+  const tipoIdDropdownRef = useRef(null);
 
   const cargos = [
     "Coordinador", "Supervisor", "Asistente Administrativo",
@@ -31,116 +36,111 @@ const AgregarEmpleados = () => {
     "Recursos Humanos", "Atención al Cliente", "Operario"
   ];
 
-  const estados = ["Activo", "Inactivo"];
+  const tiposId = ["CC", "PPT"];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (cargoDropdownRef.current && !cargoDropdownRef.current.contains(event.target)) {
         setCargoDropdownOpen(false);
       }
-      if (estadoDropdownRef.current && !estadoDropdownRef.current.contains(event.target)) {
-        setEstadoDropdownOpen(false);
-      }
       if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
         setCiudadDropdownOpen(false);
+      }
+      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
+        setTipoIdDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // --- Uppercase helper (maneja null/undefined y pegado) ---
+  const uc = (v) => (v ?? "").toString().toUpperCase();
+
+  // --- Handlers Uppercase en tiempo real ---
+  const onNombre = (e) => setNombre(uc(e.target.value));
+  const onApellido = (e) => setApellido(uc(e.target.value));
+  const onDocumento = (e) => setDocumento(uc(e.target.value));
+  const onEmail = (e) => setEmail(uc(e.target.value));
+  const onPhone = (e) => setPhone(uc(e.target.value));
+  const onDireccion = (e) => setDireccion(uc(e.target.value));
+  const onComentarios = (e) => setComentarios(uc(e.target.value));
+
   const handleSubmit = async () => {
-    if (!nombre || !apellido || !documento || !email || !selectedCargo || !fechaIngreso || !selectedEstado) {
+    if (!nombre || !apellido || !selectedTipoId || !documento || !email || !selectedCargo || !fechaIngreso) {
       alert("Por favor completa todos los campos.");
       return;
     }
 
     const nuevoEmpleado = {
-      name: nombre,
-      surname: apellido,
-      document: documento,
-      email: email,
-      phone: phone,
-      addressResidence: direccion,
-      city: selectedCity,
-      entryDate: fechaIngreso,
-      position: selectedCargo,
+      name: nombre.trim(),                 
+      surname: apellido.trim(),
+      typeId: selectedTipoId,              
+      document: documento.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      addressResidence: direccion.trim(),
+      city: selectedCity,                  
+      entryDate: fechaIngreso,             
+      position: selectedCargo,             
       comments: comentarios,
-      state: selectedEstado === "Activo"
+      state: activo,
     };
 
     try {
       await agregarEmpleado(nuevoEmpleado);
       alert("Empleado agregado exitosamente.");
-      setNombre("");
-      setApellido("");
-      setDocumento("");
-      setEmail("");
-      setFechaIngreso("");
-      setSelectedCargo("");
-      setSelectedEstado("");
+      resetFormulario();
     } catch (error) {
-      alert("Error al agregar empleado.");
       console.error(error);
+      alert("Error al agregar empleado.");
     }
   };
 
   const handleCancelar = () => {
-    const hayCamposLlenos = nombre || apellido || documento || email || phone || direccion || selectedCity || selectedCargo || selectedEstado || fechaIngreso;
+    const hayCamposLlenos =
+      nombre || apellido || selectedTipoId || documento || email || phone || direccion ||
+      selectedCity || selectedCargo || fechaIngreso || comentarios;
 
-    if (hayCamposLlenos) {
-      const confirmar = window.confirm("¿Deseas borrar todos los campos?");
-      if (confirmar) {
-        resetBusqueda();
-      }
+    if (hayCamposLlenos && window.confirm("¿Deseas borrar todos los campos?")) {
+      resetFormulario();
     }
   };
 
-  const resetBusqueda = () => {
+  const resetFormulario = () => {
     setNombre("");
     setApellido("");
+    setSelectedTipoId("");
     setDocumento("");
     setEmail("");
     setFechaIngreso("");
     setSelectedCargo("");
-    setSelectedEstado("");
     setPhone("");
     setDireccion("");
     setComentarios("");
     setSelectedCity("");
+    setActivo(true);
   };
+
+  const inputUpperStyle = { textTransform: "uppercase" };
 
   return (
     <div className="empleados-form-grid">
       <div
         className="empleados-full-width empleados-form-grid"
-        style={{
-          maxHeight: '45vh',   // por ejemplo, mitad de la ventana
-          overflowY: 'auto',   // activa scroll interno
-          paddingRight: '8px'  // para evitar que el scroll tape contenido
-        }}
+        style={{ maxHeight: '45vh', overflowY: 'auto', paddingRight: '8px' }}
       >
         <div className="input-group">
           <label htmlFor="agregar-nombre">Nombre(s)</label>
-          <input
-            id="agregar-nombre"
-            type="text"
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-          />
+          <input id="agregar-nombre" type="text" value={nombre} onChange={onNombre} style={inputUpperStyle} />
         </div>
 
         <div className="input-group">
           <label htmlFor="agregar-apellido">Apellido(s)</label>
-          <input
-            id="agregar-apellido"
-            type="text"
-            value={apellido}
-            onChange={e => setApellido(e.target.value)}
-          />
+          <input id="agregar-apellido" type="text" value={apellido} onChange={onApellido} style={inputUpperStyle} />
         </div>
 
-        {/* Dropdown Ciudad */}
+        {/* Ciudad */}
         <div className="input-group" ref={ciudadDropdownRef}>
           <label htmlFor="agregar-ciudad">Ciudad</label>
           <div className="dropdown">
@@ -150,35 +150,24 @@ const AgregarEmpleados = () => {
               className={`dropdown-trigger ${ciudadDropdownOpen ? "open" : ""}`}
               onClick={() => setCiudadDropdownOpen(o => !o)}
             >
-              <span>
-                {selectedCity || "Seleccionar ciudad"}
-              </span>
+              <span>{selectedCity || "Seleccionar ciudad"}</span>
               <span className="arrow">▼</span>
             </button>
             {ciudadDropdownOpen && (
               <div className="dropdown-content">
                 {ciudadesLoading && <div>Cargando ciudades...</div>}
                 {ciudadesError && <div>Error al cargar ciudades</div>}
-                {!ciudadesLoading &&
-                  !ciudadesError &&
-                  ciudades.map((ciu, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCity(ciu);
-                        setCiudadDropdownOpen(false);
-                      }}
-                    >
-                      {ciu}
-                    </button>
-                  ))}
+                {!ciudadesLoading && !ciudadesError && (ciudades || []).map((ciu) => (
+                  <button key={ciu} type="button" onClick={() => { setSelectedCity(ciu); setCiudadDropdownOpen(false); }}>
+                    {ciu}
+                  </button>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Dropdown Cargo */}
+        {/* Cargo */}
         <div className="input-group" ref={cargoDropdownRef}>
           <label htmlFor="agregar-cargo">Cargo</label>
           <div className="dropdown">
@@ -188,22 +177,13 @@ const AgregarEmpleados = () => {
               className={`dropdown-trigger ${cargoDropdownOpen ? "open" : ""}`}
               onClick={() => setCargoDropdownOpen(o => !o)}
             >
-              <span>
-                {selectedCargo || "Seleccionar cargo"}
-              </span>
+              <span>{selectedCargo || "Seleccionar cargo"}</span>
               <span className="arrow">▼</span>
             </button>
             {cargoDropdownOpen && (
               <div className="dropdown-content">
-                {cargos.map((cargo, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCargo(cargo);
-                      setCargoDropdownOpen(false);
-                    }}
-                  >
+                {cargos.map((cargo) => (
+                  <button key={cargo} type="button" onClick={() => { setSelectedCargo(cargo); setCargoDropdownOpen(false); }}>
                     {cargo}
                   </button>
                 ))}
@@ -214,71 +194,27 @@ const AgregarEmpleados = () => {
 
         <div className="input-group">
           <label htmlFor="agregar-direccion">Dirección</label>
-          <input
-            id="agregar-direccion"
-            type="text"
-            value={direccion}
-            onChange={e => setDireccion(e.target.value)}
-          />
+          <input id="agregar-direccion" type="text" value={direccion} onChange={onDireccion} style={inputUpperStyle} />
         </div>
 
-        <div className="input-group">
-          <label htmlFor="agregar-documento">N° Documento</label>
-          <input
-            id="agregar-documento"
-            type="text"
-            value={documento}
-            onChange={e => setDocumento(e.target.value)}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="agregar-email">Correo electrónico</label>
-          <input
-            id="agregar-email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="agregar-phone">N° Celular - Telefono</label>
-          <input
-            id="agregar-phone"
-            type="text"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-          />
-        </div>
-
-        {/* Dropdown Estado */}
-        <div className="input-group" ref={estadoDropdownRef}>
-          <label htmlFor="agregar-estado">Estado</label>
+        {/* Tipo ID */}
+        <div className="input-group" ref={tipoIdDropdownRef}>
+          <label htmlFor="agregar-tipoid">Tipo ID</label>
           <div className="dropdown">
             <button
-              id="agregar-estado"
+              id="agregar-tipoid"
               type="button"
-              className={`dropdown-trigger ${estadoDropdownOpen ? "open" : ""}`}
-              onClick={() => setEstadoDropdownOpen(o => !o)}
+              className={`dropdown-trigger ${tipoIdDropdownOpen ? "open" : ""}`}
+              onClick={() => setTipoIdDropdownOpen(o => !o)}
             >
-              <span>
-                {selectedEstado || "Seleccionar estado"}
-              </span>
+              <span>{selectedTipoId || "Selecc. Tipo ID"}</span>
               <span className="arrow">▼</span>
             </button>
-            {estadoDropdownOpen && (
+            {tipoIdDropdownOpen && (
               <div className="dropdown-content">
-                {estados.map((est, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      setSelectedEstado(est);
-                      setEstadoDropdownOpen(false);
-                    }}
-                  >
-                    {est}
+                {tiposId.map((tipo) => (
+                  <button key={tipo} type="button" onClick={() => { setSelectedTipoId(tipo); setTipoIdDropdownOpen(false); }}>
+                    {tipo}
                   </button>
                 ))}
               </div>
@@ -287,32 +223,39 @@ const AgregarEmpleados = () => {
         </div>
 
         <div className="input-group">
+          <label htmlFor="agregar-documento">N° Documento</label>
+          <input id="agregar-documento" type="text" value={documento} onChange={onDocumento} style={inputUpperStyle} />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="agregar-email">Correo electrónico</label>
+          <input id="agregar-email" type="email" value={email} onChange={onEmail} style={inputUpperStyle} />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="agregar-phone">N° Celular - Telefono</label>
+          <input id="agregar-phone" type="text" value={phone} onChange={onPhone} style={inputUpperStyle} />
+        </div>
+
+        <div className="input-group" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Switch checked={activo} onChange={(e) => setActivo(e.target.checked)} />
+          <Chip size="small" label={activo ? "ACTIVO" : "INACTIVO"} color={activo ? "success" : "default"} variant={activo ? "filled" : "outlined"} />
+        </div>
+
+        <div className="input-group">
           <label htmlFor="agregar-fecha">Fecha de ingreso</label>
-          <input
-            id="agregar-fecha"
-            type="date"
-            value={fechaIngreso}
-            onChange={e => setFechaIngreso(e.target.value)}
-          />
+          <input id="agregar-fecha" type="date" value={fechaIngreso} onChange={e => setFechaIngreso(e.target.value)} />
         </div>
 
         <div className="input-group">
           <label>Comentarios</label>
-          <textarea
-            className="modal-asignacion-textarea"
-            value={comentarios}
-            onChange={e => setComentarios(e.target.value)}
-          />
+          <textarea className="modal-asignacion-textarea" value={comentarios} onChange={onComentarios} style={inputUpperStyle} />
         </div>
       </div>
 
       <div className="empleados-form-buttons empleados-full-width">
-        <button type="button" className="menu-btn" onClick={handleSubmit}>
-          ➕ AGREGAR
-        </button>
-        <button type="reset" className="cancel-btn" onClick={handleCancelar}>
-          ❌ CANCELAR
-        </button>
+        <button type="button" className="menu-btn" onClick={handleSubmit}>➕ AGREGAR</button>
+        <button type="reset" className="cancel-btn" onClick={handleCancelar}>❌ CANCELAR</button>
       </div>
     </div>
   );

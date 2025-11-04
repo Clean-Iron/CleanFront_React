@@ -1,33 +1,22 @@
 'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   obtenerServicios,
   buscarEmpleados,
   actualizarServicio,
-  eliminarServicio
+  eliminarServicio,
 } from '@/lib/Logic.js';
-import { useTimeOptions } from '@/lib/Hooks';
-import { formatTo12h } from '@/lib/Utils'
+import { useTimeOptions, useServiceStates } from '@/lib/Hooks';
+import { formatTo12h } from '@/lib/Utils';
 
 const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const [date, setDate] = useState(service.serviceDate);
-  const [statuses, setStatuses] = useState([]);
-
-  // Horas
-  const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
-
-  // Servicios / empleados asignados
   const [servicios, setServicios] = useState([]);
   const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
-
-  // Listas para dropdowns
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
-
-  // Comentarios
   const [comentarios, setComentarios] = useState('');
-
-  // Hora, estado y descanso
   const [startHour, setStartHour] = useState(service.startHour || '');
   const [endHour, setEndHour] = useState(service.endHour || '');
   const [currentState, setCurrentState] = useState(service.state || '');
@@ -35,7 +24,18 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
     Number.isFinite(service.breakMinutes) ? service.breakMinutes : 0
   );
 
-  // Dropdown toggles
+  const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
+  const {
+    serviceStates,
+    isLoading: isLoadingStates,
+    isError: isErrorStates,
+  } = useServiceStates();
+
+  // Fallback por si el backend aún no responde
+  const fallbackStates = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA', 'NO_PRESTADO'];
+  const statuses = serviceStates && serviceStates.length > 0 ? serviceStates : fallbackStates;
+
+  // Dropdown toggles & refs
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
@@ -43,43 +43,33 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const [mostrarDropdownServicios, setMostrarDropdownServicios] = useState(false);
   const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
 
-  // Refs para detectar clicks fuera
   const startRef = useRef(null);
   const endRef = useRef(null);
   const stateRef = useRef(null);
   const breakRef = useRef(null);
 
-  // Opciones de descanso (0–60 de 5 en 5)
-  const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5);
+  const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5); // 0..60 paso 5
 
+  // Inicialización de chips y dropdowns
   useEffect(() => {
-    const raw = localStorage.getItem('serviceStates');
-    if (!raw) return;
-
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      setStatuses(parsed);
-      return;
-    }
-  }, []);
-
-  useEffect(() => {
-    // Inicializa chips de servicios y empleados
     if (service.services) {
-      setServicios(service.services.map(s => ({
-        id: s.idService,
-        description: s.serviceDescription
-      })));
+      setServicios(
+        service.services.map((s) => ({
+          id: s.idService,
+          description: s.serviceDescription,
+        }))
+      );
     }
     if (service.employees) {
-      setEmpleadosAsignados(service.employees.map(e => ({
-        document: e.employeeDocument,
-        employeeCompleteName: e.employeeCompleteName
-      })));
+      setEmpleadosAsignados(
+        service.employees.map((e) => ({
+          document: e.employeeDocument,
+          employeeCompleteName: e.employeeCompleteName,
+        }))
+      );
     }
     setComentarios(service.comments || '');
 
-    // Carga datos para dropdowns
     buscarEmpleados()
       .then(setEmpleadosDisponibles)
       .catch(() => setEmpleadosDisponibles([]));
@@ -90,7 +80,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 
   // Cerrar dropdowns al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = e => {
+    const handleClickOutside = (e) => {
       if (startRef.current && !startRef.current.contains(e.target)) setStartTimeOpen(false);
       if (endRef.current && !endRef.current.contains(e.target)) setEndTimeOpen(false);
       if (stateRef.current && !stateRef.current.contains(e.target)) setStateOpen(false);
@@ -100,8 +90,21 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Guardar cambios
+  useEffect(() => {
+    if (!isLoadingStates && !isErrorStates) {
+      if (!currentState || !statuses.includes(currentState)) {
+        setCurrentState(statuses[0] || '');
+      }
+    }
+  }, [isLoadingStates, isErrorStates, statuses, currentState]);
+
   const handleGuardar = async () => {
+    // Validación mínima de estado
+    if (!currentState || !statuses.includes(currentState)) {
+      alert('Selecciona un estado válido.');
+      return;
+    }
+
     const datos = {
       ...service,
       date,
@@ -109,16 +112,16 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
       endHour,
       state: currentState,
       breakMinutes: Number.isFinite(breakMinutes) ? breakMinutes : 0,
-      employeeDocuments: empleadosAsignados.map(e => e.document),
-      idServices: servicios.map(s => s.id),
-      comments: comentarios
+      employeeDocuments: empleadosAsignados.map((e) => e.document),
+      idServices: servicios.map((s) => s.id),
+      comments: comentarios,
     };
+
     await actualizarServicio(service.id, datos);
     onUpdate?.();
     onClose();
   };
 
-  // Eliminar servicio
   const handleEliminar = async () => {
     if (confirm('¿Eliminar este servicio?')) {
       await eliminarServicio(service.id);
@@ -129,15 +132,10 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={e => e.stopPropagation()}>
-
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         {/* Cabecera superior */}
         <div className="modal-datos-superiores">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
 
           {/* Hora Inicio */}
           <div>
@@ -146,7 +144,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               <button
                 type="button"
                 className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
-                onClick={() => setStartTimeOpen(o => !o)}
+                onClick={() => setStartTimeOpen((o) => !o)}
               >
                 <span>{formatTo12h(startHour) || 'Hora inicio'}</span>
                 <span className="arrow">▼</span>
@@ -176,7 +174,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               <button
                 type="button"
                 className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
-                onClick={() => setEndTimeOpen(o => !o)}
+                onClick={() => setEndTimeOpen((o) => !o)}
               >
                 <span>{formatTo12h(endHour) || 'Hora fin'}</span>
                 <span className="arrow">▼</span>
@@ -199,14 +197,14 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* Descanso (minutos 0–60 en pasos de 5) */}
+          {/* Descanso */}
           <div>
             <span>Descanso</span>
             <div className="dropdown" ref={breakRef}>
               <button
                 type="button"
                 className={`dropdown-trigger ${breakOpen ? 'open' : ''}`}
-                onClick={() => setBreakOpen(o => !o)}
+                onClick={() => setBreakOpen((o) => !o)}
                 title="Tiempo de descanso que se descontará del total de horas"
               >
                 <span>{`${breakMinutes} min`}</span>
@@ -214,7 +212,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               </button>
               {breakOpen && (
                 <div className="dropdown-content">
-                  {breakOptions.map(m => (
+                  {breakOptions.map((m) => (
                     <button
                       key={m}
                       onClick={() => {
@@ -238,14 +236,17 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               <button
                 type="button"
                 className={`dropdown-trigger ${stateOpen ? 'open' : ''}`}
-                onClick={() => setStateOpen(o => !o)}
+                onClick={() => setStateOpen((o) => !o)}
+                disabled={isLoadingStates || isErrorStates}
               >
-                <span>{currentState || 'Estado'}</span>
+                <span>
+                  {isLoadingStates ? 'Cargando...' : isErrorStates ? 'Error' : currentState || 'Estado'}
+                </span>
                 <span className="arrow">▼</span>
               </button>
               {stateOpen && (
                 <div className="dropdown-content">
-                  {statuses.map(st => (
+                  {statuses.map((st) => (
                     <button
                       key={st}
                       onClick={() => {
@@ -278,19 +279,21 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
             <label>Servicios:</label>
             <div className="modal-chip-container">
               <div className="chips">
-                {servicios.map(s => (
+                {servicios.map((s) => (
                   <div className="modal-chip" key={s.id}>
                     {s.description}
                     <span
                       className="modal-asignacion-remove-btn"
-                      onClick={() => setServicios(servicios.filter(x => x.id !== s.id))}
-                    >×</span>
+                      onClick={() => setServicios(servicios.filter((x) => x.id !== s.id))}
+                    >
+                      ×
+                    </span>
                   </div>
                 ))}
                 <button
                   type="button"
                   className="modal-asignacion-add-servicio-btn"
-                  onClick={() => setMostrarDropdownServicios(v => !v)}
+                  onClick={() => setMostrarDropdownServicios((v) => !v)}
                 >
                   +
                 </button>
@@ -298,8 +301,8 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               {mostrarDropdownServicios && (
                 <div className="modal-asignacion-dropdown-chip">
                   {serviciosDisponibles
-                    .filter(sd => !servicios.find(s => s.id === sd.id))
-                    .map(sd => (
+                    .filter((sd) => !servicios.find((s) => s.id === sd.id))
+                    .map((sd) => (
                       <button
                         key={sd.id}
                         onClick={() => {
@@ -320,21 +323,23 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
             <label>Personal Asignado:</label>
             <div className="modal-chip-container">
               <div className="chips">
-                {empleadosAsignados.map(e => (
+                {empleadosAsignados.map((e) => (
                   <div className="modal-chip" key={e.document}>
                     {e.employeeCompleteName}
                     <span
                       className="modal-asignacion-remove-btn"
                       onClick={() =>
-                        setEmpleadosAsignados(empleadosAsignados.filter(x => x.document !== e.document))
+                        setEmpleadosAsignados(empleadosAsignados.filter((x) => x.document !== e.document))
                       }
-                    >×</span>
+                    >
+                      ×
+                    </span>
                   </div>
                 ))}
                 <button
                   type="button"
                   className="modal-asignacion-add-empleado-btn"
-                  onClick={() => setMostrarDropdownEmpleados(v => !v)}
+                  onClick={() => setMostrarDropdownEmpleados((v) => !v)}
                 >
                   +
                 </button>
@@ -342,8 +347,8 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               {mostrarDropdownEmpleados && (
                 <div className="modal-asignacion-dropdown-chip">
                   {empleadosDisponibles
-                    .filter(ed => !empleadosAsignados.some(a => a.document === ed.document))
-                    .map(ed => (
+                    .filter((ed) => !empleadosAsignados.some((a) => a.document === ed.document))
+                    .map((ed) => (
                       <button
                         key={ed.document}
                         onClick={() => {
@@ -351,8 +356,8 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
                             ...empleadosAsignados,
                             {
                               document: ed.document,
-                              employeeCompleteName: `${ed.name} ${ed.surname}`
-                            }
+                              employeeCompleteName: `${ed.name} ${ed.surname}`,
+                            },
                           ]);
                           setMostrarDropdownEmpleados(false);
                         }}
@@ -375,7 +380,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               rows={3}
               className="modal-asignacion-textarea"
               value={comentarios}
-              onChange={e => setComentarios(e.target.value)}
+              onChange={(e) => setComentarios(e.target.value)}
             />
           </div>
         </div>

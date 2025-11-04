@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useCiudades } from "@/lib/Hooks";
 
@@ -8,13 +9,16 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
   const [direcciones, setDirecciones] = useState([]);
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState({});
 
+  const uc = (v) => (v ?? '').toString().toUpperCase();
+  const inputUpper = { textTransform: 'uppercase' };
+
   useEffect(() => {
     const arr = Array.isArray(cliente.addresses) ? cliente.addresses : [];
     const inicial = arr.map(addr => ({
       id: addr.id,
-      address: addr.address || '',
+      address: uc(addr.address || ''),
       city: addr.city || '',
-      description: addr.description || ''
+      description: uc(addr.description || '')
     }));
     if (inicial.length === 0) {
       inicial.push({
@@ -28,9 +32,10 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
   }, [cliente.addresses]);
 
   const handleDireccionChange = (id, campo, valor) => {
+    const v = (campo === 'address' || campo === 'description') ? uc(valor) : valor;
     setDirecciones(prev =>
       prev.map(dir =>
-        dir.id === id ? { ...dir, [campo]: valor } : dir
+        dir.id === id ? { ...dir, [campo]: v } : dir
       )
     );
   };
@@ -64,19 +69,22 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
 
   const guardarCambios = () => {
     const direccionesValidas = direcciones
-      .filter(dir => dir.address.trim() !== '')
+      .filter(dir => (dir.address ?? '').trim() !== '')
       .map(dir => {
+        const normalized = {
+          ...dir,
+          address: uc(dir.address).trim(),
+          description: uc(dir.description).trim(),
+        };
         if (typeof dir.id === 'string' && dir.id.startsWith('temp')) {
-          const { id, ...rest } = dir;
+          const { id, ...rest } = normalized;
           return rest;
         }
-        return dir;
+        return normalized;
       });
 
-    if (onGuardar) {
-      onGuardar(direccionesValidas);
-    }
-    onClose();
+    onGuardar?.(direccionesValidas);
+    onClose?.();
   };
 
   if (!cliente) return null;
@@ -86,13 +94,14 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
       <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ height: '55vh' }}>
         <div style={{ height: '40vh', overflowY: 'auto' }}>
           {direcciones.map((direccion) => (
-            <div key={direccion.id} className="direccion-row" >
+            <div key={direccion.id} className="direccion-row">
               {/* Dirección */}
               <input
                 type="text"
                 placeholder="Dirección"
                 value={direccion.address}
                 onChange={(e) => handleDireccionChange(direccion.id, 'address', e.target.value)}
+                style={inputUpper}
               />
 
               {/* Descripción */}
@@ -101,15 +110,14 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
                 placeholder="Descripción"
                 value={direccion.description}
                 onChange={(e) => handleDireccionChange(direccion.id, 'description', e.target.value)}
+                style={inputUpper}
               />
 
-              {/* Ciudad (dropdown) */}
-              <div
-                className="dropdown"
-              >
+              {/* Ciudad */}
+              <div className="dropdown">
                 <button
                   type="button"
-                  className={`dropdown-trigger ${ciudadDropdownOpen[direccion.id] ? 'open' : ''}`}
+                  className={`dropdown-trigger ${ciudadDropdownOpen?.[direccion.id] ? 'open' : ''}`}
                   onClick={() => toggleCiudadDropdown(direccion.id)}
                 >
                   <span>{direccion.city || 'Seleccionar ciudad'}</span>
@@ -120,7 +128,7 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
                   <div className="dropdown-content">
                     {ciudadesLoading && <div>Cargando ciudades...</div>}
                     {ciudadesError && <div>Error al cargar ciudades</div>}
-                    {!ciudadesLoading && !ciudadesError && ciudades.map((ciu, idx) => (
+                    {!ciudadesLoading && !ciudadesError && (ciudades || []).map((ciu) => (
                       <button
                         key={`${direccion.id}-${ciu}`}
                         type="button"
@@ -147,10 +155,7 @@ const ModalEditarDirecciones = ({ cliente = {}, onClose, onGuardar }) => {
         </div>
 
         <div className="modal-asignacion-form-buttons">
-          <button
-            className="menu-btn"
-            onClick={agregarDireccion}
-          >
+          <button className="menu-btn" onClick={agregarDireccion}>
             + Agregar Dirección
           </button>
           <button className="menu-btn" onClick={guardarCambios}>

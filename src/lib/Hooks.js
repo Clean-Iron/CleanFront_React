@@ -3,7 +3,7 @@
 import useSWR from 'swr'
 import { useMemo } from 'react'
 
-const API_BASE_URL = /*process.env.NEXT_PUBLIC_API_URL ||*/ 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 const fetcher = url => fetch(url).then(res => {
   if (!res.ok) throw new Error('Error al cargar ciudades')
@@ -12,8 +12,8 @@ const fetcher = url => fetch(url).then(res => {
 
 const sanitize = (s) =>
   String(s)
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '') // elimina símbolos raros, mantiene letras con tildes
-    .replace(/\s+/g, ' ')               // colapsa espacios
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '') 
+    .replace(/\s+/g, ' ')               
     .trim();
 
 export function useCiudades() {
@@ -38,7 +38,7 @@ export function useServiceStates() {
 
   return {
     serviceStates: (data || []).map(sanitize),
-    isLoading: !!isLoading,
+    isLoading: !error && !data,
     isError: !!error
   };
 }

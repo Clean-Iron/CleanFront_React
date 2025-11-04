@@ -4,9 +4,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { buscarClientes, buscarServiciosPorMesDeClientes } from '@/lib/Logic.js';
 import {
-	TableContainer, Table, TableHead,
-	TableRow, TableCell, TableBody,
-	Paper, CircularProgress, Button
+	TableContainer,
+	Table,
+	TableHead,
+	TableRow,
+	TableCell,
+	TableBody,
+	Paper,
+	CircularProgress,
+	Button
 } from '@mui/material';
 
 const ListaServicios = () => {
