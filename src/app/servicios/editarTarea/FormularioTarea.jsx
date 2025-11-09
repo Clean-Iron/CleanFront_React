@@ -7,7 +7,7 @@ import {
   actualizarServicio,
   eliminarServicio,
 } from '@/lib/Logic.js';
-import { useTimeOptions, useServiceStates } from '@/lib/Hooks';
+import { useTimeOptions, useServiceStates, useLoadingOverlay } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils';
 
 const FormularioTarea = ({ service, onClose, onUpdate }) => {
@@ -25,17 +25,19 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   );
 
   const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
-  const {
-    serviceStates,
-    isLoading: isLoadingStates,
-    isError: isErrorStates,
-  } = useServiceStates();
+  const { serviceStates, isLoading: isLoadingStates, isError: isErrorStates } = useServiceStates();
 
-  // Fallback por si el backend aún no responde
+  // Overlay global reutilizable
+  const { isLoading: overlayOn, withLoading, OverlayPortal } = useLoadingOverlay('Procesando…');
+
+  // Flags SOLO para pintar el texto de botones en acciones
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const disabled = overlayOn || saving || deleting;
+
   const fallbackStates = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA', 'NO_PRESTADO'];
   const statuses = serviceStates && serviceStates.length > 0 ? serviceStates : fallbackStates;
 
-  // Dropdown toggles & refs
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
@@ -48,18 +50,16 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const stateRef = useRef(null);
   const breakRef = useRef(null);
 
-  const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5); // 0..60 paso 5
+  const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5);
 
-  // Inicialización de chips y dropdowns
+  // Inicialización + carga de catálogos (usa overlay pero NO cambia textos de botones)
   useEffect(() => {
     if (service.services) {
-      setServicios(
-        service.services.map((s) => ({
-          id: s.idService,
-          description: s.serviceDescription,
-        }))
-      );
+      setServicios(service.services.map((s) => ({ id: s.idService, description: s.serviceDescription })));
+    } else {
+      setServicios([]);
     }
+
     if (service.employees) {
       setEmpleadosAsignados(
         service.employees.map((e) => ({
@@ -67,27 +67,32 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
           employeeCompleteName: e.employeeCompleteName,
         }))
       );
+    } else {
+      setEmpleadosAsignados([]);
     }
+
     setComentarios(service.comments || '');
 
-    buscarEmpleados()
-      .then(setEmpleadosDisponibles)
-      .catch(() => setEmpleadosDisponibles([]));
-    obtenerServicios()
-      .then(setServiciosDisponibles)
-      .catch(() => setServiciosDisponibles([]));
+    withLoading(async () => {
+      const [emps, servs] = await Promise.all([
+        buscarEmpleados().catch(() => []),
+        obtenerServicios().catch(() => []),
+      ]);
+      setEmpleadosDisponibles(emps || []);
+      setServiciosDisponibles(servs || []);
+    }, 'Cargando datos…');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service]);
 
-  // Cerrar dropdowns al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handler = (e) => {
       if (startRef.current && !startRef.current.contains(e.target)) setStartTimeOpen(false);
       if (endRef.current && !endRef.current.contains(e.target)) setEndTimeOpen(false);
       if (stateRef.current && !stateRef.current.contains(e.target)) setStateOpen(false);
       if (breakRef.current && !breakRef.current.contains(e.target)) setBreakOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   useEffect(() => {
@@ -99,7 +104,6 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   }, [isLoadingStates, isErrorStates, statuses, currentState]);
 
   const handleGuardar = async () => {
-    // Validación mínima de estado
     if (!currentState || !statuses.includes(currentState)) {
       alert('Selecciona un estado válido.');
       return;
@@ -117,288 +121,283 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
       comments: comentarios,
     };
 
-    await actualizarServicio(service.id, datos);
-    onUpdate?.();
-    onClose();
+    setSaving(true);
+    try {
+      await withLoading(() => actualizarServicio(service.id, datos), 'Guardando cambios…');
+      onUpdate?.();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEliminar = async () => {
-    if (confirm('¿Eliminar este servicio?')) {
-      await eliminarServicio(service.id);
+    if (!confirm('¿Eliminar este servicio?')) return;
+    setDeleting(true);
+    try {
+      await withLoading(() => eliminarServicio(service.id), 'Eliminando servicio…');
       onUpdate?.();
       onClose();
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* Cabecera superior */}
-        <div className="modal-datos-superiores">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+    <>
+      {OverlayPortal}
 
-          {/* Hora Inicio */}
-          <div>
-            <span>Hora Inicio</span>
-            <div className="dropdown" ref={startRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
-                onClick={() => setStartTimeOpen((o) => !o)}
-              >
-                <span>{formatTo12h(startHour) || 'Hora inicio'}</span>
-                <span className="arrow">▼</span>
-              </button>
-              {startTimeOpen && (
-                <div className="dropdown-content">
-                  {timeOptions.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => {
-                        setStartHour(value);
-                        setStartTimeOpen(false);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="modal-overlay" onClick={!disabled ? onClose : undefined}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()} aria-busy={overlayOn}>
+          {/* Cabecera superior */}
+          <div className="modal-datos-superiores">
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={disabled} />
 
-          {/* Hora Fin */}
-          <div>
-            <span>Hora Fin</span>
-            <div className="dropdown" ref={endRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
-                onClick={() => setEndTimeOpen((o) => !o)}
-              >
-                <span>{formatTo12h(endHour) || 'Hora fin'}</span>
-                <span className="arrow">▼</span>
-              </button>
-              {endTimeOpen && (
-                <div className="dropdown-content">
-                  {timeOptions.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => {
-                        setEndHour(value);
-                        setEndTimeOpen(false);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Descanso */}
-          <div>
-            <span>Descanso</span>
-            <div className="dropdown" ref={breakRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${breakOpen ? 'open' : ''}`}
-                onClick={() => setBreakOpen((o) => !o)}
-                title="Tiempo de descanso que se descontará del total de horas"
-              >
-                <span>{`${breakMinutes} min`}</span>
-                <span className="arrow">▼</span>
-              </button>
-              {breakOpen && (
-                <div className="dropdown-content">
-                  {breakOptions.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => {
-                        setBreakMinutes(m);
-                        setBreakOpen(false);
-                      }}
-                      className={breakMinutes === m ? 'selected' : ''}
-                    >
-                      {m} min
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Estado */}
-          <div>
-            <span>Estado</span>
-            <div className="dropdown" ref={stateRef}>
-              <button
-                type="button"
-                className={`dropdown-trigger ${stateOpen ? 'open' : ''}`}
-                onClick={() => setStateOpen((o) => !o)}
-                disabled={isLoadingStates || isErrorStates}
-              >
-                <span>
-                  {isLoadingStates ? 'Cargando...' : isErrorStates ? 'Error' : currentState || 'Estado'}
-                </span>
-                <span className="arrow">▼</span>
-              </button>
-              {stateOpen && (
-                <div className="dropdown-content">
-                  {statuses.map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => {
-                        setCurrentState(st);
-                        setStateOpen(false);
-                      }}
-                    >
-                      {st}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Formulario principal */}
-        <div className="modal-asignacion-form-grid">
-          <div>
-            <label>Cliente</label>
-            <input type="text" readOnly value={service.clientCompleteName || ''} />
-          </div>
-          <div>
-            <label>Dirección</label>
-            <input type="text" readOnly value={service.addressService || ''} />
-          </div>
-
-          {/* Servicios */}
-          <div className="modal-chip-section">
-            <label>Servicios:</label>
-            <div className="modal-chip-container">
-              <div className="chips">
-                {servicios.map((s) => (
-                  <div className="modal-chip" key={s.id}>
-                    {s.description}
-                    <span
-                      className="modal-asignacion-remove-btn"
-                      onClick={() => setServicios(servicios.filter((x) => x.id !== s.id))}
-                    >
-                      ×
-                    </span>
-                  </div>
-                ))}
+            {/* Hora Inicio */}
+            <div>
+              <span>Hora Inicio</span>
+              <div className="dropdown" ref={startRef}>
                 <button
                   type="button"
-                  className="modal-asignacion-add-servicio-btn"
-                  onClick={() => setMostrarDropdownServicios((v) => !v)}
+                  className={`dropdown-trigger ${startTimeOpen ? 'open' : ''}`}
+                  onClick={() => !disabled && setStartTimeOpen((o) => !o)}
+                  disabled={disabled}
                 >
-                  +
+                  <span>{formatTo12h(startHour) || 'Hora inicio'}</span>
+                  <span className="arrow">▼</span>
                 </button>
-              </div>
-              {mostrarDropdownServicios && (
-                <div className="modal-asignacion-dropdown-chip">
-                  {serviciosDisponibles
-                    .filter((sd) => !servicios.find((s) => s.id === sd.id))
-                    .map((sd) => (
-                      <button
-                        key={sd.id}
-                        onClick={() => {
-                          setServicios([...servicios, { id: sd.id, description: sd.description }]);
-                          setMostrarDropdownServicios(false);
-                        }}
-                      >
-                        {sd.description}
+                {startTimeOpen && !disabled && (
+                  <div className="dropdown-content">
+                    {timeOptions.map(({ value, label }) => (
+                      <button key={value} onClick={() => { setStartHour(value); setStartTimeOpen(false); }}>
+                        {label}
                       </button>
                     ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Empleados */}
-          <div className="modal-chip-section">
-            <label>Personal Asignado:</label>
-            <div className="modal-chip-container">
-              <div className="chips">
-                {empleadosAsignados.map((e) => (
-                  <div className="modal-chip" key={e.document}>
-                    {e.employeeCompleteName}
-                    <span
-                      className="modal-asignacion-remove-btn"
-                      onClick={() =>
-                        setEmpleadosAsignados(empleadosAsignados.filter((x) => x.document !== e.document))
-                      }
-                    >
-                      ×
-                    </span>
                   </div>
-                ))}
+                )}
+              </div>
+            </div>
+
+            {/* Hora Fin */}
+            <div>
+              <span>Hora Fin</span>
+              <div className="dropdown" ref={endRef}>
                 <button
                   type="button"
-                  className="modal-asignacion-add-empleado-btn"
-                  onClick={() => setMostrarDropdownEmpleados((v) => !v)}
+                  className={`dropdown-trigger ${endTimeOpen ? 'open' : ''}`}
+                  onClick={() => !disabled && setEndTimeOpen((o) => !o)}
+                  disabled={disabled}
                 >
-                  +
+                  <span>{formatTo12h(endHour) || 'Hora fin'}</span>
+                  <span className="arrow">▼</span>
                 </button>
-              </div>
-              {mostrarDropdownEmpleados && (
-                <div className="modal-asignacion-dropdown-chip">
-                  {empleadosDisponibles
-                    .filter((ed) => !empleadosAsignados.some((a) => a.document === ed.document))
-                    .map((ed) => (
-                      <button
-                        key={ed.document}
-                        onClick={() => {
-                          setEmpleadosAsignados([
-                            ...empleadosAsignados,
-                            {
-                              document: ed.document,
-                              employeeCompleteName: `${ed.name} ${ed.surname}`,
-                            },
-                          ]);
-                          setMostrarDropdownEmpleados(false);
-                        }}
-                      >
-                        {ed.name} {ed.surname}
+                {endTimeOpen && !disabled && (
+                  <div className="dropdown-content">
+                    {timeOptions.map(({ value, label }) => (
+                      <button key={value} onClick={() => { setEndHour(value); setEndTimeOpen(false); }}>
+                        {label}
                       </button>
                     ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Descanso */}
+            <div>
+              <span>Descanso</span>
+              <div className="dropdown" ref={breakRef}>
+                <button
+                  type="button"
+                  className={`dropdown-trigger ${breakOpen ? 'open' : ''}`}
+                  onClick={() => !disabled && setBreakOpen((o) => !o)}
+                  title="Tiempo de descanso que se descontará del total de horas"
+                  disabled={disabled}
+                >
+                  <span>{`${breakMinutes} min`}</span>
+                  <span className="arrow">▼</span>
+                </button>
+                {breakOpen && !disabled && (
+                  <div className="dropdown-content">
+                    {breakOptions.map((m) => (
+                      <button key={m} onClick={() => { setBreakMinutes(m); setBreakOpen(false); }}
+                        className={breakMinutes === m ? 'selected' : ''}>
+                        {m} min
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Estado */}
+            <div>
+              <span>Estado</span>
+              <div className="dropdown" ref={stateRef}>
+                <button
+                  type="button"
+                  className={`dropdown-trigger ${stateOpen ? 'open' : ''}`}
+                  onClick={() => !disabled && setStateOpen((o) => !o)}
+                  disabled={disabled || isLoadingStates || isErrorStates}
+                >
+                  <span>{isLoadingStates ? 'Cargando...' : isErrorStates ? 'Error' : currentState || 'Estado'}</span>
+                  <span className="arrow">▼</span>
+                </button>
+                {stateOpen && !disabled && (
+                  <div className="dropdown-content">
+                    {statuses.map((st) => (
+                      <button key={st} onClick={() => { setCurrentState(st); setStateOpen(false); }}>
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div>
-            <label>Ciudad</label>
-            <input type="text" readOnly value={service.city || ''} />
-          </div>
-          <div>
-            <label>Comentarios</label>
-            <textarea
-              rows={3}
-              className="modal-asignacion-textarea"
-              value={comentarios}
-              onChange={(e) => setComentarios(e.target.value)}
-            />
-          </div>
-        </div>
+          {/* Formulario principal */}
+          <div className="modal-asignacion-form-grid">
+            <div>
+              <label>Cliente</label>
+              <input type="text" readOnly value={service.clientCompleteName || ''} />
+            </div>
+            <div>
+              <label>Dirección</label>
+              <input type="text" readOnly value={service.addressService || ''} />
+            </div>
 
-        {/* Botones */}
-        <div className="modal-asignacion-form-buttons">
-          <button className="modal-asignacion-btn-confirmar" onClick={handleGuardar}>
-            Guardar Cambios
-          </button>
-          <button className="modal-asignacion-btn-eliminar" onClick={handleEliminar}>
-            Eliminar
-          </button>
-          <button className="modal-asignacion-btn-cancelar" onClick={onClose}>
-            Cerrar
-          </button>
+            {/* Servicios */}
+            <div className="modal-chip-section">
+              <label>Servicios:</label>
+              <div className="modal-chip-container">
+                <div className="chips">
+                  {servicios.map((s) => (
+                    <div className="modal-chip" key={s.id}>
+                      {s.description}
+                      <span
+                        className="modal-asignacion-remove-btn"
+                        onClick={() => !disabled && setServicios(servicios.filter((x) => x.id !== s.id))}
+                      >
+                        ×
+                      </span>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="modal-asignacion-add-servicio-btn"
+                    onClick={() => !disabled && setMostrarDropdownServicios((v) => !v)}
+                    disabled={disabled}
+                  >
+                    +
+                  </button>
+                </div>
+                {mostrarDropdownServicios && !disabled && (
+                  <div className="modal-asignacion-dropdown-chip">
+                    {serviciosDisponibles
+                      .filter((sd) => !servicios.find((s) => s.id === sd.id))
+                      .map((sd) => (
+                        <button
+                          key={sd.id}
+                          onClick={() => {
+                            setServicios([...servicios, { id: sd.id, description: sd.description }]);
+                            setMostrarDropdownServicios(false);
+                          }}
+                        >
+                          {sd.description}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Empleados */}
+            <div className="modal-chip-section">
+              <label>Personal Asignado:</label>
+              <div className="modal-chip-container">
+                <div className="chips">
+                  {empleadosAsignados.map((e) => (
+                    <div className="modal-chip" key={e.document}>
+                      {e.employeeCompleteName}
+                      <span
+                        className="modal-asignacion-remove-btn"
+                        onClick={() =>
+                          !disabled &&
+                          setEmpleadosAsignados(empleadosAsignados.filter((x) => x.document !== e.document))
+                        }
+                      >
+                        ×
+                      </span>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="modal-asignacion-add-empleado-btn"
+                    onClick={() => !disabled && setMostrarDropdownEmpleados((v) => !v)}
+                    disabled={disabled}
+                  >
+                    +
+                  </button>
+                </div>
+                {mostrarDropdownEmpleados && !disabled && (
+                  <div className="modal-asignacion-dropdown-chip">
+                    {empleadosDisponibles
+                      .filter((ed) => !empleadosAsignados.some((a) => a.document === ed.document))
+                      .map((ed) => (
+                        <button
+                          key={ed.document}
+                          onClick={() => {
+                            setEmpleadosAsignados([
+                              ...empleadosAsignados,
+                              { document: ed.document, employeeCompleteName: `${ed.name} ${ed.surname}` },
+                            ]);
+                            setMostrarDropdownEmpleados(false);
+                          }}
+                        >
+                          {ed.name} {ed.surname}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label>Ciudad</label>
+              <input type="text" readOnly value={service.city || ''} />
+            </div>
+            <div>
+              <label>Comentarios</label>
+              <textarea
+                rows={3}
+                className="modal-asignacion-textarea"
+                value={comentarios}
+                onChange={(e) => setComentarios(e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="modal-asignacion-form-buttons">
+            <button className="modal-asignacion-btn-confirmar" onClick={handleGuardar} disabled={disabled}>
+              {saving ? 'Guardando…' : 'Guardar Cambios'}
+            </button>
+            <button className="modal-asignacion-btn-eliminar" onClick={handleEliminar} disabled={disabled}>
+              {deleting ? 'Eliminando…' : 'Eliminar'}
+            </button>
+            <button
+              className="modal-asignacion-btn-cancelar"
+              onClick={!disabled ? onClose : undefined}
+              disabled={disabled}
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

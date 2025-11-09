@@ -39,6 +39,7 @@
     position: sticky;
 	top: 20px;
 	z-index: 8;
+    background: rgba(255, 255, 255, .92);
 	backdrop-filter: saturate(110%) blur(4px);
 	border-radius: 12px;
 

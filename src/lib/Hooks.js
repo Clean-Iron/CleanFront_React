@@ -1,7 +1,8 @@
 'use client';
 
 import useSWR from 'swr'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -12,8 +13,8 @@ const fetcher = url => fetch(url).then(res => {
 
 const sanitize = (s) =>
   String(s)
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '') 
-    .replace(/\s+/g, ' ')               
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .replace(/\s+/g, ' ')
     .trim();
 
 export function useCiudades() {
@@ -23,9 +24,9 @@ export function useCiudades() {
   )
 
   return {
-    ciudades: data || [],            
-    isLoading: !error && !data,       
-    isError: !!error                  
+    ciudades: data || [],
+    isLoading: !error && !data,
+    isError: !!error
   }
 }
 
@@ -65,4 +66,51 @@ export function useTimeOptions({ startHour = 0, endHour = 24, stepMinutes = 30 }
     }
     return opts
   }, [startHour, endHour, stepMinutes])
+}
+
+/**
+ * Hook de carga reutilizable para mostrar un overlay mientras esperas una promesa.
+ * Ejemplo:
+ *   const { loading, withLoading } = useLoading();
+ *   await withLoading(() => asignarServicio(payload));
+ *   <LoadingOverlay show={loading} text="Procesando…" />
+ */
+export function useLoadingOverlay(defaultText = 'Cargando…') {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState(defaultText);
+
+  const show = (msg) => { setText(msg || defaultText); setOpen(true); };
+  const hide = () => setOpen(false);
+
+  const nextFrames = (n = 2) =>
+    new Promise((resolve) => {
+      const step = (i) => (i <= 0 ? resolve() : requestAnimationFrame(() => step(i - 1)));
+      requestAnimationFrame(() => step(n - 1));
+    });
+
+  /** Envuelve una promesa y muestra/oculta el overlay automáticamente. */
+  const withLoading = async (fn, msg) => {
+    show(msg);
+    await nextFrames(2); // asegura que se pinte antes de la llamada
+    try {
+      return await fn();
+    } finally {
+      hide();
+    }
+  };
+
+  const OverlayPortal = open
+    ? createPortal(
+        <div className="loading-overlay" role="alert" aria-live="polite">
+          <div className="loading-overlay__backdrop" />
+          <div className="loading-overlay__box">
+            <span className="loading-spinner" aria-hidden="true" />
+            <span>{text}</span>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+
+  return { isLoading: open, show, hide, withLoading, OverlayPortal };
 }

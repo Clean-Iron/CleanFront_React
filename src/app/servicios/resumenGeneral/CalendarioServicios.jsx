@@ -58,7 +58,7 @@ const CalendarioServicios = ({
   buttonLabels = ['TURNO 1', 'TURNO 2'],
   minDate = null,
   maxDate = null,
-  visibleWeek = null,                 // ⬅️ NUEVO
+  visibleWeek = null,             
 }) => {
   const now = useMemo(() => new Date(), []);
   const year = currentYear ?? now.getFullYear();

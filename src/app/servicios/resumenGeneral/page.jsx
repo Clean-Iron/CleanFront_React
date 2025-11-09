@@ -6,8 +6,7 @@ import { useCiudades } from "@/lib/Hooks.js";
 import CalendarioServicios from "./CalendarioServicios";
 import CalendarioEspacios from "./CalendarioEspacios";
 
-function getWeeksOfMonth(year, month /*0-based*/) {
-  // Devuelve semanas [ [d1,d2], ... ] en Lunes..Domingo dentro del mes
+function getWeeksOfMonth(year, month) {
   const lastDay = new Date(year, month + 1, 0).getDate();
   const weeks = [];
   let d = 1;
@@ -42,7 +41,6 @@ const ResumenGeneral = () => {
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
 
-  // NUEVO: filtro de semana
   const [selectedWeek, setSelectedWeek] = useState(null); // 1..N o null = todas
   const [weekDropdownOpen, setWeekDropdownOpen] = useState(false);
 
@@ -71,7 +69,7 @@ const ResumenGeneral = () => {
           setSelectedEmployee(null);
           setEmployeeText("");
           setEmpleadosFiltrados(list);
-          setSelectedWeek(null); // reset semana
+          setSelectedWeek(null);
         })
         .catch(() => {
           setEmployees([]); setSelectedEmployee(null); setEmployeeText(""); setEmpleadosFiltrados([]); setSelectedWeek(null);
@@ -102,7 +100,6 @@ const ResumenGeneral = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset semana al cambiar mes/año/empleado
   useEffect(() => { setSelectedWeek(null); }, [selectedMonth, selectedYear]);
   useEffect(() => { setSelectedWeek(null); }, [selectedEmployee?.document]);
 
@@ -137,7 +134,7 @@ const ResumenGeneral = () => {
     setSelectedEmployee(emp);
     setEmployeeText(`${emp.name} ${emp.surname}`);
     setShowEmployeeDropdown(false);
-    setSelectedWeek(null); // al elegir empleado, muestra "Todas las semanas" por defecto
+    setSelectedWeek(null);
   };
 
   return (
@@ -221,7 +218,6 @@ const ResumenGeneral = () => {
             </div>
           )}
 
-          {/* ⬇️ NUEVO: Filtro de Semana (solo si hay empleado seleccionado) */}
           {selectedEmployee && (
             <div className="dropdown filtro" ref={weekDropdownRef}>
               <button
@@ -265,7 +261,7 @@ const ResumenGeneral = () => {
             currentMonth={selectedMonth}
             currentYear={selectedYear}
             onServiceUpdate={recargarServicios}
-            visibleWeek={selectedWeek}  /* ⬅️ NUEVO */
+            visibleWeek={selectedWeek}
           />
         ) : (
           <CalendarioEspacios
