@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { obtenerServicios, buscarClientes, asignarServicio } from '@/lib/Logic.js';
+import {
+  obtenerServicios,
+  buscarClientes,
+  asignarServicio,
+  buscarEmpleados, // ← para cargar empleados si no vienen por props
+} from '@/lib/Logic.js';
 import { useTimeOptions, useLoadingOverlay } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils';
 import ModalFrecuenciaFechas from './ModalFrecuenciaFechas';
@@ -38,13 +43,21 @@ export default function ModalAsignacion({
   const [endTimeOpen, setEndTimeOpen] = useState(false);
   const [breakOpen, setBreakOpen] = useState(false);
 
+  // Empleados
   const [empleadosAdicionales, setEmpleadosAdicionales] = useState([]);
   const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
 
+  // NUEVO: base de empleados + buscador y filtrados
+  const [baseEmployees, setBaseEmployees] = useState([]);
+  const [empleadoSearchText, setEmpleadoSearchText] = useState('');
+  const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
+
+  // Servicios
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [mostrarDropdownServicios, setMostrarDropdownServicios] = useState(false);
 
+  // Clientes
   const [clientes, setClientes] = useState([]);
   const [clientesFiltrados, setClientesFiltrados] = useState([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -71,6 +84,7 @@ export default function ModalAsignacion({
     setBreakMinutes(0);
   }, [show, startHourProp, endHourProp]);
 
+  // Carga catálogos básicos
   useEffect(() => {
     if (!show) return;
 
@@ -90,8 +104,19 @@ export default function ModalAsignacion({
         setClientes([]);
         setClientesFiltrados([]);
       });
-  }, [show]);
 
+    // Empleados: usa los que vengan por props o carga desde API
+    (async () => {
+      if (allEmployees && allEmployees.length > 0) {
+        setBaseEmployees(allEmployees);
+      } else {
+        const emps = await buscarEmpleados().catch(() => []);
+        setBaseEmployees(emps || []);
+      }
+    })();
+  }, [show, allEmployees]);
+
+  // Cierre de dropdowns al hacer click fuera
   useEffect(() => {
     if (!show) return;
 
@@ -113,6 +138,39 @@ export default function ModalAsignacion({
     show, startTimeOpen, endTimeOpen, breakOpen, stateOpen,
     mostrarDropdownClientes, mostrarDropdownEmpleados, mostrarDropdownServicios,
   ]);
+
+  // Helpers empleados (excluir principal y ya añadidos)
+  const excluirSeleccionados = (arr) =>
+    (arr || []).filter(e =>
+      e.document !== empleado?.document &&
+      !empleadosAdicionales.some(a => a.document === e.document)
+    );
+
+  const filtrarEmpleados = (valor) => {
+    setEmpleadoSearchText(valor);
+    setMostrarDropdownEmpleados(true);
+    const q = (valor || '').trim().toLowerCase();
+    const base = excluirSeleccionados(baseEmployees);
+    if (!q) {
+      setEmpleadosFiltrados(base);
+      return;
+    }
+    setEmpleadosFiltrados(
+      base.filter(ed => {
+        const full = `${ed.name ?? ''} ${ed.surname ?? ''}`.toLowerCase();
+        const doc = (ed.document ?? '').toString().toLowerCase();
+        return full.includes(q) || doc.includes(q);
+      })
+    );
+  };
+
+  // Al abrir el dropdown de empleados, preparar lista
+  useEffect(() => {
+    if (mostrarDropdownEmpleados) {
+      setEmpleadoSearchText('');
+      setEmpleadosFiltrados(excluirSeleccionados(baseEmployees));
+    }
+  }, [mostrarDropdownEmpleados, baseEmployees, empleadosAdicionales, empleado]);
 
   // Empleados
   const handleAgregarEmpleado = (nuevo) => {
@@ -325,7 +383,7 @@ export default function ModalAsignacion({
           </div>
 
           <div className="modal-asignacion-form-grid">
-            {/* Empleados */}
+            {/* Empleados con BUSCADOR */}
             <div className="modal-chip-section">
               <label>Empleados</label>
               <div className="modal-chip-container" ref={empleadosRef}>
@@ -342,23 +400,40 @@ export default function ModalAsignacion({
                     className="modal-asignacion-add-empleado-btn"
                     onClick={() => setMostrarDropdownEmpleados((prev) => !prev)}
                     disabled={assigning}
+                    title="Agregar personal"
                   >
                     +
                   </button>
                 </div>
+
                 {mostrarDropdownEmpleados && !assigning && (
                   <div className="modal-asignacion-dropdown-chip">
-                    {allEmployees.length === 0 ? (
-                      <div className="modal-asignacion-no-opciones">No hay empleados disponibles</div>
-                    ) : (
-                      allEmployees
-                        .filter(e => e.document !== empleado?.document && !empleadosAdicionales.find(a => a.document === e.document))
-                        .map((e) => (
+                    {/* Input de búsqueda */}
+                    <div className="dropdown" style={{ width: '100%', marginBottom: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre o documento…"
+                        value={empleadoSearchText}
+                        onChange={(e) => filtrarEmpleados(e.target.value)}
+                        autoFocus
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    {/* Resultados */}
+                    <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                      {empleadosFiltrados.length > 0 ? (
+                        empleadosFiltrados.map((e) => (
                           <button key={e.document} onClick={() => handleAgregarEmpleado(e)}>
-                            {e.name} {e.surname}
+                            {e.name} {e.surname} — {e.document}
                           </button>
                         ))
-                    )}
+                      ) : (
+                        <div className="modal-asignacion-no-opciones">
+                          {baseEmployees.length === 0 ? 'No hay empleados disponibles' : 'Sin resultados'}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

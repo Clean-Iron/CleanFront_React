@@ -44,6 +44,7 @@ export default function ListaEmpleados() {
           ...e,
           state: boolish(e?.state),
           typeId: norm(e?.typeId).toUpperCase(),
+          contractType: norm(e?.contractType), // ← NUEVO: normalizamos tipo de contrato
         }));
         setEmpleados(list);
       } catch (err) {
@@ -139,9 +140,11 @@ export default function ListaEmpleados() {
   if (error) {
     return (
       <div className="container">
-        <div className="no-results">
-          <span>{error}</span>
-          <button onClick={() => location.reload()} className="retry-btn">Reintentar</button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="no-results" style={{ flexDirection: "column", gap: "1rem" }}>
+            <span>{error}</span>
+            <button onClick={() => location.reload()} className="retry-btn">Reintentar</button>
+          </div>
         </div>
       </div>
     );
@@ -225,6 +228,7 @@ export default function ListaEmpleados() {
                 <TableCell>Email</TableCell>
                 <TableCell>Dirección</TableCell>
                 <TableCell>Ciudad</TableCell>
+                <TableCell>Tipo contrato</TableCell> {/* ← NUEVA COLUMNA */}
                 <TableCell>Estado</TableCell>
               </TableRow>
             </TableHead>
@@ -239,6 +243,7 @@ export default function ListaEmpleados() {
                     <TableCell>{e.email || "—"}</TableCell>
                     <TableCell>{e.addressResidence || "—"}</TableCell>
                     <TableCell>{e.city || "—"}</TableCell>
+                    <TableCell>{e.contractType || "—"}</TableCell> {/* ← NUEVO DATO */}
                     <TableCell>
                       {e.state == null ? (
                         "—"
@@ -255,7 +260,7 @@ export default function ListaEmpleados() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" style={{ color: "#666", padding: "24px 16px" }}>
+                  <TableCell colSpan={9} align="center" style={{ color: "#666", padding: "24px 16px" }}>
                     {busqueda || filtros.ciudad || filtros.tipoId
                       ? "No se encontraron empleados que coincidan con los filtros"
                       : "No hay empleados para mostrar"}

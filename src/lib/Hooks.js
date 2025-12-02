@@ -7,15 +7,9 @@ import { createPortal } from 'react-dom';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 const fetcher = url => fetch(url).then(res => {
-  if (!res.ok) throw new Error('Error al cargar ciudades')
+  if (!res.ok) throw new Error('Error al cargar datos')
   return res.json()
 })
-
-const sanitize = (s) =>
-  String(s)
-    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 
 export function useCiudades() {
   const { data, error } = useSWR(
@@ -38,10 +32,23 @@ export function useServiceStates() {
   );
 
   return {
-    serviceStates: (data || []).map(sanitize),
+    serviceStates: data || [],
     isLoading: !error && !data,
     isError: !!error
   };
+}
+
+export function useContractTypes() {
+  const { data, error } = useSWR(
+    API_BASE_URL ? `${API_BASE_URL}/employee/contractTypes` : null,
+    fetcher
+  )
+
+  return {
+    contractTypes: data || [],
+    isLoading: !error && !data,
+    isError: !!error
+  }
 }
 
 /**

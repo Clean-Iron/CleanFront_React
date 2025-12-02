@@ -813,10 +813,10 @@ body {
   top: 0;
   z-index: 10;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-
+  flex-direction: column;
+  /* antes solo flex */
+  gap: 10px;
+  /* espacio entre fila 1 y fila 2 */
   padding: 12px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: saturate(1.1) blur(2px);
@@ -824,14 +824,87 @@ body {
   box-shadow: 0 1px 6px rgba(0, 0, 0, .06);
 }
 
+.filtros-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* cada control */
+.filtros-row .filtro {
+  flex: 1 1 210px;
+}
+
 /* Cada control (mes/año/ciudad/empleado) */
 .filtros-toolbar .filtro {
   flex: 1 1 210px;
 }
 
+.filtros-toolbar .filtro-full {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+/* Fila para empleado + semana */
+.filtros-secundarios {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Que cada filtro ocupe la mitad del espacio disponible */
+.filtros-secundarios .filtro {
+  flex: 1 1 0;
+}
+
+/* Botonera Clientes / Empleados */
+.view-toggle {
+  display: flex;
+  flex-direction: column;
+  /* 👉 Uno debajo del otro */
+  align-items: flex-start;
+  gap: 4px;
+  flex: 0 0 auto;
+  /* 👉 Que no se estire como los filtros normales */
+}
+
+/* Para que no herede el flex de .filtro */
+.filtros-toolbar .view-toggle {
+  flex: 0 0 auto;
+}
+
+/* Cada opción (icono + texto) */
+.view-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 0;
+  font-size: 14px;
+}
+
+.view-option .view-icon {
+  font-size: 20px;
+  color: #555;
+}
+
+.view-option.active .view-icon {
+  color: #1b64e0;
+}
+
+.view-option.active span {
+  font-weight: 600;
+  color: #1b64e0;
+}
+
+
 /* ======================
-   Animación genérica
-   ====================== */
+  Animación genérica
+====================== */
 @keyframes fadeIn {
   from {
     opacity: 0;

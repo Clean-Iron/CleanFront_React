@@ -16,6 +16,11 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
+
+  // ---- NUEVO: estado buscador empleados en modal ----
+  const [empleadoSearchText, setEmpleadoSearchText] = useState('');
+  const [empleadosFiltradosModal, setEmpleadosFiltradosModal] = useState([]);
+
   const [comentarios, setComentarios] = useState('');
   const [startHour, setStartHour] = useState(service.startHour || '');
   const [endHour, setEndHour] = useState(service.endHour || '');
@@ -30,13 +35,13 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   // Overlay global reutilizable
   const { isLoading: overlayOn, withLoading, OverlayPortal } = useLoadingOverlay('Procesando…');
 
-  // Flags SOLO para pintar el texto de botones en acciones
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const disabled = overlayOn || saving || deleting;
 
-  const fallbackStates = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA', 'NO_PRESTADO'];
-  const statuses = serviceStates && serviceStates.length > 0 ? serviceStates : fallbackStates;
+  // Fallback para evitar lista vacía
+  const fallbackStates = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA', 'NO PRESTADO'];
+  const statuses = (Array.isArray(serviceStates) && serviceStates.length) ? serviceStates : fallbackStates;
 
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
@@ -49,10 +54,33 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const endRef = useRef(null);
   const stateRef = useRef(null);
   const breakRef = useRef(null);
+  // ---- NUEVO: ref para dropdown de empleados con buscador ----
+  const empleadosRef = useRef(null);
 
   const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5);
 
-  // Inicialización + carga de catálogos (usa overlay pero NO cambia textos de botones)
+  // Helper para excluir ya asignados
+  const excluirAsignados = (arr) =>
+    (arr || []).filter(ed => !empleadosAsignados.some(a => a.document === ed.document));
+
+  // Filtro local (nombre, apellido, documento)
+  const filtrarEmpleadosModal = (valor) => {
+    setEmpleadoSearchText(valor);
+    const q = (valor || '').trim().toLowerCase();
+    const base = excluirAsignados(empleadosDisponibles);
+    if (!q) {
+      setEmpleadosFiltradosModal(base);
+      return;
+    }
+    setEmpleadosFiltradosModal(
+      base.filter(ed => {
+        const nombre = `${ed.name ?? ''} ${ed.surname ?? ''}`.toLowerCase();
+        const doc = (ed.document ?? '').toString().toLowerCase();
+        return nombre.includes(q) || doc.includes(q);
+      })
+    );
+  };
+
   useEffect(() => {
     if (service.services) {
       setServicios(service.services.map((s) => ({ id: s.idService, description: s.serviceDescription })));
@@ -80,16 +108,19 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
       ]);
       setEmpleadosDisponibles(emps || []);
       setServiciosDisponibles(servs || []);
+      // Inicializa el listado visible del buscador
+      setEmpleadosFiltradosModal(excluirAsignados(emps || []));
     }, 'Cargando datos…');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service]);
 
+  // Cierre de dropdowns al hacer click fuera
   useEffect(() => {
     const handler = (e) => {
       if (startRef.current && !startRef.current.contains(e.target)) setStartTimeOpen(false);
       if (endRef.current && !endRef.current.contains(e.target)) setEndTimeOpen(false);
       if (stateRef.current && !stateRef.current.contains(e.target)) setStateOpen(false);
       if (breakRef.current && !breakRef.current.contains(e.target)) setBreakOpen(false);
+      if (empleadosRef.current && !empleadosRef.current.contains(e.target)) setMostrarDropdownEmpleados(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -102,6 +133,35 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
       }
     }
   }, [isLoadingStates, isErrorStates, statuses, currentState]);
+
+  // Cuando se abre el dropdown de empleados, refresca la lista base y limpia texto
+  useEffect(() => {
+    if (mostrarDropdownEmpleados) {
+      setEmpleadoSearchText('');
+      setEmpleadosFiltradosModal(excluirAsignados(empleadosDisponibles));
+    }
+  }, [mostrarDropdownEmpleados, empleadosDisponibles, empleadosAsignados]);
+
+  // Snapshot que se devuelve al calendario para pintar de inmediato
+  const buildClientSnapshot = () => ({
+    id: service.id,
+    serviceDate: date,
+    startHour,
+    endHour,
+    state: currentState,
+    breakMinutes: Number.isFinite(breakMinutes) ? breakMinutes : 0,
+    comments: comentarios,
+    recurrenceType: service.recurrenceType,
+    clientCompleteName: service.clientCompleteName,
+    city: service.city,
+    addressService: service.addressService,
+    totalServiceHours: service.totalServiceHours,
+    services: servicios.map(s => ({ idService: s.id, serviceDescription: s.description })),
+    employees: empleadosAsignados.map(e => ({
+      employeeDocument: e.document,
+      employeeCompleteName: e.employeeCompleteName
+    })),
+  });
 
   const handleGuardar = async () => {
     if (!currentState || !statuses.includes(currentState)) {
@@ -124,7 +184,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
     setSaving(true);
     try {
       await withLoading(() => actualizarServicio(service.id, datos), 'Guardando cambios…');
-      onUpdate?.();
+      onUpdate?.(buildClientSnapshot());
       onClose();
     } finally {
       setSaving(false);
@@ -136,7 +196,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
     setDeleting(true);
     try {
       await withLoading(() => eliminarServicio(service.id), 'Eliminando servicio…');
-      onUpdate?.();
+      onUpdate?.({ id: service.id, __deleted: true });
       onClose();
     } finally {
       setDeleting(false);
@@ -312,10 +372,10 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
               </div>
             </div>
 
-            {/* Empleados */}
+            {/* Empleados con BUSCADOR */}
             <div className="modal-chip-section">
               <label>Personal Asignado:</label>
-              <div className="modal-chip-container">
+              <div className="modal-chip-container" ref={empleadosRef}>
                 <div className="chips">
                   {empleadosAsignados.map((e) => (
                     <div className="modal-chip" key={e.document}>
@@ -336,28 +396,47 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
                     className="modal-asignacion-add-empleado-btn"
                     onClick={() => !disabled && setMostrarDropdownEmpleados((v) => !v)}
                     disabled={disabled}
+                    title="Agregar personal"
                   >
                     +
                   </button>
                 </div>
+
                 {mostrarDropdownEmpleados && !disabled && (
                   <div className="modal-asignacion-dropdown-chip">
-                    {empleadosDisponibles
-                      .filter((ed) => !empleadosAsignados.some((a) => a.document === ed.document))
-                      .map((ed) => (
-                        <button
-                          key={ed.document}
-                          onClick={() => {
-                            setEmpleadosAsignados([
-                              ...empleadosAsignados,
-                              { document: ed.document, employeeCompleteName: `${ed.name} ${ed.surname}` },
-                            ]);
-                            setMostrarDropdownEmpleados(false);
-                          }}
-                        >
-                          {ed.name} {ed.surname}
-                        </button>
-                      ))}
+                    {/* Input de búsqueda */}
+                    <div className="dropdown" style={{ width: '100%', marginBottom: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre o documento…"
+                        value={empleadoSearchText}
+                        onChange={(e) => filtrarEmpleadosModal(e.target.value)}
+                        autoFocus
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    {/* Resultados */}
+                    <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                      {empleadosFiltradosModal.length > 0 ? (
+                        empleadosFiltradosModal.map((ed) => (
+                          <button
+                            key={ed.document}
+                            onClick={() => {
+                              setEmpleadosAsignados([
+                                ...empleadosAsignados,
+                                { document: ed.document, employeeCompleteName: `${ed.name} ${ed.surname}`.trim() },
+                              ]);
+                              setMostrarDropdownEmpleados(false);
+                            }}
+                          >
+                            {ed.name} {ed.surname} — {ed.document}
+                          </button>
+                        ))
+                      ) : (
+                        <div style={{ padding: '8px 6px', color: '#666' }}>Sin resultados</div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

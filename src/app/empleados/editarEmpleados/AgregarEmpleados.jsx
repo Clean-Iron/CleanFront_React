@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { agregarEmpleado } from "@/lib/Logic.js";
-import { useCiudades } from "@/lib/Hooks";
+import { useCiudades, useContractTypes } from "@/lib/Hooks";
 import { Switch, Chip } from "@mui/material";
 
 const AgregarEmpleados = () => {
@@ -11,6 +11,9 @@ const AgregarEmpleados = () => {
   const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
   const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
+
+  const { contractTypes, isLoading: contratosLoading, isError: contratosError } = useContractTypes();
+
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -18,16 +21,20 @@ const AgregarEmpleados = () => {
 
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCargo, setSelectedCargo] = useState("");
+  const [selectedContractType, setSelectedContractType] = useState("");
+
   const [activo, setActivo] = useState(true);
 
   const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
+  const [contractDropdownOpen, setContractDropdownOpen] = useState(false);
 
   const [selectedTipoId, setSelectedTipoId] = useState("");
   const [tipoIdDropdownOpen, setTipoIdDropdownOpen] = useState(false);
 
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
+  const contractDropdownRef = useRef(null);
   const tipoIdDropdownRef = useRef(null);
 
   const cargos = [
@@ -46,6 +53,9 @@ const AgregarEmpleados = () => {
       if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
         setCiudadDropdownOpen(false);
       }
+      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) {
+        setContractDropdownOpen(false);
+      }
       if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
         setTipoIdDropdownOpen(false);
       }
@@ -54,10 +64,8 @@ const AgregarEmpleados = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- Uppercase helper (maneja null/undefined y pegado) ---
+  // Uppercase helpers
   const uc = (v) => (v ?? "").toString().toUpperCase();
-
-  // --- Handlers Uppercase en tiempo real ---
   const onNombre = (e) => setNombre(uc(e.target.value));
   const onApellido = (e) => setApellido(uc(e.target.value));
   const onDocumento = (e) => setDocumento(uc(e.target.value));
@@ -67,22 +75,26 @@ const AgregarEmpleados = () => {
   const onComentarios = (e) => setComentarios(uc(e.target.value));
 
   const handleSubmit = async () => {
-    if (!nombre || !apellido || !selectedTipoId || !documento || !email || !selectedCargo || !fechaIngreso) {
-      alert("Por favor completa todos los campos.");
+    if (
+      !nombre || !apellido || !selectedTipoId || !documento || !email ||
+      !selectedCargo || !selectedContractType || !fechaIngreso
+    ) {
+      alert("Por favor completa todos los campos (incluye Tipo de contrato).");
       return;
     }
 
     const nuevoEmpleado = {
-      name: nombre.trim(),                 
+      name: nombre.trim(),
       surname: apellido.trim(),
-      typeId: selectedTipoId,              
+      typeId: selectedTipoId,
       document: documento.trim(),
       email: email.trim(),
       phone: phone.trim(),
       addressResidence: direccion.trim(),
-      city: selectedCity,                  
-      entryDate: fechaIngreso,             
-      position: selectedCargo,             
+      city: selectedCity,
+      entryDate: fechaIngreso,
+      position: selectedCargo,
+      contractType: selectedContractType, // ← nuevo campo
       comments: comentarios,
       state: activo,
     };
@@ -100,7 +112,7 @@ const AgregarEmpleados = () => {
   const handleCancelar = () => {
     const hayCamposLlenos =
       nombre || apellido || selectedTipoId || documento || email || phone || direccion ||
-      selectedCity || selectedCargo || fechaIngreso || comentarios;
+      selectedCity || selectedCargo || selectedContractType || fechaIngreso || comentarios;
 
     if (hayCamposLlenos && window.confirm("¿Deseas borrar todos los campos?")) {
       resetFormulario();
@@ -115,6 +127,7 @@ const AgregarEmpleados = () => {
     setEmail("");
     setFechaIngreso("");
     setSelectedCargo("");
+    setSelectedContractType("");
     setPhone("");
     setDireccion("");
     setComentarios("");
@@ -192,6 +205,37 @@ const AgregarEmpleados = () => {
           </div>
         </div>
 
+        {/* Tipo de contrato (al lado de Cargo) */}
+        <div className="input-group" ref={contractDropdownRef}>
+          <label htmlFor="agregar-contrato">Tipo de contrato</label>
+          <div className="dropdown">
+            <button
+              id="agregar-contrato"
+              type="button"
+              className={`dropdown-trigger ${contractDropdownOpen ? "open" : ""}`}
+              onClick={() => setContractDropdownOpen(o => !o)}
+            >
+              <span>{selectedContractType || "Seleccionar tipo contrato"}</span>
+              <span className="arrow">▼</span>
+            </button>
+            {contractDropdownOpen && (
+              <div className="dropdown-content">
+                {contratosLoading && <div>Cargando tipos...</div>}
+                {contratosError && <div>Error al cargar tipos</div>}
+                {!contratosLoading && !contratosError && (contractTypes || []).map((ct) => (
+                  <button
+                    key={ct}
+                    type="button"
+                    onClick={() => { setSelectedContractType(ct); setContractDropdownOpen(false); }}
+                  >
+                    {ct}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="input-group">
           <label htmlFor="agregar-direccion">Dirección</label>
           <input id="agregar-direccion" type="text" value={direccion} onChange={onDireccion} style={inputUpperStyle} />
@@ -212,7 +256,7 @@ const AgregarEmpleados = () => {
             </button>
             {tipoIdDropdownOpen && (
               <div className="dropdown-content">
-                {tiposId.map((tipo) => (
+                {["CC", "PPT"].map((tipo) => (
                   <button key={tipo} type="button" onClick={() => { setSelectedTipoId(tipo); setTipoIdDropdownOpen(false); }}>
                     {tipo}
                   </button>

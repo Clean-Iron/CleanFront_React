@@ -5,7 +5,7 @@ import BuscarEmpleados from "./BuscarEmpleados";
 import EliminarEmpleados from "./EliminarEmpleados";
 import AgregarEmpleados from "./AgregarEmpleados";
 import { actualizarEmpleado } from "@/lib/Logic.js";
-import { useCiudades } from "@/lib/Hooks";
+import { useCiudades, useContractTypes } from "@/lib/Hooks";
 import "@/styles/Empleados/EditarEmpleados.css";
 import { Switch, Chip } from "@mui/material";
 
@@ -24,9 +24,11 @@ const EditarEmpleados = () => {
   const [comentarios, setComentarios] = useState("");
 
   const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
+  const { contractTypes, isLoading: contratosLoading, isError: contratosError } = useContractTypes();
 
   const [selectedCargo, setSelectedCargo] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [selectedContractType, setSelectedContractType] = useState("");
 
   const [activo, setActivo] = useState(true);
 
@@ -40,9 +42,11 @@ const EditarEmpleados = () => {
 
   const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
   const [cargoDropdownOpen, setCargoDropdownOpen] = useState(false);
+  const [contractDropdownOpen, setContractDropdownOpen] = useState(false);
 
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
+  const contractDropdownRef = useRef(null);
   const tipoIdDropdownRef = useRef(null);
 
   const cargos = [
@@ -50,13 +54,11 @@ const EditarEmpleados = () => {
     "Auxiliar", "Contador", "Recursos Humanos", "Atención al Cliente", "Operario"
   ];
 
-  // Helpers de mayúsculas y estilo visual
   const uc = (v) => (v ?? "").toString().toUpperCase();
   const inputUpper = { textTransform: "uppercase" };
 
   useEffect(() => {
     if (empleadoEncontrado) {
-      // Normaliza a MAYÚSCULAS al cargar
       setNombre(uc(empleadoEncontrado.name));
       setApellido(uc(empleadoEncontrado.surname));
       setDocumento(uc(empleadoEncontrado.document));
@@ -66,6 +68,7 @@ const EditarEmpleados = () => {
       setComentarios(uc(empleadoEncontrado.comments));
       setSelectedCity(empleadoEncontrado.city || "");
       setSelectedCargo(empleadoEncontrado.position || "");
+      setSelectedContractType(empleadoEncontrado.contractType || "");
       setActivo(empleadoEncontrado.state === true || empleadoEncontrado.state === "true");
       setSelectedTipoId(uc(empleadoEncontrado.typeId));
       setFechaIngreso(empleadoEncontrado.entryDate ? empleadoEncontrado.entryDate : "");
@@ -79,6 +82,9 @@ const EditarEmpleados = () => {
       }
       if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
         setCiudadDropdownOpen(false);
+      }
+      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) {
+        setContractDropdownOpen(false);
       }
       if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
         setTipoIdDropdownOpen(false);
@@ -111,11 +117,12 @@ const EditarEmpleados = () => {
       email: uc(email).trim(),
       phone: uc(phone).trim(),
       addressResidence: uc(direccion).trim(),
-      city: selectedCity,                 // si necesitas, puedes usar uc(selectedCity)
+      city: selectedCity,
       document: uc(documento).trim(),
       typeId: uc(selectedTipoId).trim(),
-      fechaIngreso,                       // si tu backend espera entryDate, cambia la clave
+      fechaIngreso,
       position: selectedCargo,
+      contractType: selectedContractType,
       comments: uc(comentarios).trim(),
       state: !!activo
     };
@@ -136,6 +143,7 @@ const EditarEmpleados = () => {
     setMensajeError("");
     setSelectedCargo("");
     setSelectedCity("");
+    setSelectedContractType(""); // ← reset
     setSelectedTipoId("");
     setActivo(true);
     setNombre("");
@@ -218,6 +226,43 @@ const EditarEmpleados = () => {
                 {cargos.map((cargo) => (
                   <button key={cargo} type="button" onClick={() => { setSelectedCargo(cargo); setCargoDropdownOpen(false); }}>
                     {cargo}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tipo de contrato (al lado de Cargo) */}
+        <div className="input-group" ref={contractDropdownRef}>
+          <label htmlFor="emp-contrato">Tipo de contrato</label>
+          <div className="dropdown">
+            <button
+              id="emp-contrato"
+              type="button"
+              className={`dropdown-trigger ${contractDropdownOpen ? "open" : ""}`}
+              onClick={() => setContractDropdownOpen(o => !o)}
+            >
+              <span>
+                {selectedContractType ||
+                  (contratosLoading ? "Cargando tipos…" : "Seleccionar tipo")}
+              </span>
+              <span className="arrow">▼</span>
+            </button>
+            {contractDropdownOpen && (
+              <div className="dropdown-content">
+                {contratosLoading && <div>Cargando tipos...</div>}
+                {contratosError && <div>Error al cargar tipos</div>}
+                {!contratosLoading && !contratosError && (contractTypes || []).map((ct) => (
+                  <button
+                    key={ct}
+                    type="button"
+                    onClick={() => {
+                      setSelectedContractType(ct);
+                      setContractDropdownOpen(false);
+                    }}
+                  >
+                    {ct}
                   </button>
                 ))}
               </div>

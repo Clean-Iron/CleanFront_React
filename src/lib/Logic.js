@@ -36,6 +36,7 @@ export const buscarServiciosPorMesDeClientes = async (doc, year, month) => {
   const { data } = await api.get(`/schedule/servicesClient/${doc}`, {
     params: { year, month }
   });
+  console.log(data);
   return data;
 };
 

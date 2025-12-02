@@ -53,7 +53,6 @@ const CalendarioEspacios = ({
 	// Estado del modal
 	const [showModal, setShowModal] = useState(false);
 	const [modalEntries, setModalEntries] = useState([]);
-	const [modalDate, setModalDate] = useState('');
 
 	// Fetch mes
 	useEffect(() => {
@@ -159,44 +158,64 @@ const CalendarioEspacios = ({
 	// Abrir modal desde "DISPONIBLE"
 	const openModalForDay = (day) => {
 		const ymd = `${year}-${pad2(month + 1)}-${pad2(day)}`;
-		setModalDate(ymd);
 
-		// Construimos la lista de empleados para ese día (unión empleados ciudad + servicios del día)
+		// Empleados que aparecen en los servicios de ese día
 		const serviceEmployeesForDay = serviciosAsignados
 			.filter(s => s.serviceDate === ymd)
 			.flatMap(s => (s.employees || []).map(e => ({
 				document: e.employeeDocument,
 				name: e.employeeName,
-				surname: e.employeeSurname
+				surname: e.employeeSurname,
+				state: e.state,
 			})))
 			.filter(e => e.document);
 
-		// Unir con los empleados de la ciudad
 		const mapByDoc = new Map();
+
+		// 1) empleados de la ciudad (fuente principal de truth para state)
 		for (const e of employeesCity) {
 			const doc = e.document || e.employeeDocument;
 			if (!doc) continue;
-			mapByDoc.set(doc, { document: doc, name: e.name, surname: e.surname });
+			mapByDoc.set(doc, {
+				document: doc,
+				name: e.name,
+				surname: e.surname,
+				state: e.state === true,
+			});
 		}
+
+		// 2) empleados que vienen solo desde los servicios
 		for (const e of serviceEmployeesForDay) {
 			if (!mapByDoc.has(e.document)) {
-				mapByDoc.set(e.document, { document: e.document, name: e.name, surname: e.surname });
+				mapByDoc.set(e.document, {
+					document: e.document,
+					name: e.name,
+					surname: e.surname,
+					state: e.state === true,
+				});
 			}
 		}
-		const allEmployeesForModal = Array.from(mapByDoc.values());
 
-		// Para cada empleado, armar sus intervalos ocupados del día
+		// ✅ Solo empleados con state true
+		const allEmployeesForModal = Array
+			.from(mapByDoc.values())
+			.filter(emp => emp.state === true);
+
+		// Construir intervals busy para cada empleado activo
 		const entries = allEmployeesForModal.map(emp => {
 			const busy = serviciosAsignados
 				.filter(s =>
 					s.serviceDate === ymd &&
-					(s.employees || []).some(x => (x.employeeDocument || x.document) === emp.document)
+					(s.employees || []).some(
+						x => (x.employeeDocument || x.document) === emp.document
+					)
 				)
 				.map(s => ({
 					startHour: s.startHour,
 					endHour: s.endHour,
-					label: s.clientCompleteName || s.clientName || ''
+					label: s.clientCompleteName || s.clientName || '',
 				}));
+
 			return { employee: emp, busy };
 		});
 
@@ -272,7 +291,6 @@ const CalendarioEspacios = ({
 			<ModalEspaciosServicios
 				show={showModal}
 				onClose={() => setShowModal(false)}
-				date={modalDate}
 				entries={modalEntries}
 				workdayStart={WORKDAY_START}
 				workdayEnd={WORKDAY_END}
