@@ -13,7 +13,7 @@ const toHHMM = (mins) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
 
-function mergeBusy(intervals, jStart, jEnd) {
+const mergeBusy = (intervals, jStart, jEnd) => {
   const arr = (intervals || [])
     .map(({ start, end }) => ({
       start: Math.max(start, jStart),
@@ -31,9 +31,9 @@ function mergeBusy(intervals, jStart, jEnd) {
     else merged.push(cur);
   }
   return merged;
-}
+};
 
-function buildFree(busy, jStart, jEnd) {
+const buildFree = (busy, jStart, jEnd) => {
   const free = [];
   if (!busy.length) {
     if (jEnd > jStart) free.push({ start: jStart, end: jEnd });
@@ -46,7 +46,7 @@ function buildFree(busy, jStart, jEnd) {
   }
   if (jEnd > prev) free.push({ start: prev, end: jEnd });
   return free;
-}
+};
 
 const ModalEspaciosServicios = ({
   show,
@@ -58,7 +58,7 @@ const ModalEspaciosServicios = ({
   if (!show) return null;
 
   const jStart = useMemo(() => toMin(workdayStart), [workdayStart]);
-  const jEnd = useMemo(() => toMin(workdayEnd), [workdayEnd]);
+  const jEnd   = useMemo(() => toMin(workdayEnd), [workdayEnd]);
   const jTotal = Math.max(1, jEnd - jStart);
 
   const prepared = useMemo(() => {
@@ -88,21 +88,15 @@ const ModalEspaciosServicios = ({
   }, [entries, jStart, jEnd]);
 
   const hourLabels = useMemo(() => {
-    const labels = [toHHMM(jStart)]; // inicio una vez
+    const labels = [toHHMM(jStart)];
     const startH = Math.ceil(jStart / 60);
-    const endH = Math.floor(jEnd / 60);
-
-    // horas completas estrictamente entre inicio y fin
+    const endH   = Math.floor(jEnd / 60);
     for (let h = startH; h <= endH; h++) {
       const hh = `${String(h).padStart(2, '0')}:00`;
-      if (hh !== labels[0]) labels.push(hh); // evita repetir el inicio
+      if (hh !== labels[0]) labels.push(hh);
     }
-
     const endLabel = toHHMM(jEnd);
-    if (labels[labels.length - 1] !== endLabel) {
-      labels.push(endLabel); // agrega el fin si hace falta
-    }
-
+    if (labels[labels.length - 1] !== endLabel) labels.push(endLabel);
     return labels;
   }, [jStart, jEnd]);
 
@@ -110,15 +104,14 @@ const ModalEspaciosServicios = ({
     <div className="modal-overlay">
       <div className="modal-container modal-espacios-servicios">
         <div className="mess-header">
-
           <button className="mess-close" onClick={onClose} aria-label="Cerrar">×</button>
         </div>
 
         <div className="mess-content">
           {prepared.map(({ employee, mergedBusy, segments }) => (
-            <div className="mess-employee-block" key={employee?.document ?? Math.random()}>
+            <div className="mess-employee-block" key={employee.document}>
               <h3 className="mess-employee-name">
-                {employee?.name} {employee?.surname} <span className="doc">({employee?.document})</span>
+                {employee.name} {employee.surname} <span className="doc">({employee.document})</span>
               </h3>
 
               <div className="timeline">
@@ -136,7 +129,6 @@ const ModalEspaciosServicios = ({
                   })}
                 </div>
 
-                {/* Escala en flex para evitar solapamiento */}
                 <div className="timeline-scale">
                   {hourLabels.map((txt, i) => (
                     <span className="tick" key={`${txt}-${i}`}>{txt}</span>

@@ -16,8 +16,6 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const [empleadosAsignados, setEmpleadosAsignados] = useState([]);
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
-
-  // ---- NUEVO: estado buscador empleados en modal ----
   const [empleadoSearchText, setEmpleadoSearchText] = useState('');
   const [empleadosFiltradosModal, setEmpleadosFiltradosModal] = useState([]);
 
@@ -54,7 +52,6 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const endRef = useRef(null);
   const stateRef = useRef(null);
   const breakRef = useRef(null);
-  // ---- NUEVO: ref para dropdown de empleados con buscador ----
   const empleadosRef = useRef(null);
 
   const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5);

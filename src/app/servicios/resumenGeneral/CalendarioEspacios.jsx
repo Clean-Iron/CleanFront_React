@@ -4,17 +4,20 @@ import { buscarServiciosPorMes, buscarEmpleadosByCity } from '@/lib/Logic.js';
 import ModalEspaciosServicios from './ModalEspaciosServicios';
 import '@/styles/Servicios/ResumenGeneral/CalendarioEspacios.css';
 
-// Jornada
 const WORKDAY_START = '06:00:00';
 const WORKDAY_END = '17:00:00';
 
 // Utils
-function hhmmssToMinutes(hhmmss) {
+const pad2 = (n) => String(n).padStart(2, '0');
+const normalizeDoc = (d) => String(d ?? '').trim();
+
+const hhmmssToMinutes = (hhmmss) => {
 	if (!hhmmss) return 0;
 	const [h, m, s] = hhmmss.split(':').map(Number);
-	return (h * 60) + (m || 0) + ((s || 0) / 60);
-}
-function mergeIntervals(intervals) {
+	return (h * 60) + (m || 0) + Math.floor((s || 0) / 60);
+};
+
+const mergeIntervals = (intervals) => {
 	if (!intervals.length) return [];
 	const arr = intervals.slice().sort((a, b) => a.start - b.start);
 	const merged = [arr[0]];
@@ -25,20 +28,16 @@ function mergeIntervals(intervals) {
 		else merged.push(cur);
 	}
 	return merged;
-}
-const pad2 = (n) => String(n).padStart(2, '0');
+};
 
 const monthNames = [
 	'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
 	'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-const CalendarioEspacios = ({
-	city = '',
-	currentMonth = null,
-	currentYear = null,
-}) => {
+const CalendarioEspacios = ({ city = '', currentMonth = null, currentYear = null }) => {
 	const buttonLabels = ['DISPONIBLE', 'PERMISO/VAC'];
+
 	const now = useMemo(() => new Date(), []);
 	const year = currentYear ?? now.getFullYear();
 	const month = currentMonth ?? now.getMonth();
@@ -54,35 +53,46 @@ const CalendarioEspacios = ({
 	const [showModal, setShowModal] = useState(false);
 	const [modalEntries, setModalEntries] = useState([]);
 
-	// Fetch mes
+	// Trae servicios del mes por ciudad
 	useEffect(() => {
 		const run = async () => {
 			if (!city) { setServiciosAsignados([]); return; }
 			try {
 				const data = await buscarServiciosPorMes(city, year, month + 1);
 				setServiciosAsignados(Array.isArray(data) ? data : []);
-			} catch { setServiciosAsignados([]); }
+			} catch {
+				setServiciosAsignados([]);
+			}
 		};
 		run();
 	}, [city, year, month]);
 
-	// Fetch empleados ciudad
+	// Trae empleados activos por ciudad (el backend ya filtra activos)
 	useEffect(() => {
 		const run = async () => {
 			if (!city) { setEmployeesCity([]); return; }
 			try {
 				const data = await buscarEmpleadosByCity(city);
 				setEmployeesCity(Array.isArray(data) ? data : []);
-			} catch { setEmployeesCity([]); }
+			} catch {
+				setEmployeesCity([]);
+			}
 		};
 		run();
 	}, [city]);
 
-	// Calcular slots por día (para la etiqueta "Slots: 4h/5h/8h")
+	// Cierra y limpia el modal al cambiar city/mes/año
+	useEffect(() => {
+		setShowModal(false);
+		setModalEntries([]);
+	}, [city, month, year]);
+
+	// Calcula slots por día SOLO con empleados del backend (activos)
 	useEffect(() => {
 		const jornadaStart = hhmmssToMinutes(WORKDAY_START);
 		const jornadaEnd = hhmmssToMinutes(WORKDAY_END);
 
+		// Mapa de ocupaciones por fecha y por empleado
 		const byDateByEmp = {};
 		for (const srv of serviciosAsignados) {
 			const d = srv.serviceDate;
@@ -93,25 +103,25 @@ const CalendarioEspacios = ({
 			if (!byDateByEmp[d]) byDateByEmp[d] = {};
 			const emps = Array.isArray(srv.employees) ? srv.employees : [];
 			for (const e of emps) {
-				const doc = e.employeeDocument || e.document;
+				const doc = normalizeDoc(e.employeeDocument || e.document);
 				if (!doc) continue;
 				if (!byDateByEmp[d][doc]) byDateByEmp[d][doc] = [];
 				byDateByEmp[d][doc].push({ start, end });
 			}
 		}
 
-		const docsFromEmployees = employeesCity.map(e => e.document || e.employeeDocument).filter(Boolean);
-		const docsFromServicios = serviciosAsignados
-			.flatMap(s => (s.employees || []).map(e => e.employeeDocument))
-			.filter(Boolean);
-		const allDocs = new Set([...docsFromEmployees, ...docsFromServicios]);
+		const backendDocs = new Set(
+			(employeesCity || [])
+				.map(e => normalizeDoc(e.document || e.employeeDocument))
+				.filter(Boolean)
+		);
 
 		const counts = {};
 		for (let day = 1; day <= daysInMonth; day++) {
 			const ymd = new Date(year, month, day).toISOString().slice(0, 10);
 			let any = 0, h4 = 0, h5 = 0, h8 = 0;
 
-			for (const doc of allDocs) {
+			for (const doc of backendDocs) {
 				const busy = mergeIntervals((byDateByEmp[ymd]?.[doc] || []).filter(iv => iv.end > iv.start));
 				const freeGaps = [];
 				if (!busy.length) {
@@ -147,7 +157,7 @@ const CalendarioEspacios = ({
 
 	const startDay = useMemo(() => {
 		const d = new Date(year, month, 1).getDay();
-		return d === 0 ? 6 : d - 1;
+		return d === 0 ? 6 : d - 1; // lunes = 0
 	}, [year, month]);
 
 	const isToday = (day) => {
@@ -155,60 +165,25 @@ const CalendarioEspacios = ({
 		return day === t.getDate() && month === t.getMonth() && year === t.getFullYear();
 	};
 
-	// Abrir modal desde "DISPONIBLE"
 	const openModalForDay = (day) => {
 		const ymd = `${year}-${pad2(month + 1)}-${pad2(day)}`;
 
-		// Empleados que aparecen en los servicios de ese día
-		const serviceEmployeesForDay = serviciosAsignados
-			.filter(s => s.serviceDate === ymd)
-			.flatMap(s => (s.employees || []).map(e => ({
-				document: e.employeeDocument,
-				name: e.employeeName,
-				surname: e.employeeSurname,
-				state: e.state,
-			})))
+		const backendEmployees = (employeesCity || [])
+			.map(e => ({
+				document: normalizeDoc(e.document ?? e.employeeDocument),
+				name: e.name || '',
+				surname: e.surname || '',
+			}))
 			.filter(e => e.document);
 
-		const mapByDoc = new Map();
+		const backendDocs = new Set(backendEmployees.map(e => e.document));
 
-		// 1) empleados de la ciudad (fuente principal de truth para state)
-		for (const e of employeesCity) {
-			const doc = e.document || e.employeeDocument;
-			if (!doc) continue;
-			mapByDoc.set(doc, {
-				document: doc,
-				name: e.name,
-				surname: e.surname,
-				state: e.state === true,
-			});
-		}
-
-		// 2) empleados que vienen solo desde los servicios
-		for (const e of serviceEmployeesForDay) {
-			if (!mapByDoc.has(e.document)) {
-				mapByDoc.set(e.document, {
-					document: e.document,
-					name: e.name,
-					surname: e.surname,
-					state: e.state === true,
-				});
-			}
-		}
-
-		// ✅ Solo empleados con state true
-		const allEmployeesForModal = Array
-			.from(mapByDoc.values())
-			.filter(emp => emp.state === true);
-
-		// Construir intervals busy para cada empleado activo
-		const entries = allEmployeesForModal.map(emp => {
-			const busy = serviciosAsignados
+		const entries = backendEmployees.map(emp => {
+			const busy = (serviciosAsignados || [])
 				.filter(s =>
 					s.serviceDate === ymd &&
-					(s.employees || []).some(
-						x => (x.employeeDocument || x.document) === emp.document
-					)
+					(s.employees || []).some(x => backendDocs.has(normalizeDoc(x.employeeDocument ?? x.document))) &&
+					(s.employees || []).some(x => normalizeDoc(x.employeeDocument ?? x.document) === emp.document)
 				)
 				.map(s => ({
 					startHour: s.startHour,
@@ -223,7 +198,6 @@ const CalendarioEspacios = ({
 		setShowModal(true);
 	};
 
-	// Render
 	const days = useMemo(() => {
 		const all = [];
 		for (let i = 0; i < startDay; i++) {
@@ -249,7 +223,6 @@ const CalendarioEspacios = ({
 									'calendar-date-button',
 									`calendar-date-button-${idx}`
 								].join(' ')}
-								// ⬇️ Abrimos el modal SOLO en "DISPONIBLE" (idx === 0)
 								onClick={idx === 0 ? () => openModalForDay(day) : undefined}
 							>
 								<span className="btn-content">
@@ -268,7 +241,7 @@ const CalendarioEspacios = ({
 			);
 		}
 		return all;
-	}, [startDay, daysInMonth, isToday, availabilityByDay, buttonLabels, month, year]);
+	}, [startDay, daysInMonth, availabilityByDay, month, year]);
 
 	return (
 		<div className='calendar-body'>

@@ -20,7 +20,7 @@ export default function ModalAsignacion({
   date,
   startHour: startHourProp,
   endHour: endHourProp,
-  allEmployees = [],
+  allEmployees,
   onAssigned,
 }) {
   const recurrencyRef = useRef(null);
@@ -114,7 +114,7 @@ export default function ModalAsignacion({
         setBaseEmployees(emps || []);
       }
     })();
-  }, [show, allEmployees]);
+  }, [show]);
 
   // Cierre de dropdowns al hacer click fuera
   useEffect(() => {
@@ -383,7 +383,7 @@ export default function ModalAsignacion({
           </div>
 
           <div className="modal-asignacion-form-grid">
-            {/* Empleados con BUSCADOR */}
+            {/* Empleados */}
             <div className="modal-chip-section">
               <label>Empleados</label>
               <div className="modal-chip-container" ref={empleadosRef}>

@@ -14,6 +14,7 @@ const diffHours = (start, end) => Math.max(0, (toMin(end) - toMin(start)) / 60);
 const norm = (t = '') =>
   t.normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().trim();
 
+// Detecta “no disponible” a partir del nombre del cliente
 const getNoDispReason = (s) => {
   const txt = norm(s?.clientCompleteName || '');
   if (txt.includes('INCAPACIDAD')) return 'INCAPACIDAD';
@@ -23,6 +24,25 @@ const getNoDispReason = (s) => {
   return null;
 };
 const isNoDisponible = (s) => !!getNoDispReason(s);
+
+// Obtiene el/los nombres de empleados en una sola línea
+const getEmployeesLabel = (s) => {
+  if (Array.isArray(s?.employees) && s.employees.length) {
+    return s.employees
+      .map(
+        (e) =>
+          e.employeeCompleteName ||
+          `${e.employeeName || ''} ${e.employeeSurname || ''}`.trim()
+      )
+      .filter(Boolean)
+      .join(', ');
+  }
+  return (
+    s?.employeeCompleteName ||
+    `${s?.employeeName || ''} ${s?.employeeSurname || ''}`.trim() ||
+    ''
+  );
+};
 
 function getWeeksOfMonth(year, month /*0-based*/) {
   const lastDay = new Date(year, month + 1, 0).getDate();
@@ -44,18 +64,18 @@ function getWeeksOfMonth(year, month /*0-based*/) {
   return weeks;
 }
 
-// Día de la semana (L=0..D=6)
+// L=0..D=6 (lunes primero)
 const mondayFirstDow = (y, m, d) => (new Date(y, m, d).getDay() + 6) % 7;
 
 const CalendarioClientes = ({
   dataServicios = [],
-  currentMonth = null,
+  currentMonth = null,     // 0-based
   currentYear = null,
   buttonLabels = ['TURNO 1', 'TURNO 2'],
   minDate = null,
   maxDate = null,
   visibleWeek = null,
-  selectedClient = null,   // para el título
+  selectedClient = null,
 }) => {
   const now = useMemo(() => new Date(), []);
   const year = currentYear ?? now.getFullYear();
@@ -189,6 +209,7 @@ const CalendarioClientes = ({
               servicio === (aplicarBloqueoPorNoDisp ? noDispLargo : serviceLargo);
             const esSegundoSilencioso = esBloqueoTotal && idx === 1;
 
+            // Color de fondo
             let bgStyle;
             if (servicio) {
               if (servicio.state === 'NO PRESTADO') {
@@ -207,38 +228,28 @@ const CalendarioClientes = ({
               }
             }
 
+            // Contenido
             let content = null;
             if (servicio) {
               if (!esSegundoSilencioso) {
                 const reason = getNoDispReason(servicio);
+                const empleadosTexto = getEmployeesLabel(servicio) || 'No disponible';
 
                 if (reason) {
+                  // CASO ESPECIAL (rojo): solo el/los nombres de empleado(s)
                   content = (
                     <div className="modern-btn-client" style={{ lineHeight: 1.1 }}>
-                      {reason}
+                      {empleadosTexto}
                     </div>
                   );
                 } else {
-                  // NOMBRE DEL/LOS EMPLEADOS + HORAS
-                  const empleadosTexto = Array.isArray(servicio.employees)
-                    ? servicio.employees
-                        .map((e) =>
-                          e.employeeCompleteName ||
-                          `${e.employeeName || ''} ${e.employeeSurname || ''}`.trim()
-                        )
-                        .filter(Boolean)
-                        .join(', ')
-                    : servicio.employeeCompleteName ||
-                      servicio.employeeName ||
-                      'Sin empleado';
-
+                  // Servicio normal: horas + empleado(s)
+                  const horas = `${formatTo12h(servicio.startHour)} - ${formatTo12h(
+                    servicio.endHour
+                  )}`;
                   content = (
                     <>
-                      <div>
-                        {`${formatTo12h(servicio.startHour)} - ${formatTo12h(
-                          servicio.endHour
-                        )}`}
-                      </div>
+                      <div>{horas}</div>
                       <div className="modern-btn-client">{empleadosTexto}</div>
                     </>
                   );
@@ -249,7 +260,7 @@ const CalendarioClientes = ({
             }
 
             const disabled =
-              true || // todos deshabilitados (no hay acciones)
+              true || // modo solo visual
               isDateDisabled(year, month, day) ||
               (esBloqueoTotal && !servicio) ||
               esSegundoSilencioso;
@@ -325,11 +336,7 @@ const CalendarioClientes = ({
 
   return (
     <div className="calendar-body">
-      <div
-        className="modern-calendar"
-        role="application"
-        aria-label="Calendario de servicios por cliente"
-      >
+      <div className="modern-calendar" role="application" aria-label="Calendario de servicios por cliente">
         <div className="modern-month-header">
           <h2 className="modern-month-title centered">
             {monthNames[month]} {year}
@@ -340,9 +347,7 @@ const CalendarioClientes = ({
 
         <div className="modern-weekdays">
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((n, i) => (
-            <div key={i} className="modern-weekday">
-              {n}
-            </div>
+            <div key={i} className="modern-weekday">{n}</div>
           ))}
         </div>
 
