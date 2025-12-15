@@ -38,7 +38,7 @@ const AgregarClientes = () => {
     setDirecciones(nuevasDirecciones);
   };
 
-  // --- Uppercase helper y handlers (tipear/pegar) ---
+  // Uppercase helpers
   const uc = (v) => (v ?? "").toString().toUpperCase();
   const onNombre = (e) => setNombre(uc(e.target.value));
   const onApellido = (e) => setApellido(uc(e.target.value));
@@ -46,34 +46,69 @@ const AgregarClientes = () => {
   const onEmail = (e) => setEmail(uc(e.target.value));
   const onPhone = (e) => setPhone(uc(e.target.value));
   const onComentarios = (e) => setComentarios(uc(e.target.value));
-
   const inputUpperStyle = { textTransform: "uppercase" };
 
   const handleSubmit = async () => {
-    if (!nombre || !documento || !email || !tipoDocumento || direcciones.length === 0) {
-      alert("Por favor completa todos los campos obligatorios.");
+    // ===== Validación detallada (con lista de faltantes) =====
+    const faltantes = [];
+    const req = (val) => (typeof val === "string" ? val.trim() !== "" : !!val);
+
+    if (!req(tipoDocumento)) faltantes.push("Tipo de ID");
+    if (!req(documento))     faltantes.push("Documento");
+    if (!req(nombre))        faltantes.push("Nombre");
+    // Apellido no obligatorio, quítale el comentario si lo quieres obligatorio
+    // if (!req(apellido))       faltantes.push("Apellido");
+    if (!req(email))         faltantes.push("Correo electrónico");
+
+    // Al menos una dirección válida (con 'address' no vacío)
+    const tieneDireccionValida =
+      Array.isArray(direcciones) &&
+      direcciones.length > 0 &&
+      direcciones.some(d => (d?.address || "").toString().trim() !== "");
+    if (!tieneDireccionValida) faltantes.push("Direcciones (al menos una)");
+
+    // Validaciones de formato (suaves)
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      faltantes.push("Correo válido");
+    }
+    if (phone && !/^[0-9+()\-\s]{6,}$/.test(phone.trim())) {
+      faltantes.push("Teléfono válido");
+    }
+
+    if (faltantes.length) {
+      alert(
+        "Completa los siguientes campos antes de guardar:\n\n• " +
+        faltantes.join("\n• ")
+      );
       return;
     }
 
+    // Normaliza direcciones a MAYÚSCULAS (address/city si existen)
+    const addressesNorm = (direcciones || []).map(d => ({
+      ...d,
+      address: uc(d?.address || "").trim(),
+      city: uc(d?.city || "").trim(),
+    }));
+
     const nuevoCliente = {
-      name: nombre.trim(),               // ya en MAYÚSCULAS
-      surname: apellido.trim(),
-      document: documento.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      typeId: tipoDocumento.trim(),      // dropdown en mayúsculas
-      addresses: direcciones,
-      comments: comentarios.trim(),
-      state: activo,
+      name: uc(nombre).trim(),
+      surname: uc(apellido).trim(),
+      document: uc(documento).trim(),
+      email: uc(email).trim(),
+      phone: uc(phone).trim(),
+      typeId: uc(tipoDocumento).trim(),
+      addresses: addressesNorm,
+      comments: uc(comentarios).trim(),
+      state: !!activo,
     };
 
     try {
       await agregarCliente(nuevoCliente);
-      alert("Cliente agregado exitosamente.");
+      alert("Cliente agregado correctamente ✅");
       resetBusqueda();
     } catch (error) {
       console.error(error);
-      alert("Error al agregar cliente.");
+      alert("Error al agregar cliente ❌ " + (error?.message || ""));
     }
   };
 
@@ -132,7 +167,7 @@ const AgregarClientes = () => {
                     key={tipo}
                     type="button"
                     onClick={() => {
-                      setTipoDocumento(tipo.toUpperCase());  // asegura MAYÚSCULAS
+                      setTipoDocumento(tipo.toUpperCase());
                       setTipoIdDropdownOpen(false);
                     }}
                   >

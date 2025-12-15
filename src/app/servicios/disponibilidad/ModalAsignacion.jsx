@@ -5,13 +5,21 @@ import {
   obtenerServicios,
   buscarClientes,
   asignarServicio,
-  buscarEmpleados, // ← para cargar empleados si no vienen por props
+  buscarEmpleados,
 } from '@/lib/Logic.js';
 import { useTimeOptions, useLoadingOverlay } from '@/lib/Hooks';
 import { formatTo12h } from '@/lib/Utils';
 import ModalFrecuenciaFechas from './ModalFrecuenciaFechas';
 
 const RECURRENCES = ['NINGUNA', 'PUNTUAL', 'FRECUENTE', 'QUINCENAL', 'MENSUAL'];
+
+// ------- helpers para validar el tope -------
+const T1_END = '14:00';
+const toMin = (hhmm = '00:00') => {
+  const [h = 0, m = 0] = (hhmm || '0:0').split(':').map(Number);
+  return h * 60 + m;
+};
+const T1_END_MIN = toMin(T1_END);
 
 export default function ModalAsignacion({
   show,
@@ -22,6 +30,7 @@ export default function ModalAsignacion({
   endHour: endHourProp,
   allEmployees,
   onAssigned,
+  dayUsage = { hasMorning: false, hasAfternoon: false, hasFullDay: false, blockFullDay: false }, // ← NUEVO
 }) {
   const recurrencyRef = useRef(null);
   const startRef = useRef(null);
@@ -47,7 +56,6 @@ export default function ModalAsignacion({
   const [empleadosAdicionales, setEmpleadosAdicionales] = useState([]);
   const [mostrarDropdownEmpleados, setMostrarDropdownEmpleados] = useState(false);
 
-  // NUEVO: base de empleados + buscador y filtrados
   const [baseEmployees, setBaseEmployees] = useState([]);
   const [empleadoSearchText, setEmpleadoSearchText] = useState('');
   const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
@@ -73,7 +81,6 @@ export default function ModalAsignacion({
 
   const breakOptions = Array.from({ length: 13 }, (_, i) => i * 5);
 
-  /* Overlay mediante hook */
   const { isLoading: assigning, withLoading, OverlayPortal } =
     useLoadingOverlay('Asignando servicio(s)...');
 
@@ -84,14 +91,11 @@ export default function ModalAsignacion({
     setBreakMinutes(0);
   }, [show, startHourProp, endHourProp]);
 
-  // Carga catálogos básicos
+  // catálogos
   useEffect(() => {
     if (!show) return;
 
-    obtenerServicios()
-      .then((data) => setServiciosDisponibles(data || []))
-      .catch(() => setServiciosDisponibles([]));
-
+    obtenerServicios().then(setServiciosDisponibles).catch(() => setServiciosDisponibles([]));
     buscarClientes()
       .then((data) => {
         setClientes(data || []);
@@ -101,45 +105,37 @@ export default function ModalAsignacion({
         setClienteText('');
       })
       .catch(() => {
-        setClientes([]);
-        setClientesFiltrados([]);
+        setClientes([]); setClientesFiltrados([]);
       });
 
-    // Empleados: usa los que vengan por props o carga desde API
     (async () => {
-      if (allEmployees && allEmployees.length > 0) {
-        setBaseEmployees(allEmployees);
-      } else {
+      if (allEmployees?.length) setBaseEmployees(allEmployees);
+      else {
         const emps = await buscarEmpleados().catch(() => []);
         setBaseEmployees(emps || []);
       }
     })();
-  }, [show]);
+  }, [show, allEmployees]);
 
-  // Cierre de dropdowns al hacer click fuera
+  // cerrar dropdowns
   useEffect(() => {
     if (!show) return;
-
     const isInside = (ref, target) => ref?.current && ref.current.contains(target);
     const handleOutside = (e) => {
       const t = e.target;
       if (startTimeOpen && !isInside(startRef, t)) setStartTimeOpen(false);
-      if (endTimeOpen && !isInside(endRef, t)) setEndTimeOpen(false);
-      if (breakOpen && !isInside(breakRef, t)) setBreakOpen(false);
-      if (stateOpen && !isInside(recurrencyRef, t)) setStateOpen(false);
+      if (endTimeOpen   && !isInside(endRef, t))   setEndTimeOpen(false);
+      if (breakOpen     && !isInside(breakRef, t)) setBreakOpen(false);
+      if (stateOpen     && !isInside(recurrencyRef, t)) setStateOpen(false);
       if (mostrarDropdownClientes && !isInside(clienteRef, t)) setMostrarDropdownClientes(false);
       if (mostrarDropdownEmpleados && !isInside(empleadosRef, t)) setMostrarDropdownEmpleados(false);
       if (mostrarDropdownServicios && !isInside(serviciosRef, t)) setMostrarDropdownServicios(false);
     };
-
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, [
-    show, startTimeOpen, endTimeOpen, breakOpen, stateOpen,
-    mostrarDropdownClientes, mostrarDropdownEmpleados, mostrarDropdownServicios,
-  ]);
+  }, [show, startTimeOpen, endTimeOpen, breakOpen, stateOpen, mostrarDropdownClientes, mostrarDropdownEmpleados, mostrarDropdownServicios]);
 
-  // Helpers empleados (excluir principal y ya añadidos)
+  // empleados: helpers
   const excluirSeleccionados = (arr) =>
     (arr || []).filter(e =>
       e.document !== empleado?.document &&
@@ -151,10 +147,7 @@ export default function ModalAsignacion({
     setMostrarDropdownEmpleados(true);
     const q = (valor || '').trim().toLowerCase();
     const base = excluirSeleccionados(baseEmployees);
-    if (!q) {
-      setEmpleadosFiltrados(base);
-      return;
-    }
+    if (!q) { setEmpleadosFiltrados(base); return; }
     setEmpleadosFiltrados(
       base.filter(ed => {
         const full = `${ed.name ?? ''} ${ed.surname ?? ''}`.toLowerCase();
@@ -164,7 +157,6 @@ export default function ModalAsignacion({
     );
   };
 
-  // Al abrir el dropdown de empleados, preparar lista
   useEffect(() => {
     if (mostrarDropdownEmpleados) {
       setEmpleadoSearchText('');
@@ -172,27 +164,25 @@ export default function ModalAsignacion({
     }
   }, [mostrarDropdownEmpleados, baseEmployees, empleadosAdicionales, empleado]);
 
-  // Empleados
   const handleAgregarEmpleado = (nuevo) => {
-    setEmpleadosAdicionales((prev) =>
+    setEmpleadosAdicionales(prev =>
       prev.some(e => e.document === nuevo.document) ? prev : [...prev, nuevo]
     );
     setMostrarDropdownEmpleados(false);
   };
   const handleEliminarEmpleado = (document) => {
-    setEmpleadosAdicionales((prev) => prev.filter(e => e.document !== document));
+    setEmpleadosAdicionales(prev => prev.filter(e => e.document !== document));
   };
 
-  // Servicios
   const handleAgregarServicio = (nuevo) => {
-    setServicios((prev) => prev.some(s => s.id === nuevo.id) ? prev : [...prev, nuevo]);
+    setServicios(prev => prev.some(s => s.id === nuevo.id) ? prev : [...prev, nuevo]);
     setMostrarDropdownServicios(false);
   };
   const handleEliminarServicio = (id) => {
-    setServicios((prev) => prev.filter(s => s.id !== id));
+    setServicios(prev => prev.filter(s => s.id !== id));
   };
 
-  // Clientes
+  // clientes
   const filtrarClientes = (valor) => {
     setClienteText(valor);
     setMostrarDropdownClientes(true);
@@ -238,6 +228,17 @@ export default function ModalAsignacion({
     else setSelectedDates([]);
   };
 
+  // ----------- VALIDACIÓN DEL TOPE EN EL MODAL -----------
+  const calcCategory = () => {
+    if (!startHour || !endHour) return null;
+    const startM = toMin(startHour);
+    const endM   = toMin(endHour);
+    const realH  = Math.max(0, (endM - startM - breakMinutes) / 60);
+    if (realH >= 8) return 'full';
+    const mid = (startM + endM) / 2;
+    return (mid >= T1_END_MIN) ? 'afternoon' : 'morning';
+  };
+
   const handleAsignar = async () => {
     if (!clienteSeleccionado || servicios.length === 0) {
       alert('Seleccione un cliente y al menos un servicio'); return;
@@ -247,6 +248,31 @@ export default function ModalAsignacion({
     }
     if (!direccionSeleccionada) {
       alert('Seleccione una dirección para el servicio'); return;
+    }
+
+    // bloqueo “NO DISPONIBLE” día completo
+    if (dayUsage.blockFullDay) {
+      alert('Este día está bloqueado por NO DISPONIBLE. No se pueden crear servicios.'); 
+      return;
+    }
+
+    const cat = calcCategory(); // 'morning' | 'afternoon' | 'full'
+    if (!cat) {
+      alert('Horas inválidas.'); 
+      return;
+    }
+
+    // 1 por turno y 1 full-day
+    if (cat === 'morning' && dayUsage.hasMorning)   { alert('Ya existe un servicio en la mañana.');   return; }
+    if (cat === 'afternoon' && dayUsage.hasAfternoon){ alert('Ya existe un servicio en la tarde.');    return; }
+    if (cat === 'full' && dayUsage.hasFullDay)       { alert('Ya existe un servicio de día completo.'); return; }
+
+    const used = (dayUsage.hasMorning?1:0) + (dayUsage.hasAfternoon?1:0) + (dayUsage.hasFullDay?1:0);
+    const newUsed = used + 1; // vamos a crear una categoría nueva (ya validamos duplicados)
+
+    if (newUsed > 3) {
+      alert('Límite diario alcanzado. Solo se permiten 3 servicios por día (mañana, tarde y uno de día completo).');
+      return;
     }
 
     const fechas = (selectedDates.length > 0) ? selectedDates : [date];
@@ -408,7 +434,6 @@ export default function ModalAsignacion({
 
                 {mostrarDropdownEmpleados && !assigning && (
                   <div className="modal-asignacion-dropdown-chip">
-                    {/* Input de búsqueda */}
                     <div className="dropdown" style={{ width: '100%', marginBottom: 8 }}>
                       <input
                         type="text"
@@ -419,8 +444,6 @@ export default function ModalAsignacion({
                         style={{ width: '100%' }}
                       />
                     </div>
-
-                    {/* Resultados */}
                     <div style={{ maxHeight: 240, overflowY: 'auto' }}>
                       {empleadosFiltrados.length > 0 ? (
                         empleadosFiltrados.map((e) => (

@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   buscarEmpleadosByCity,
   buscarServiciosPorMesDeEmpleado,
-  obtenerClientesConDireccionCiudad,
+  buscarClientesByCity,
   buscarServiciosPorMesDeClientes,
 } from "@/lib/Logic.js";
 
@@ -122,7 +122,7 @@ const ResumenGeneral = () => {
           setEmpleadosFiltrados([]);
         });
 
-      obtenerClientesConDireccionCiudad(city)
+      buscarClientesByCity(city)
         .then((list) => {
           list = list || [];
           setClients(list);
@@ -581,6 +581,7 @@ const ResumenGeneral = () => {
             currentMonth={selectedMonth}
             currentYear={selectedYear}
             visibleWeek={selectedWeek}
+            calendarCity={city}
           />
         ) : (
           <CalendarioEspacios

@@ -1,15 +1,17 @@
 .calendar-body {
-	max-height: 100dvh;
-	overflow-y: auto;
+    max-height: 100dvh;
+    overflow: auto;
 }
 
 .modern-calendar-grid,
-    .modern-weekdays {
-        gap: 0.3rem;
-    }.modern-calendar {
+.modern-weekdays {
+    gap: 0.3rem;
+}
+
+.modern-calendar {
     width: 100%;
     height: 100%;
-    padding: 1rem;
+    padding: 0.2rem 1.25rem 1rem 0.5rem;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -37,18 +39,21 @@
 
 .modern-weekdays {
     position: sticky;
-	top: 20px;
-	z-index: 8;
+    top: 20px;
+    z-index: 8;
     background: rgba(255, 255, 255, .92);
-	backdrop-filter: saturate(110%) blur(4px);
-	border-radius: 12px;
+    backdrop-filter: saturate(110%) blur(4px);
+    border-radius: 12px;
 
-	display: grid;
-	grid-template-columns: repeat(7, 1fr);
-	gap: 0.3rem;
-	padding: 0.5rem 0.25rem;
-	margin-bottom: 1rem;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(210px, 1fr));
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    width: max-content;
+    min-width: 100%;
+    margin-bottom: 1rem;
 }
+
 
 .modern-weekday {
     text-align: center;
@@ -62,7 +67,8 @@
 
 .modern-calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(150px, auto);
+    grid-template-columns: repeat(7, minmax(210px, 1fr));
     gap: 0.5rem;
     flex-grow: 1;
     align-content: start;
@@ -70,13 +76,13 @@
 
 .modern-date-empty {
     background-color: transparent;
-    aspect-ratio: 1;
-    min-height: 80px;
+    aspect-ratio: unset;
+    min-height: 150px;
 }
 
 /* Contenedor principal de cada día */
 .modern-date-container {
-    aspect-ratio: 1;
+    aspect-ratio: unset;
     border-radius: 0.75rem;
     background-color: #ffffff;
     color: #374151;
@@ -84,7 +90,7 @@
     flex-direction: row;
     align-items: stretch;
     justify-content: stretch;
-    min-height: 80px;
+    min-height: 200px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
     padding: 0;
@@ -123,7 +129,6 @@
     box-shadow: none;
 }
 
-/* Número del día - Ahora posicionado a la izquierda */
 .modern-date-number {
     font-size: 0.9rem;
     font-weight: 600;
@@ -133,8 +138,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 25%;
+    width: 16%;
     min-width: 20px;
+    height: 100%;
     background-color: rgba(255, 255, 255, 0.95);
     border-top-left-radius: 0.75rem;
     border-bottom-left-radius: 0.75rem;
@@ -146,7 +152,7 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    width: 75%;
+    width: 84%;
     height: 100%;
     align-items: stretch;
 }
@@ -154,19 +160,19 @@
 /* Botones individuales */
 .modern-date-button {
     width: 100%;
-    height: 50%;
+    height: 100%;
     border: none;
     border-radius: 0;
     background-color: rgba(255, 255, 255, 0.8);
     color: #6b7280;
-    font-size: 0.7rem;
+    font-size: .75rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: .45rem .6rem;
     backdrop-filter: blur(2px);
 }
 
@@ -225,7 +231,7 @@
 
     .modern-date-container,
     .modern-date-empty {
-        min-height: 70px;
+        min-height: 110px;
     }
 
     .modern-date-number {
@@ -264,7 +270,7 @@
 
     .modern-date-container,
     .modern-date-empty {
-        min-height: 60px;
+        min-height: 90px;
     }
 
     .modern-date-number {

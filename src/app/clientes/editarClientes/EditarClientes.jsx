@@ -40,13 +40,11 @@ const EditarClientes = () => {
 
   const tipoId = ["CC", "TI", "NIT", "CE", "PA"];
 
-  // Helper: uppercase seguro
   const uc = (v) => (v ?? "").toString().toUpperCase();
   const inputUpper = { textTransform: "uppercase" };
 
   useEffect(() => {
     if (clienteEncontrado) {
-      // Normaliza a mayúsculas para mostrar consistente
       setTypeId(uc(clienteEncontrado.typeId || ""));
       setNombre(uc(clienteEncontrado.name || ""));
       setApellido(uc(clienteEncontrado.surname || ""));
@@ -55,7 +53,7 @@ const EditarClientes = () => {
       setPhone(uc(clienteEncontrado.phone || ""));
       setComentarios(uc(clienteEncontrado.comments || ""));
       setDirecciones(clienteEncontrado.addresses || []);
-      setSelectedCity(clienteEncontrado.city || ""); // ciudad viene de dropdown/lista, no forzamos aquí
+      setSelectedCity(clienteEncontrado.city || "");
       setActivo(clienteEncontrado.state === true || clienteEncontrado.state === "true");
     }
   }, [clienteEncontrado]);
@@ -99,14 +97,50 @@ const EditarClientes = () => {
   const guardarCambios = async () => {
     if (!clienteEncontrado) return;
 
+    // ===== Validación detallada =====
+    const faltantes = [];
+    const req = (val) => (typeof val === "string" ? val.trim() !== "" : !!val);
+
+    if (!req(typeId)) faltantes.push("Tipo de ID");
+    if (!req(documento)) faltantes.push("Documento");
+    if (!req(nombre)) faltantes.push("Nombre");
+    if (!req(email)) faltantes.push("Correo electrónico");
+
+    // Al menos una dirección válida (address no vacío)
+    const tieneDireccionValida =
+      Array.isArray(direcciones) &&
+      direcciones.length > 0 &&
+      direcciones.some(d => (d?.address || "").toString().trim() !== "");
+    if (!tieneDireccionValida) faltantes.push("Direcciones (al menos una)");
+
+    // Formatos suaves
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      faltantes.push("Correo válido");
+    }
+    if (phone && !/^[0-9+()\-\s]{6,}$/.test(phone.trim())) {
+      faltantes.push("Teléfono válido");
+    }
+
+    if (faltantes.length) {
+      alert("Completa los siguientes campos antes de guardar:\n\n• " + faltantes.join("\n• "));
+      return;
+    }
+
+    // Normaliza direcciones a MAYÚSCULAS
+    const addressesNorm = (direcciones || []).map(d => ({
+      ...d,
+      address: uc(d?.address || "").trim(),
+      city: uc(d?.city || "").trim(),
+    }));
+
     const datosActualizados = {
       typeId: uc(typeId).trim(),
       name: uc(nombre).trim(),
       surname: uc(apellido).trim(),
       email: uc(email).trim(),
       phone: uc(phone).trim(),
-      addresses: direcciones,
-      city: selectedCity,           // si quieres, puedes uppercasing aquí también
+      addresses: addressesNorm,
+      city: uc(selectedCity).trim(),
       document: uc(documento).trim(),
       comments: uc(comentarios).trim(),
       state: !!activo
@@ -116,7 +150,7 @@ const EditarClientes = () => {
       await actualizarCliente(clienteEncontrado.document, datosActualizados);
       alert("Cliente actualizado correctamente ✅");
     } catch (error) {
-      alert("Error al actualizar cliente ❌" + error);
+      alert("Error al actualizar cliente ❌ " + (error?.message || ""));
     }
   };
 
@@ -138,7 +172,6 @@ const EditarClientes = () => {
     setActivo(true);
   };
 
-  // Handlers en tiempo real (uppercase)
   const onNombre = (e) => setNombre(uc(e.target.value));
   const onApellido = (e) => setApellido(uc(e.target.value));
   const onDocumento = (e) => setDocumento(uc(e.target.value));
@@ -176,12 +209,12 @@ const EditarClientes = () => {
             </button>
             {tipoIdDropdownOpen && (
               <div className="dropdown-content">
-                {tipoId.map((tipo) => (
+                {["CC", "TI", "NIT", "CE", "PA"].map((tipo) => (
                   <button
                     key={tipo}
                     type="button"
                     onClick={() => {
-                      setTypeId(uc(tipo)); // asegura mayúsculas
+                      setTypeId(uc(tipo));
                       setTipoIdDropdownOpen(false);
                     }}
                   >
@@ -203,7 +236,6 @@ const EditarClientes = () => {
           <input id="email" type="email" value={email} onChange={onEmail} style={inputUpper} />
         </div>
 
-        {/* Botón para abrir el modal de direcciones */}
         <button type="button" className="menu-btn" onClick={() => setMostrarModalDirecciones(true)}>
           📍 Editar Direcciones ({direcciones.length})
         </button>
@@ -262,9 +294,7 @@ const EditarClientes = () => {
       );
     }
 
-    if (activeTab === "add") {
-      return <AgregarClientes />;
-    }
+    if (activeTab === "add") return <AgregarClientes />;
 
     if (activeTab === "delete") {
       return mostrarEliminarForm ? (
@@ -289,28 +319,19 @@ const EditarClientes = () => {
           <div className="empleados-tabs">
             <button
               className={`empleados-tab ${activeTab === "edit" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("edit");
-                resetBusqueda();
-              }}
+              onClick={() => { setActiveTab("edit"); resetBusqueda(); }}
             >
               ✏️ Editar
             </button>
             <button
               className={`empleados-tab ${activeTab === "add" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("add");
-                resetBusqueda();
-              }}
+              onClick={() => { setActiveTab("add"); resetBusqueda(); }}
             >
               ➕ Agregar
             </button>
             <button
               className={`empleados-tab ${activeTab === "delete" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("delete");
-                resetBusqueda();
-              }}
+              onClick={() => { setActiveTab("delete"); resetBusqueda(); }}
             >
               🗑️ Eliminar
             </button>
@@ -321,10 +342,9 @@ const EditarClientes = () => {
         </div>
       </div>
 
-      {/* Modal para editar direcciones */}
       {mostrarModalDirecciones && (
         <ModalEditarDirecciones
-          cliente={clienteEncontrado}
+          cliente={{ ...clienteEncontrado, addresses: direcciones }}
           onClose={() => setMostrarModalDirecciones(false)}
           onGuardar={manejarGuardarDirecciones}
         />

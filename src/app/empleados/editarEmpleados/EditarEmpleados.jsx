@@ -20,7 +20,7 @@ const EditarEmpleados = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [fechaIngreso, setFechaIngreso] = useState(""); // YYYY-MM-DD
   const [comentarios, setComentarios] = useState("");
 
   const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
@@ -57,6 +57,13 @@ const EditarEmpleados = () => {
   const uc = (v) => (v ?? "").toString().toUpperCase();
   const inputUpper = { textTransform: "uppercase" };
 
+  // Normaliza fechas a YYYY-MM-DD
+  const toYMD = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value.slice(0, 10);
+    try { return new Date(value).toISOString().slice(0, 10); } catch { return ""; }
+  };
+
   useEffect(() => {
     if (empleadoEncontrado) {
       setNombre(uc(empleadoEncontrado.name));
@@ -71,24 +78,16 @@ const EditarEmpleados = () => {
       setSelectedContractType(empleadoEncontrado.contractType || "");
       setActivo(empleadoEncontrado.state === true || empleadoEncontrado.state === "true");
       setSelectedTipoId(uc(empleadoEncontrado.typeId));
-      setFechaIngreso(empleadoEncontrado.entryDate ? empleadoEncontrado.entryDate : "");
+      setFechaIngreso(toYMD(empleadoEncontrado.entryDate));
     }
   }, [empleadoEncontrado]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (cargoDropdownRef.current && !cargoDropdownRef.current.contains(event.target)) {
-        setCargoDropdownOpen(false);
-      }
-      if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
-        setCiudadDropdownOpen(false);
-      }
-      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) {
-        setContractDropdownOpen(false);
-      }
-      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
-        setTipoIdDropdownOpen(false);
-      }
+      if (cargoDropdownRef.current && !cargoDropdownRef.current.contains(event.target)) setCargoDropdownOpen(false);
+      if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) setCiudadDropdownOpen(false);
+      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) setContractDropdownOpen(false);
+      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) setTipoIdDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -108,30 +107,60 @@ const EditarEmpleados = () => {
     }
   };
 
+  // —— Validación fuerte antes de PATCH (no se envían nulls ni vacíos en obligatorios)
   const guardarCambios = async () => {
     if (!empleadoEncontrado) return;
 
-    const datosActualizados = {
+    const faltantes = [];
+    const req = (val) => typeof val === "string" ? val.trim() !== "" : !!val;
+
+    if (!req(selectedTipoId)) faltantes.push("Tipo de ID");
+    if (!req(documento)) faltantes.push("Documento");
+    if (!req(nombre)) faltantes.push("Nombre");
+    if (!req(apellido)) faltantes.push("Apellido");
+    if (!req(selectedCity)) faltantes.push("Ciudad");
+    if (!req(selectedCargo)) faltantes.push("Cargo");
+    if (!req(fechaIngreso)) faltantes.push("Fecha de ingreso");
+    if (!req(selectedContractType)) faltantes.push("Tipo de contrato");
+
+    // (Opcional) Validaciones suaves
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      faltantes.push("Correo válido");
+    }
+    if (phone && !/^[0-9+()\-\s]{6,}$/.test(phone.trim())) {
+      faltantes.push("Teléfono válido");
+    }
+
+    if (faltantes.length) {
+      alert(
+        "Completa los siguientes campos antes de guardar:\n\n• " +
+        faltantes.join("\n• ")
+      );
+      return;
+    }
+
+    const payload = {
+      typeId: uc(selectedTipoId).trim(),
+      document: uc(documento).trim(),
       name: uc(nombre).trim(),
       surname: uc(apellido).trim(),
+      city: selectedCity.trim(),
+      position: selectedCargo.trim(),
+      entryDate: toYMD(fechaIngreso),               // clave correcta para el backend
+      contractType: selectedContractType.trim(),    // debe coincidir con enum/label aceptado
+      // Opcionales: se envían como string (vacío si el usuario deja en blanco)
       email: uc(email).trim(),
       phone: uc(phone).trim(),
       addressResidence: uc(direccion).trim(),
-      city: selectedCity,
-      document: uc(documento).trim(),
-      typeId: uc(selectedTipoId).trim(),
-      fechaIngreso,
-      position: selectedCargo,
-      contractType: selectedContractType,
       comments: uc(comentarios).trim(),
       state: !!activo
     };
 
     try {
-      await actualizarEmpleado(empleadoEncontrado.id || empleadoEncontrado.document, datosActualizados);
+      await actualizarEmpleado(empleadoEncontrado.document || documento, payload);
       alert("Empleado actualizado correctamente ✅");
     } catch (error) {
-      alert("Error al actualizar empleado ❌" + error);
+      alert("Error al actualizar empleado ❌ " + (error?.message || ""));
     }
   };
 
@@ -143,7 +172,7 @@ const EditarEmpleados = () => {
     setMensajeError("");
     setSelectedCargo("");
     setSelectedCity("");
-    setSelectedContractType(""); // ← reset
+    setSelectedContractType("");
     setSelectedTipoId("");
     setActivo(true);
     setNombre("");
@@ -233,7 +262,7 @@ const EditarEmpleados = () => {
           </div>
         </div>
 
-        {/* Tipo de contrato (al lado de Cargo) */}
+        {/* Tipo de contrato */}
         <div className="input-group" ref={contractDropdownRef}>
           <label htmlFor="emp-contrato">Tipo de contrato</label>
           <div className="dropdown">
@@ -244,8 +273,7 @@ const EditarEmpleados = () => {
               onClick={() => setContractDropdownOpen(o => !o)}
             >
               <span>
-                {selectedContractType ||
-                  (contratosLoading ? "Cargando tipos…" : "Seleccionar tipo")}
+                {selectedContractType || (contratosLoading ? "Cargando tipos…" : "Seleccionar tipo")}
               </span>
               <span className="arrow">▼</span>
             </button>
@@ -335,7 +363,7 @@ const EditarEmpleados = () => {
 
         <div className="input-group">
           <label htmlFor="emp-fechaIngreso">Fecha de Ingreso</label>
-          <input id="emp-fechaIngreso" type="date" value={fechaIngreso} onChange={e => setFechaIngreso(e.target.value)} />
+          <input id="emp-fechaIngreso" type="date" value={fechaIngreso} onChange={e => setFechaIngreso(toYMD(e.target.value))} />
         </div>
 
         <div className="input-group">

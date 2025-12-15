@@ -1,135 +1,101 @@
-import axios from 'axios';
+// Logic.js
+import { api } from './ApiClient';
+import { safeApi } from './ApiErrorHelper';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// ---------- Servicios ----------
+export const obtenerServicios = () =>
+  safeApi(api.get('/service/all'), 'obtenerServicios');
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' }
-});
+export const asignarServicio = (schedule) =>
+  safeApi(api.post('/schedule', schedule), 'asignarServicio');
 
-// Servicios
-export const obtenerServicios = async () => {
-  const { data } = await api.get('/service/all');
-  return data;
-};
+export const buscarServiciosPorMes = (ciudad, year, month) =>
+  safeApi(
+    api.get(`/schedule/servicesCity/${encodeURIComponent(ciudad)}`, { params: { year, month } }),
+    'buscarServiciosPorMes'
+  );
 
-export const asignarServicio = async (schedule) => {
-  const { data } = await api.post('/schedule', schedule);
-  return data;
-};
+export const buscarServiciosPorMesDeEmpleado = (doc, year, month) =>
+  safeApi(
+    api.get(`/schedule/servicesEmployee/${encodeURIComponent(doc)}`, { params: { year, month } }),
+    'buscarServiciosPorMesDeEmpleado'
+  );
 
-export const buscarServiciosPorMes = async (ciudad, year, month) => {
-  const { data } = await api.get(`/schedule/servicesCity/${ciudad}`, {
-    params: { year, month }
-  });
-  return data;
-};
+export const buscarServiciosPorMesDeClientes = (doc, year, month) =>
+  safeApi(
+    api.get(`/schedule/servicesClient/${encodeURIComponent(doc)}`, { params: { year, month } }),
+    'buscarServiciosPorMesDeClientes'
+  );
 
-export const buscarServiciosPorMesDeEmpleado = async (doc, year, month) => {
-  const { data } = await api.get(`/schedule/servicesEmployee/${doc}`, {
-    params: { year, month }
-  });
-  return data;
-};
+export const buscarServicios = (date) =>
+  safeApi(api.get(`/schedule/${date}`), 'buscarServicios');
 
-export const buscarServiciosPorMesDeClientes = async (doc, year, month) => {
-  const { data } = await api.get(`/schedule/servicesClient/${doc}`, {
-    params: { year, month }
-  });
-  console.log(data);
-  return data;
-};
-
-export const buscarServicios = async (date) => {
-  const { data } = await api.get(`/schedule/${date}`);
-  return data;
-};
-
-export const buscarServiciosConParam = async (nombre, apellido, selectedCity, date) => {
+export const buscarServiciosConParam = (nombre, apellido, selectedCity, date) => {
   const endpoint = `/schedule/${date}/filter`;
-
   const params = {};
   if (selectedCity) params.city = selectedCity;
   if (nombre) params.name = nombre;
   if (apellido) params.surname = apellido;
 
   const config = Object.keys(params).length ? { params } : {};
-
-  const { data } = await api.get(endpoint, config);
-  return data;
+  return safeApi(api.get(endpoint, config), 'buscarServiciosConParam');
 };
 
-export const actualizarServicio = async (id, datos) => {
-  const { data } = await api.patch(`/schedule/${id}`, datos);
-  return data;
-};
+export const actualizarServicio = (id, datos) =>
+  safeApi(api.patch(`/schedule/${id}`, datos), 'actualizarServicio');
 
-export const eliminarServicio = async (id) => {
-  await api.delete(`/schedule/${id}`);
-};
+export const eliminarServicio = (id) =>
+  safeApi(api.delete(`/schedule/${id}`), 'eliminarServicio');
 
-// Clientes
-export const buscarClientes = async () => {
-  const { data } = await api.get('/client');
-  return data;
-};
+// ---------- Clientes ----------
+export const buscarClientes = () =>
+  safeApi(api.get('/client'), 'buscarClientes');
 
-export const obtenerClientesConDireccionCiudad = async (city) => {
-  const { data } = await api.get(`/client/clientsByCity/${encodeURIComponent(city)}`);
-  return data;
-};
+export const buscarClientesByCity = (city) =>
+  safeApi(
+    api.get(`/client/clientsByCity/${encodeURIComponent(city)}`),
+    'obtenerClientesConDireccionCiudad'
+  );
 
-export const agregarCliente = async (cliente) => {
-  const { data } = await api.post('/client', cliente);
-  return data;
-};
+export const agregarCliente = (cliente) =>
+  safeApi(api.post('/client', cliente), 'agregarCliente');
 
-export const buscarClienteById = async (id) => {
-  const { data } = await api.get(`/client/${id}`);
-  return data;
-};
+export const buscarClienteById = (id) =>
+  safeApi(api.get(`/client/${encodeURIComponent(id)}`), 'buscarClienteById');
 
-export const actualizarCliente = async (id, datos) => {
-  await api.put(`/client/${id}`, datos);
-};
+export const actualizarCliente = (id, datos) =>
+  safeApi(api.put(`/client/${encodeURIComponent(id)}`, datos), 'actualizarCliente');
 
-export const eliminarCliente = async (id) => {
-  await api.delete(`/client/${id}`);
-};
+export const eliminarCliente = (id) =>
+  safeApi(api.delete(`/client/${encodeURIComponent(id)}`), 'eliminarCliente');
 
-// Empleados
-export const buscarEmpleados = async () => {
-  const { data } = await api.get('/employee');
-  return data;
-};
+// ---------- Empleados ----------
+export const buscarEmpleados = () =>
+  safeApi(api.get('/employee'), 'buscarEmpleados');
 
-export const buscarEmpleadoById = async (id) => {
-  const { data } = await api.get(`/employee/${id}`);
-  return data;
-};
+export const buscarEmpleadoById = (id) =>
+  safeApi(api.get(`/employee/${encodeURIComponent(id)}`), 'buscarEmpleadoById');
 
-export const agregarEmpleado = async (empleado) => {
-  const { data } = await api.post('/employee', empleado);
-  return data;
-};
+export const agregarEmpleado = (empleado) =>
+  safeApi(api.post('/employee', empleado), 'agregarEmpleado');
 
-export const buscarEmpleadosByCity = async (city) => {
-  const { data } = await api.get(`/employee/city/${encodeURIComponent(city)}`);
-  return data;
-};
+export const buscarEmpleadosByCity = (city) =>
+  safeApi(
+    api.get(`/employee/city/${encodeURIComponent(city)}`),
+    'buscarEmpleadosByCity'
+  );
 
-export const actualizarEmpleado = async (id, datosParciales) => {
-  const { data } = await api.patch(`/employee/update/${id}`, datosParciales);
-  return data;
-};
+export const actualizarEmpleado = (id, datosParciales) =>
+  safeApi(
+    api.patch(`/employee/update/${encodeURIComponent(id)}`, datosParciales),
+    'actualizarEmpleado'
+  );
 
-export const eliminarEmpleado = async (id) => {
-  await api.delete(`/employee/delete/${id}`);
-};
+export const eliminarEmpleado = (id) =>
+  safeApi(api.delete(`/employee/delete/${encodeURIComponent(id)}`), 'eliminarEmpleado');
 
-export const buscarDisponibilidad = async (date, startHour, endHour, city) => {
-  const { data } = await api.get('/employee/available', {
-    params: { date, startHour, endHour, city }
-  });
-  return data;
-};
+export const buscarDisponibilidad = (date, startHour, endHour, city) =>
+  safeApi(
+    api.get('/employee/available', { params: { date, startHour, endHour, city } }),
+    'buscarDisponibilidad'
+  );

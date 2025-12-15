@@ -11,10 +11,9 @@ const AgregarEmpleados = () => {
   const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
   const { ciudades, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
-
   const { contractTypes, isLoading: contratosLoading, isError: contratosError } = useContractTypes();
 
-  const [fechaIngreso, setFechaIngreso] = useState("");
+  const [fechaIngreso, setFechaIngreso] = useState(""); // YYYY-MM-DD
   const [phone, setPhone] = useState("");
   const [direccion, setDireccion] = useState("");
   const [comentarios, setComentarios] = useState("");
@@ -42,27 +41,25 @@ const AgregarEmpleados = () => {
     "Secretario/a", "Auxiliar", "Contador",
     "Recursos Humanos", "Atención al Cliente", "Operario"
   ];
-
   const tiposId = ["CC", "PPT"];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (cargoDropdownRef.current && !cargoDropdownRef.current.contains(event.target)) {
-        setCargoDropdownOpen(false);
-      }
-      if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
-        setCiudadDropdownOpen(false);
-      }
-      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) {
-        setContractDropdownOpen(false);
-      }
-      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
-        setTipoIdDropdownOpen(false);
-      }
+      if (cargoDropdownRef.current && !cargoDropdownRef.current.contains(event.target)) setCargoDropdownOpen(false);
+      if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) setCiudadDropdownOpen(false);
+      if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) setContractDropdownOpen(false);
+      if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) setTipoIdDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Normaliza fechas a YYYY-MM-DD
+  const toYMD = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value.slice(0, 10);
+    try { return new Date(value).toISOString().slice(0, 10); } catch { return ""; }
+  };
 
   // Uppercase helpers
   const uc = (v) => (v ?? "").toString().toUpperCase();
@@ -75,39 +72,68 @@ const AgregarEmpleados = () => {
   const onComentarios = (e) => setComentarios(uc(e.target.value));
 
   const handleSubmit = async () => {
-    if (
-      !nombre || !apellido || !selectedTipoId || !documento || !email ||
-      !selectedCargo || !selectedContractType || !fechaIngreso
-    ) {
-      alert("Por favor completa todos los campos (incluye Tipo de contrato).");
+    // === Validación fuerte (lista campos faltantes) ===
+    const faltantes = [];
+    const req = (val) => (typeof val === "string" ? val.trim() !== "" : !!val);
+
+    if (!req(selectedTipoId)) faltantes.push("Tipo de ID");
+    if (!req(documento)) faltantes.push("Documento");
+    if (!req(nombre)) faltantes.push("Nombre");
+    if (!req(apellido)) faltantes.push("Apellido");
+    if (!req(selectedCity)) faltantes.push("Ciudad");
+    if (!req(selectedCargo)) faltantes.push("Cargo");
+    if (!req(fechaIngreso)) faltantes.push("Fecha de ingreso");
+    if (!req(selectedContractType)) faltantes.push("Tipo de contrato");
+
+    // Validaciones suaves
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      faltantes.push("Correo válido");
+    }
+    if (phone && !/^[0-9+()\-\s]{6,}$/.test(phone.trim())) {
+      faltantes.push("Teléfono válido");
+    }
+
+    if (faltantes.length) {
+      alert(
+        "Completa los siguientes campos antes de guardar:\n\n• " +
+        faltantes.join("\n• ")
+      );
       return;
     }
 
+    const toYMD = (value) => {
+      if (!value) return "";
+      if (typeof value === "string") return value.slice(0, 10);
+      try { return new Date(value).toISOString().slice(0, 10); } catch { return ""; }
+    };
+    const uc = (v) => (v ?? "").toString().toUpperCase();
+
     const nuevoEmpleado = {
-      name: nombre.trim(),
-      surname: apellido.trim(),
-      typeId: selectedTipoId,
-      document: documento.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      addressResidence: direccion.trim(),
-      city: selectedCity,
-      entryDate: fechaIngreso,
-      position: selectedCargo,
-      contractType: selectedContractType, // ← nuevo campo
-      comments: comentarios,
-      state: activo,
+      typeId: uc(selectedTipoId).trim(),
+      document: uc(documento).trim(),
+      name: uc(nombre).trim(),
+      surname: uc(apellido).trim(),
+      city: (selectedCity || "").trim(),
+      position: (selectedCargo || "").trim(),
+      entryDate: toYMD(fechaIngreso),
+      contractType: (selectedContractType || "").trim(), // enum/label aceptado
+      email: uc(email).trim(),
+      phone: uc(phone).trim(),
+      addressResidence: uc(direccion).trim(),
+      comments: uc(comentarios).trim(),
+      state: !!activo,
     };
 
     try {
       await agregarEmpleado(nuevoEmpleado);
-      alert("Empleado agregado exitosamente.");
+      alert("Empleado agregado correctamente ✅");
       resetFormulario();
     } catch (error) {
       console.error(error);
-      alert("Error al agregar empleado.");
+      alert("Error al agregar empleado ❌ " + (error?.message || ""));
     }
   };
+
 
   const handleCancelar = () => {
     const hayCamposLlenos =
@@ -205,7 +231,7 @@ const AgregarEmpleados = () => {
           </div>
         </div>
 
-        {/* Tipo de contrato (al lado de Cargo) */}
+        {/* Tipo de contrato */}
         <div className="input-group" ref={contractDropdownRef}>
           <label htmlFor="agregar-contrato">Tipo de contrato</label>
           <div className="dropdown">
@@ -223,11 +249,7 @@ const AgregarEmpleados = () => {
                 {contratosLoading && <div>Cargando tipos...</div>}
                 {contratosError && <div>Error al cargar tipos</div>}
                 {!contratosLoading && !contratosError && (contractTypes || []).map((ct) => (
-                  <button
-                    key={ct}
-                    type="button"
-                    onClick={() => { setSelectedContractType(ct); setContractDropdownOpen(false); }}
-                  >
+                  <button key={ct} type="button" onClick={() => { setSelectedContractType(ct); setContractDropdownOpen(false); }}>
                     {ct}
                   </button>
                 ))}
@@ -236,6 +258,7 @@ const AgregarEmpleados = () => {
           </div>
         </div>
 
+        {/* Dirección */}
         <div className="input-group">
           <label htmlFor="agregar-direccion">Dirección</label>
           <input id="agregar-direccion" type="text" value={direccion} onChange={onDireccion} style={inputUpperStyle} />
@@ -256,8 +279,8 @@ const AgregarEmpleados = () => {
             </button>
             {tipoIdDropdownOpen && (
               <div className="dropdown-content">
-                {["CC", "PPT"].map((tipo) => (
-                  <button key={tipo} type="button" onClick={() => { setSelectedTipoId(tipo); setTipoIdDropdownOpen(false); }}>
+                {tiposId.map((tipo) => (
+                  <button key={tipo} type="button" onClick={() => { setSelectedTipoId(uc(tipo)); setTipoIdDropdownOpen(false); }}>
                     {tipo}
                   </button>
                 ))}
@@ -281,6 +304,7 @@ const AgregarEmpleados = () => {
           <input id="agregar-phone" type="text" value={phone} onChange={onPhone} style={inputUpperStyle} />
         </div>
 
+        {/* Estado */}
         <div className="input-group" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Switch checked={activo} onChange={(e) => setActivo(e.target.checked)} />
           <Chip size="small" label={activo ? "ACTIVO" : "INACTIVO"} color={activo ? "success" : "default"} variant={activo ? "filled" : "outlined"} />
@@ -288,7 +312,7 @@ const AgregarEmpleados = () => {
 
         <div className="input-group">
           <label htmlFor="agregar-fecha">Fecha de ingreso</label>
-          <input id="agregar-fecha" type="date" value={fechaIngreso} onChange={e => setFechaIngreso(e.target.value)} />
+          <input id="agregar-fecha" type="date" value={fechaIngreso} onChange={e => setFechaIngreso(toYMD(e.target.value))} />
         </div>
 
         <div className="input-group">
