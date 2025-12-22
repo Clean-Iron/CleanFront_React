@@ -1,45 +1,62 @@
 'use client';
-import { useState } from "react";
-import { buscarDisponibilidad } from '@/lib/Logic.js';
+
+import { useCallback, useState } from "react";
+import { buscarServiciosPorMesPorCiudad } from "@/lib/Logic.js";
 import EspaciosDisponibles from "./EspaciosDisponibles";
 import FiltrarDisponibilidad from "./FiltrarDisponibilidad";
 
 const InfoDisponibilidad = () => {
-  const [employees, setEmployees] = useState([]);
-  const [date, setDate] = useState("");
-  const [startHour, setStartHour] = useState("");
-  const [endHour, setEndHour] = useState("");
-  const [city, setCity] = useState("");
+  const [filters, setFilters] = useState({
+    year: null,
+    month: null, // 1..12
+    city: "",
+    week: null,  // 1..N o null
+    weeks: [],   // [[startDay,endDay], ...]
+  });
 
-  const handleInfo = (newEmployees, date, startHour, endHour, city) => {
-    setEmployees(newEmployees);
-    setDate(date);
-    setStartHour(startHour);
-    setEndHour(endHour);
-    setCity(city);
-  };
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const refreshDisponibilidad = async () => {
-    try {
-      const data = await buscarDisponibilidad(date, startHour, endHour, city);
-      setEmployees(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Error refrescando disponibilidad:", err);
-      setEmployees([]);
+  const handleSearch = useCallback(async (nextFilters) => {
+    setFilters(nextFilters);
+
+    if (!nextFilters?.city || !nextFilters?.year || !nextFilters?.month) {
+      setServices([]);
+      return;
     }
-  };
+
+    try {
+      setLoading(true);
+      const data = await buscarServiciosPorMesPorCiudad(
+        nextFilters.city,
+        nextFilters.year,
+        nextFilters.month
+      );
+      setServices(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error buscando servicios por mes/ciudad:", err);
+      setServices([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    if (!filters.city || !filters.year || !filters.month) return;
+    await handleSearch(filters);
+  }, [filters, handleSearch]);
 
   return (
     <div className="container">
-      <FiltrarDisponibilidad onEmployeesUpdate={handleInfo} />
-      <EspaciosDisponibles
-        employees={employees}
-        date={date}
-        startHour={startHour}
-        endHour={endHour}
-        city={city}
-        onAssigned={refreshDisponibilidad}
-      />
+      <div className="disp-board">
+        <FiltrarDisponibilidad onSearch={handleSearch} />
+        <EspaciosDisponibles
+          services={services}
+          filters={filters}
+          loading={loading}
+          onAssigned={refresh}
+        />
+      </div>
     </div>
   );
 };

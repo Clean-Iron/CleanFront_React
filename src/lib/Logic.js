@@ -9,9 +9,9 @@ export const obtenerServicios = () =>
 export const asignarServicio = (schedule) =>
   safeApi(api.post('/schedule', schedule), 'asignarServicio');
 
-export const buscarServiciosPorMes = (ciudad, year, month) =>
+export const buscarServiciosPorMesPorCiudad = (city, year, month) =>
   safeApi(
-    api.get(`/schedule/servicesCity/${encodeURIComponent(ciudad)}`, { params: { year, month } }),
+    api.get(`/schedule/servicesCity/${encodeURIComponent(city)}`, { params: { year, month } }),
     'buscarServiciosPorMes'
   );
 

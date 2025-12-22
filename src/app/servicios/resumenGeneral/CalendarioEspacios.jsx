@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { buscarServiciosPorMes, buscarEmpleadosByCity } from '@/lib/Logic.js';
+import { buscarServiciosPorMesPorCiudad, buscarEmpleadosByCity } from '@/lib/Logic.js';
 import ModalEspaciosServicios from './ModalEspaciosServicios';
 import '@/styles/Servicios/ResumenGeneral/CalendarioEspacios.css';
 
@@ -58,7 +58,7 @@ const CalendarioEspacios = ({ city = '', currentMonth = null, currentYear = null
 		const run = async () => {
 			if (!city) { setServiciosAsignados([]); return; }
 			try {
-				const data = await buscarServiciosPorMes(city, year, month + 1);
+				const data = await buscarServiciosPorMesPorCiudad(city, year, month + 1);
 				setServiciosAsignados(Array.isArray(data) ? data : []);
 			} catch {
 				setServiciosAsignados([]);

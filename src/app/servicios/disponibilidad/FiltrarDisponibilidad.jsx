@@ -1,109 +1,181 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { buscarDisponibilidad } from '@/lib/Logic.js';
-import { useCiudades, useTimeOptions } from '@/lib/Hooks';
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useCiudades } from '@/lib/Hooks';
 import '@/styles/Servicios/Disponibilidad/FiltrarDisponibilidad.css';
 
-const FiltrarDisponibilidad = ({ onEmployeesUpdate }) => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [startHour, setStartHour] = useState('10:00:00');
-  const [endHour, setEndHour] = useState('13:00:00');
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function buildISODate(year, month1, day) {
+  return `${year}-${pad2(month1)}-${pad2(day)}`;
+}
+
+function getWeeksOfMonthSimple(year, month0) {
+  const lastDay = new Date(year, month0 + 1, 0).getDate();
+  const weeks = [];
+  for (let start = 1; start <= lastDay; start += 7) {
+    weeks.push([start, Math.min(start + 6, lastDay)]);
+  }
+  return weeks;
+}
+
+function getDaysOfRange(year, month1, startDay, endDay) {
+  const out = [];
+  for (let d = startDay; d <= endDay; d++) {
+    out.push({
+      day: d,
+      iso: buildISODate(year, month1, d),
+    });
+  }
+  return out;
+}
+
+const FiltrarDisponibilidad = ({ onSearch }) => {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0..11
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [city, setCity] = useState('');
 
+  const [selectedWeek, setSelectedWeek] = useState(null); // 1..N | null
+  const [selectedDay, setSelectedDay] = useState(null);   // 'YYYY-MM-DD' | null
+
   const { ciudades, isLoading: ciudadesLoading } = useCiudades();
-  const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
 
-  const [startHourDropdownOpen, setStartHourDropdownOpen] = useState(false);
-  const [endHourDropdownOpen, setEndHourDropdownOpen] = useState(false);
-  const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
+  const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
+  const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [weekDropdownOpen, setWeekDropdownOpen] = useState(false);
+  const [dayDropdownOpen, setDayDropdownOpen] = useState(false);
 
-  const timeStartDropdownRef = useRef(null);
-  const timeEndDropdownRef = useRef(null);
+  const monthDropdownRef = useRef(null);
+  const yearDropdownRef = useRef(null);
   const cityDropdownRef = useRef(null);
+  const weekDropdownRef = useRef(null);
+  const dayDropdownRef = useRef(null);
 
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  ];
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+
+  const weeks = useMemo(
+    () => getWeeksOfMonthSimple(selectedYear, selectedMonth),
+    [selectedYear, selectedMonth]
+  );
+
+  const daysOptions = useMemo(() => {
+    const year = selectedYear;
+    const month1 = selectedMonth + 1;
+    const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+    // Si hay semana -> días de esa semana; si no -> días del mes
+    if (selectedWeek) {
+      const [d1, d2] = weeks[selectedWeek - 1] || [1, Math.min(7, lastDay)];
+      return getDaysOfRange(year, month1, d1, d2);
+    }
+    return getDaysOfRange(year, month1, 1, lastDay);
+  }, [selectedYear, selectedMonth, selectedWeek, weeks]);
+
+  // cerrar dropdowns al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (timeStartDropdownRef.current && !timeStartDropdownRef.current.contains(event.target))
-        setStartHourDropdownOpen(false);
-      if (timeEndDropdownRef.current && !timeEndDropdownRef.current.contains(event.target))
-        setEndHourDropdownOpen(false);
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target))
+        setMonthDropdownOpen(false);
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target))
+        setYearDropdownOpen(false);
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target))
-        setCiudadDropdownOpen(false);
+        setCityDropdownOpen(false);
+      if (weekDropdownRef.current && !weekDropdownRef.current.contains(event.target))
+        setWeekDropdownOpen(false);
+      if (dayDropdownRef.current && !dayDropdownRef.current.contains(event.target))
+        setDayDropdownOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // reset semana + día cuando cambian mes/año/ciudad
+  useEffect(() => {
+    setSelectedWeek(null);
+    setSelectedDay(null);
+  }, [selectedMonth, selectedYear, city]);
+
+  // reset día cuando cambia la semana
+  useEffect(() => {
+    setSelectedDay(null);
+  }, [selectedWeek]);
+
   const handleSearch = async () => {
-    try {
-      const data = await buscarDisponibilidad(date, startHour, endHour, city);
-      onEmployeesUpdate(Array.isArray(data) ? data : [], date, startHour, endHour, city);
-    } catch (error) {
-      console.error("Error al buscar disponibilidad:", error);
-      onEmployeesUpdate([], date, startHour, endHour, city);
-    }
+    const payload = {
+      year: selectedYear,
+      month: selectedMonth + 1,
+      city,
+      week: selectedWeek,
+      day: selectedDay, // 👈 NUEVO
+      weeks,
+    };
+    onSearch?.(payload);
   };
 
   return (
-    <div className="filter-container">
-      {/* Fecha */}
-      <input
-        type="date"
-        value={date}
-        onChange={e => setDate(e.target.value)}
-        style={{ marginBottom: 20 }}
-      />
-
-      {/* Hora Inicio */}
-      <div className="dropdown" style={{ marginBottom: 20 }} ref={timeStartDropdownRef}>
+    <div className="filter-container filter-container--row">
+      {/* Mes */}
+      <div className="dropdown filtro" ref={monthDropdownRef}>
         <button
           type="button"
-          className={`dropdown-trigger ${startHourDropdownOpen ? 'open' : ''}`}
-          onClick={() => setStartHourDropdownOpen(o => !o)}
+          className={`dropdown-trigger ${monthDropdownOpen ? 'open' : ''}`}
+          onClick={() => setMonthDropdownOpen((o) => !o)}
         >
-          <span>{timeOptions.find(o => o.value === startHour)?.label}</span>
+          <span>{months[selectedMonth]}</span>
           <span className="arrow">▼</span>
         </button>
-        {startHourDropdownOpen && (
+        {monthDropdownOpen && (
           <div className="dropdown-content">
-            {timeOptions.map((opt, idx) => (
+            {months.map((m, idx) => (
               <button
-                key={idx}
+                key={m}
                 type="button"
+                className={selectedMonth === idx ? 'selected' : ''}
                 onClick={() => {
-                  setStartHour(opt.value);
-                  setStartHourDropdownOpen(false);
+                  setSelectedMonth(idx);
+                  setMonthDropdownOpen(false);
                 }}
               >
-                {opt.label}
+                {m}
               </button>
             ))}
           </div>
         )}
       </div>
 
-      {/* Hora Fin */}
-      <div className="dropdown" style={{ marginBottom: 20 }} ref={timeEndDropdownRef}>
+      {/* Año */}
+      <div className="dropdown filtro" ref={yearDropdownRef}>
         <button
           type="button"
-          className={`dropdown-trigger ${endHourDropdownOpen ? 'open' : ''}`}
-          onClick={() => setEndHourDropdownOpen(o => !o)}
+          className={`dropdown-trigger ${yearDropdownOpen ? 'open' : ''}`}
+          onClick={() => setYearDropdownOpen((o) => !o)}
         >
-          <span>{timeOptions.find(o => o.value === endHour)?.label}</span>
+          <span>{selectedYear}</span>
           <span className="arrow">▼</span>
         </button>
-        {endHourDropdownOpen && (
+        {yearDropdownOpen && (
           <div className="dropdown-content">
-            {timeOptions.map((opt, idx) => (
+            {years.map((y) => (
               <button
-                key={idx}
+                key={y}
                 type="button"
+                className={selectedYear === y ? 'selected' : ''}
                 onClick={() => {
-                  setEndHour(opt.value);
-                  setEndHourDropdownOpen(false);
+                  setSelectedYear(y);
+                  setYearDropdownOpen(false);
                 }}
               >
-                {opt.label}
+                {y}
               </button>
             ))}
           </div>
@@ -111,37 +183,139 @@ const FiltrarDisponibilidad = ({ onEmployeesUpdate }) => {
       </div>
 
       {/* Ciudad */}
-      <div className="dropdown" ref={cityDropdownRef}>
+      <div className="dropdown filtro" ref={cityDropdownRef}>
         <button
           type="button"
-          className={`dropdown-trigger ${ciudadDropdownOpen ? 'open' : ''}`}
-          onClick={() => setCiudadDropdownOpen(o => !o)}
+          className={`dropdown-trigger ${cityDropdownOpen ? 'open' : ''} ${city ? 'city-selected' : ''}`}
+          onClick={() => setCityDropdownOpen((o) => !o)}
         >
           <span>{city || (ciudadesLoading ? 'Cargando ciudades…' : 'Seleccionar ciudad')}</span>
           <span className="arrow">▼</span>
         </button>
-        {ciudadDropdownOpen && (
+        {cityDropdownOpen && (
           <div className="dropdown-content">
-            {ciudadesLoading
-              ? <div className="loading">Cargando…</div>
-              : ciudades.map((ciu, idx) => (
+            {city && (
+              <button
+                type="button"
+                className="clear-option"
+                onClick={() => {
+                  setCity('');
+                  setCityDropdownOpen(false);
+                }}
+              >
+                Limpiar selección
+              </button>
+            )}
+            {ciudadesLoading ? (
+              <div className="loading">Cargando…</div>
+            ) : (
+              ciudades.map((ciu, idx) => (
                 <button
                   key={idx}
                   type="button"
+                  className={city === ciu ? 'selected' : ''}
                   onClick={() => {
                     setCity(ciu);
-                    setCiudadDropdownOpen(false);
+                    setCityDropdownOpen(false);
                   }}
                 >
                   {ciu}
                 </button>
               ))
-            }
+            )}
           </div>
         )}
       </div>
 
-      {/* Botón de búsqueda */}
+      {/* Semana */}
+      <div className="dropdown filtro" ref={weekDropdownRef}>
+        <button
+          type="button"
+          className={`dropdown-trigger ${weekDropdownOpen ? 'open' : ''}`}
+          onClick={() => setWeekDropdownOpen((o) => !o)}
+        >
+          <span>
+            {selectedWeek
+              ? (() => {
+                  const [d1, d2] = weeks[selectedWeek - 1] || [null, null];
+                  return d1 && d2 ? `Semana ${selectedWeek} (${d1}–${d2})` : `Semana ${selectedWeek}`;
+                })()
+              : 'Todas las semanas'}
+          </span>
+          <span className="arrow">▼</span>
+        </button>
+
+        {weekDropdownOpen && (
+          <div className="dropdown-content">
+            <button
+              type="button"
+              className={!selectedWeek ? 'selected' : ''}
+              onClick={() => {
+                setSelectedWeek(null);
+                setWeekDropdownOpen(false);
+              }}
+            >
+              Todas las semanas
+            </button>
+            {weeks.map(([d1, d2], idx) => (
+              <button
+                key={idx + 1}
+                type="button"
+                className={selectedWeek === idx + 1 ? 'selected' : ''}
+                onClick={() => {
+                  setSelectedWeek(idx + 1);
+                  setWeekDropdownOpen(false);
+                }}
+              >
+                {`Semana ${idx + 1} (${d1}–${d2})`}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Día (NUEVO) */}
+      <div className="dropdown filtro" ref={dayDropdownRef}>
+        <button
+          type="button"
+          className={`dropdown-trigger ${dayDropdownOpen ? 'open' : ''}`}
+          onClick={() => setDayDropdownOpen((o) => !o)}
+          disabled={!daysOptions.length}
+        >
+          <span>{selectedDay || 'Todos los días'}</span>
+          <span className="arrow">▼</span>
+        </button>
+
+        {dayDropdownOpen && (
+          <div className="dropdown-content">
+            <button
+              type="button"
+              className={!selectedDay ? 'selected' : ''}
+              onClick={() => {
+                setSelectedDay(null);
+                setDayDropdownOpen(false);
+              }}
+            >
+              Todos los días
+            </button>
+
+            {daysOptions.map((d) => (
+              <button
+                key={d.iso}
+                type="button"
+                className={selectedDay === d.iso ? 'selected' : ''}
+                onClick={() => {
+                  setSelectedDay(d.iso);
+                  setDayDropdownOpen(false);
+                }}
+              >
+                {d.iso}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <button onClick={handleSearch} className="search-button">
         BUSCAR DISPONIBILIDAD
       </button>

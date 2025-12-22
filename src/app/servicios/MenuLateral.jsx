@@ -39,14 +39,6 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 							🔍 Buscar Disponibilidad
 						</button>
 					</li>
-					<li>
-						<button
-							className={`menu-btn ${seccionActiva === "infoGeneral" ? "activo" : ""}`}
-							onClick={() => onNavClick("editarTarea")}
-						>
-							✏️ Editar Tarea
-						</button>
-					</li>
 				</ul>
 			</div>
 		</div>
