@@ -25,7 +25,6 @@ const EditarClientes = () => {
 
   const [comentarios, setComentarios] = useState("");
   const [direcciones, setDirecciones] = useState([]);
-  const [selectedCity, setSelectedCity] = useState("");
 
   const [mensajeError, setMensajeError] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -33,12 +32,8 @@ const EditarClientes = () => {
   const [mostrarModalDirecciones, setMostrarModalDirecciones] = useState(false);
 
   const [tipoIdDropdownOpen, setTipoIdDropdownOpen] = useState(false);
-  const [ciudadDropdownOpen, setCiudadDropdownOpen] = useState(false);
 
   const tipoIdDropdownRef = useRef(null);
-  const ciudadDropdownRef = useRef(null);
-
-  const tipoId = ["CC", "TI", "NIT", "CE", "PA"];
 
   const uc = (v) => (v ?? "").toString().toUpperCase();
   const inputUpper = { textTransform: "uppercase" };
@@ -53,7 +48,6 @@ const EditarClientes = () => {
       setPhone(uc(clienteEncontrado.phone || ""));
       setComentarios(uc(clienteEncontrado.comments || ""));
       setDirecciones(clienteEncontrado.addresses || []);
-      setSelectedCity(clienteEncontrado.city || "");
       setActivo(clienteEncontrado.state === true || clienteEncontrado.state === "true");
     }
   }, [clienteEncontrado]);
@@ -62,9 +56,6 @@ const EditarClientes = () => {
     const handleClickOutside = (event) => {
       if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) {
         setTipoIdDropdownOpen(false);
-      }
-      if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) {
-        setCiudadDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -85,7 +76,6 @@ const EditarClientes = () => {
     }
   };
 
-  // Guardado desde modal de direcciones
   const manejarGuardarDirecciones = (nuevasDirecciones) => {
     setDirecciones(nuevasDirecciones);
     setClienteEncontrado(prev => ({
@@ -140,7 +130,6 @@ const EditarClientes = () => {
       email: uc(email).trim(),
       phone: uc(phone).trim(),
       addresses: addressesNorm,
-      city: uc(selectedCity).trim(),
       document: uc(documento).trim(),
       comments: uc(comentarios).trim(),
       state: !!activo
@@ -168,7 +157,6 @@ const EditarClientes = () => {
     setPhone("");
     setComentarios("");
     setDirecciones([]);
-    setSelectedCity("");
     setActivo(true);
   };
 
