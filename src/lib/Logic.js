@@ -1,10 +1,13 @@
-// Logic.js
 import { api } from './ApiClient';
 import { safeApi } from './ApiErrorHelper';
 
+// ---------- Auth ----------
+export const login = (username, password) =>
+  safeApi(api.post('/auth/login', { username, password }), 'login');
+
 // ---------- Servicios ----------
 export const obtenerServicios = () =>
-  safeApi(api.get('/service/all'), 'obtenerServicios');
+  safeApi(api.get('/service'), 'obtenerServicios');
 
 export const asignarServicio = (schedule) =>
   safeApi(api.post('/schedule', schedule), 'asignarServicio');

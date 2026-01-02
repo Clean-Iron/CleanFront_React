@@ -30,16 +30,11 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   const timeOptions = useTimeOptions({ startHour: 0, endHour: 24, stepMinutes: 30 });
   const { serviceStates, isLoading: isLoadingStates, isError: isErrorStates } = useServiceStates();
 
-  // Overlay global reutilizable
   const { isLoading: overlayOn, withLoading, OverlayPortal } = useLoadingOverlay('Procesando…');
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const disabled = overlayOn || saving || deleting;
-
-  // Fallback para evitar lista vacía
-  const fallbackStates = ['PROGRAMADA', 'COMPLETADA', 'CANCELADA', 'NO PRESTADO'];
-  const statuses = (Array.isArray(serviceStates) && serviceStates.length) ? serviceStates : fallbackStates;
 
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
@@ -125,11 +120,11 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
 
   useEffect(() => {
     if (!isLoadingStates && !isErrorStates) {
-      if (!currentState || !statuses.includes(currentState)) {
-        setCurrentState(statuses[0] || '');
+      if (!currentState || !serviceStates.includes(currentState)) {
+        setCurrentState(serviceStates[0] || '');
       }
     }
-  }, [isLoadingStates, isErrorStates, statuses, currentState]);
+  }, [isLoadingStates, isErrorStates, serviceStates, currentState]);
 
   // Cuando se abre el dropdown de empleados, refresca la lista base y limpia texto
   useEffect(() => {
@@ -161,7 +156,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
   });
 
   const handleGuardar = async () => {
-    if (!currentState || !statuses.includes(currentState)) {
+    if (!currentState || !serviceStates.includes(currentState)) {
       alert('Selecciona un estado válido.');
       return;
     }
@@ -302,7 +297,7 @@ const FormularioTarea = ({ service, onClose, onUpdate }) => {
                 </button>
                 {stateOpen && !disabled && (
                   <div className="dropdown-content">
-                    {statuses.map((st) => (
+                    {serviceStates.map((st) => (
                       <button key={st} onClick={() => { setCurrentState(st); setStateOpen(false); }}>
                         {st}
                       </button>
