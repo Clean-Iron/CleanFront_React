@@ -79,10 +79,6 @@ const Home = () => {
 
       localStorage.setItem("token", auth.token);
       localStorage.setItem("expiresAt", auth.expiresAt);
-      localStorage.setItem(
-        "authUser",
-        JSON.stringify({ username: auth.username, roles: auth.roles })
-      );
 
       router.push("/menu-principal");
     } catch (err) {

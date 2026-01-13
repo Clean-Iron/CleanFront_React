@@ -1,20 +1,37 @@
 'use client';
-import React from 'react';
+
+import React, { useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import '@/styles/MenuPrincipal.css';
 
 const MenuPrincipal = () => {
+  const router = useRouter();
+
+  const handleLogout = useCallback(() => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('expiresAt');
+      // si quieres limpiar TODO:
+      // localStorage.clear();
+    } catch (e) {
+      console.error('Error limpiando localStorage:', e);
+    }
+
+    router.replace('/?reason=logout');
+  }, [router]);
+
   return (
     <div className="menu-wrapper">
+      {/* Botón cerrar sesión */}
+      <button className="menu-logout-btn" type="button" onClick={handleLogout}>
+        Cerrar sesión
+      </button>
+
       <div className="menu-grid">
         {/* WhatsApp */}
-        <button className="menu-card" onClick={() => {/* acción WhatsApp */ }}>
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            className="menu-icon whatsapp"
-          >
+        <button className="menu-card" onClick={() => {}}>
+          <svg width="30" height="30" viewBox="0 0 24 24" className="menu-icon whatsapp">
             <path d="M19.001 4.908A9.817 9.817 0 0 0 11.992 2C6.534 2 2.085 6.448 2.08 11.908c0 
               1.748.458 3.45 1.321 4.956L2 22l5.255-1.377a9.916 9.916 0 0 0 
               4.737 1.206h.005c5.46 0 9.908-4.448 9.913-9.913A9.872 9.872 0 0 0 
@@ -28,18 +45,8 @@ const MenuPrincipal = () => {
 
         {/* Servicios */}
         <Link href="/servicios" className="menu-card">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="menu-icon calendario"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="menu-icon calendario">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 
                  18.75V7.5a2.25 2.25 0 0 1 
                  2.25-2.25h13.5A2.25 2.25 0 
                  0 1 21 7.5v11.25m-18 
@@ -47,26 +54,15 @@ const MenuPrincipal = () => {
                  2.25 0 0 0 21 18.75m-18 
                  0v-7.5A2.25 2.25 0 0 1 5.25 
                  9h13.5A2.25 2.25 0 0 1 
-                 21 11.25v7.5"
-            />
+                 21 11.25v7.5"/>
           </svg>
           <span className="menu-label">Servicios</span>
         </Link>
 
         {/* Clientes */}
         <Link href="/clientes" className="menu-card">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="menu-icon clientes"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19.128a9.38 9.38 0 0 
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="menu-icon clientes">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 
                  0 2.625.372 9.337 9.337 0 
                  0 0 4.121-.952 4.125 4.125 
                  0 0 0-7.533-2.493M15 
@@ -78,26 +74,15 @@ const MenuPrincipal = () => {
                  3.375 0 1 1-6.75 0 3.375 
                  3.375 0 0 1 6.75 0Zm8.25 
                  2.25a2.625 2.625 0 1 1-5.25 0 
-                 2.625 2.625 0 0 1 5.25 0Z"
-            />
+                 2.625 2.625 0 0 1 5.25 0Z"/>
           </svg>
           <span className="menu-label">Clientes</span>
         </Link>
 
         {/* Empleados */}
         <Link href="/empleados" className="menu-card">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="menu-icon empleados"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.666 3.888A2.25 2.25 0 0 
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="menu-icon empleados">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 
                  0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 
                  1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 
                  0 0 1-.75.75H9a.75.75 0 0 
@@ -107,8 +92,7 @@ const MenuPrincipal = () => {
                  2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 
                  0 1 4.5 19.5V6.257c0-1.108.806-2.057 
                  1.907-2.185a48.208 48.208 0 0 
-                 1 1.927-.184"
-            />
+                 1 1.927-.184"/>
           </svg>
           <span className="menu-label">Empleados</span>
         </Link>
