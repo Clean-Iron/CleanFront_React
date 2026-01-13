@@ -1,11 +1,65 @@
 'use client';
-import React, { useMemo, useState } from 'react';
+
+import React, { useMemo, useState, useCallback } from 'react';
+import '@/styles/servicios/disponibilidad/ModalFrecuenciaFechas.css';
 
 /* Utilidades de fecha (sin libs) */
 const toYmd = (d) => {
   const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return z.toISOString().slice(0, 10);
 };
+
+const fromYmd = (ymd) => {
+  const [Y, M, D] = String(ymd).split('-').map(Number);
+  return new Date(Y, (M || 1) - 1, D || 1);
+};
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+const buildYmd = (year, month0, day) => {
+  const d = new Date(year, month0, day);
+  return toYmd(d);
+};
+
+const monthNamesES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+const weekDaysES = ['DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SA'];
+
+/** Construye una grilla 6x7 (42 celdas) con días del mes + “overflow” del mes anterior/siguiente */
+function buildMonthGrid(year, month0) {
+  const first = new Date(year, month0, 1);
+  const firstDow = first.getDay(); // 0 Domingo
+  const gridStart = new Date(year, month0, 1 - firstDow); // domingo anterior (o el mismo)
+  const cells = [];
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+
+    const ymd = toYmd(d);
+    cells.push({
+      ymd,
+      year: d.getFullYear(),
+      month0: d.getMonth(),
+      day: d.getDate(),
+      inMonth: d.getMonth() === month0,
+      isToday: ymd === toYmd(new Date()),
+    });
+  }
+
+  return cells;
+}
+
+function clampMonthYear(year, month0) {
+  let y = year;
+  let m = month0;
+  while (m < 0) { m += 12; y -= 1; }
+  while (m > 11) { m -= 12; y += 1; }
+  return { year: y, month0: m };
+}
 
 export default function ModalFrecuenciaFechas({
   show,
@@ -14,14 +68,17 @@ export default function ModalFrecuenciaFechas({
   baseDate,                // 'YYYY-MM-DD' (opcional)
   onConfirm,               // (dates: string[]) => void
 }) {
-  // Fecha base (hoy si no viene)
   const initial = baseDate || toYmd(new Date());
 
-  // estado del date input
-  const [date, setDate] = useState(initial);
+  // Cursor del calendario (mes visible)
+  const initialDateObj = useMemo(() => fromYmd(initial), [initial]);
+  const [cursor, setCursor] = useState(() => ({
+    year: initialDateObj.getFullYear(),
+    month0: initialDateObj.getMonth(),
+  }));
 
-  // Set con orden de inserción; iniciamos con la fecha del mismo día
-  const [selected, setSelected] = useState(() => new Set([initial]));
+  // Fechas seleccionadas (orden de inserción)
+  const [selectedDates, setSelectedDates] = useState(() => [initial]);
 
   const title = useMemo(() => {
     const map = {
@@ -34,50 +91,131 @@ export default function ModalFrecuenciaFechas({
     return map[recurrence] || 'Fechas';
   }, [recurrence]);
 
-  // Agrega SOLO la fecha seleccionada (sin series automáticas)
-  const onPickDate = (value) => {
-    setDate(value);
-    setSelected(prev => new Set([...prev, value])); // dedup + respeta orden (la base va primero)
+  const selectedSet = useMemo(() => new Set(selectedDates), [selectedDates]);
+
+  const ordered = useMemo(() => {
+    if (selectedSet.has(initial)) {
+      return [initial, ...selectedDates.filter((d) => d !== initial)];
+    }
+    return selectedDates;
+  }, [selectedDates, selectedSet, initial]);
+
+  const grid = useMemo(() => buildMonthGrid(cursor.year, cursor.month0), [cursor.year, cursor.month0]);
+
+  const goPrevMonth = () => {
+    setCursor((c) => clampMonthYear(c.year, c.month0 - 1));
   };
 
+  const goNextMonth = () => {
+    setCursor((c) => clampMonthYear(c.year, c.month0 + 1));
+  };
+
+  const goToday = () => {
+    const t = new Date();
+    setCursor({ year: t.getFullYear(), month0: t.getMonth() });
+    const ymd = toYmd(t);
+    setSelectedDates((prev) => (prev.includes(ymd) ? prev : [...prev, ymd]));
+  };
+
+  const toggleDate = useCallback((ymd, cellYear, cellMonth0) => {
+    // si clickeas un día “gris” de otro mes, navegamos a ese mes
+    if (typeof cellYear === 'number' && typeof cellMonth0 === 'number') {
+      if (cellYear !== cursor.year || cellMonth0 !== cursor.month0) {
+        setCursor({ year: cellYear, month0: cellMonth0 });
+      }
+    }
+
+    setSelectedDates((prev) => {
+      const exists = prev.includes(ymd);
+      if (exists) {
+        // permitir quitar cualquiera, incluso la base (si la quitas, simplemente no quedará primera)
+        return prev.filter((d) => d !== ymd);
+      }
+      return [...prev, ymd];
+    });
+  }, [cursor.year, cursor.month0]);
+
   const removeDate = (d) => {
-    const next = new Set(selected);
-    next.delete(d);
-    setSelected(next);
+    setSelectedDates((prev) => prev.filter((x) => x !== d));
   };
 
   const clearAll = () => {
-    // si limpias, y quieres volver a incluir la del mismo día automáticamente:
-    const next = new Set([initial]);
-    setSelected(next);
-    setDate(initial);
+    setSelectedDates([initial]);
+    setCursor({
+      year: initialDateObj.getFullYear(),
+      month0: initialDateObj.getMonth(),
+    });
   };
 
   if (!show) return null;
 
-  // Mantener la del mismo día primero si sigue presente
-  const ordered = (() => {
-    const arr = Array.from(selected);
-    // si la fecha base está, la aseguramos en primera posición
-    if (arr.includes(initial)) {
-      return [initial, ...arr.filter(d => d !== initial)];
-    }
-    return arr;
-  })();
-
   return (
     <div className="modal-overlay">
       <div className="modal-container">
+        {/* Encabezado opcional */}
+        <div className="mff-header">
+          <div className="mff-title">{title}</div>
+          <div className="mff-subtitle">Selecciona varias fechas (clic para agregar/quitar).</div>
+        </div>
+
         <div className="modal-asignacion-form-grid">
-          <div>
-            <label>Selecciona fecha</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => onPickDate(e.target.value)}
-            />
+          {/* CALENDARIO MULTI */}
+          <div className="mff-cal">
+            <div className="mff-cal-top">
+              <div className="mff-month">
+                {monthNamesES[cursor.month0]} de {cursor.year}
+              </div>
+
+              <div className="mff-nav">
+                <button type="button" className="mff-nav-btn" onClick={goPrevMonth} aria-label="Mes anterior">
+                  ‹
+                </button>
+                <button type="button" className="mff-nav-btn" onClick={goNextMonth} aria-label="Mes siguiente">
+                  ›
+                </button>
+              </div>
+            </div>
+
+            <div className="mff-weekdays">
+              {weekDaysES.map((wd) => (
+                <div key={wd} className="mff-weekday">{wd}</div>
+              ))}
+            </div>
+
+            <div className="mff-grid" role="grid" aria-label="Calendario">
+              {grid.map((cell) => {
+                const isSelected = selectedSet.has(cell.ymd);
+
+                return (
+                  <button
+                    key={cell.ymd}
+                    type="button"
+                    className={[
+                      'mff-day',
+                      cell.inMonth ? '' : 'mff-day--muted',
+                      isSelected ? 'mff-day--selected' : '',
+                      cell.isToday ? 'mff-day--today' : '',
+                    ].join(' ').trim()}
+                    onClick={() => toggleDate(cell.ymd, cell.year, cell.month0)}
+                    title={cell.ymd}
+                  >
+                    {cell.day}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mff-cal-footer">
+              <button type="button" className="mff-link" onClick={clearAll}>
+                Restablecer al mismo día
+              </button>
+              <button type="button" className="mff-link" onClick={goToday}>
+                Hoy
+              </button>
+            </div>
           </div>
 
+          {/* Chips */}
           <div className="modal-chip-section">
             <label>Fechas seleccionadas</label>
             <div className="modal-chip-container">
@@ -85,7 +223,7 @@ export default function ModalFrecuenciaFechas({
                 {ordered.length === 0 ? (
                   <div className="modal-asignacion-no-opciones">No hay fechas agregadas todavía.</div>
                 ) : (
-                  ordered.map(d => (
+                  ordered.map((d) => (
                     <div key={d} className="modal-chip">
                       {d}
                       <span className="modal-asignacion-remove-btn" onClick={() => removeDate(d)}>×</span>
@@ -100,9 +238,6 @@ export default function ModalFrecuenciaFechas({
         {/* Botones */}
         <div className="modal-asignacion-form-buttons">
           <button onClick={onClose} className="modal-asignacion-btn-cancelar">Cerrar</button>
-          <button type="button" onClick={clearAll} className="modal-asignacion-btn-cancelar">
-            Restablecer al mismo día
-          </button>
           <button
             type="button"
             className="modal-asignacion-btn-confirmar"
@@ -113,7 +248,6 @@ export default function ModalFrecuenciaFechas({
             Usar {ordered.length} fecha(s)
           </button>
         </div>
-
       </div>
     </div>
   );

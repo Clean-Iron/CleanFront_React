@@ -39,20 +39,59 @@
   overflow: auto; /* scroll vertical + horizontal */
 }
 
-/* ============================== */
-/* Estados vacío / loading        */
-/* ============================== */
+/* ==========================
+   EMPTY / LOADING centrado
+========================== */
+
+/* el wrapper debe ocupar el alto del panel */
 .disp-empty-state {
   width: 100%;
   height: 100%;
-  min-height: 220px;
+  min-height: 260px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* estilo consistente con tus pantallas */
+.disp-empty-state--strong {
   color: #6b7280;
   font-size: 14px;
-  text-align: center;
+  font-weight: 700;
 }
+
+/* contenedor interno para alinear spinner + texto */
+.disp-empty-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+/* Spinner visible */
+.disp-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+
+  border: 3px solid rgba(107, 114, 128, 0.25);
+  border-top-color: rgba(107, 114, 128, 0.9);
+
+  flex: 0 0 auto;
+  display: inline-block;
+
+  animation: dispSpin 0.9s linear infinite;
+}
+
+@keyframes dispSpin {
+  to { transform: rotate(360deg); }
+}
+
 
 /* ============================== */
 /* Semana: GRID tipo calendario   */

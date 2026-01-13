@@ -1,7 +1,7 @@
 'use client';
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCiudades } from '@/lib/Hooks';
-import '@/styles/Servicios/Disponibilidad/FiltrarDisponibilidad.css';
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -23,15 +23,12 @@ function getWeeksOfMonthSimple(year, month0) {
 function getDaysOfRange(year, month1, startDay, endDay) {
   const out = [];
   for (let d = startDay; d <= endDay; d++) {
-    out.push({
-      day: d,
-      iso: buildISODate(year, month1, d),
-    });
+    out.push({ day: d, iso: buildISODate(year, month1, d) });
   }
   return out;
 }
 
-const FiltrarDisponibilidad = ({ onSearch }) => {
+const FiltrarServicios = ({ onSearch }) => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0..11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -39,6 +36,7 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
 
   const [selectedWeek, setSelectedWeek] = useState(null); // 1..N | null
   const [selectedDay, setSelectedDay] = useState(null);   // 'YYYY-MM-DD' | null
+  const [keyword, setKeyword] = useState('');             // texto libre
 
   const { ciudades, isLoading: ciudadesLoading } = useCiudades();
 
@@ -72,7 +70,6 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
     const month1 = selectedMonth + 1;
     const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-    // Si hay semana -> días de esa semana; si no -> días del mes
     if (selectedWeek) {
       const [d1, d2] = weeks[selectedWeek - 1] || [1, Math.min(7, lastDay)];
       return getDaysOfRange(year, month1, d1, d2);
@@ -82,16 +79,11 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target))
-        setMonthDropdownOpen(false);
-      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target))
-        setYearDropdownOpen(false);
-      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target))
-        setCityDropdownOpen(false);
-      if (weekDropdownRef.current && !weekDropdownRef.current.contains(event.target))
-        setWeekDropdownOpen(false);
-      if (dayDropdownRef.current && !dayDropdownRef.current.contains(event.target))
-        setDayDropdownOpen(false);
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) setMonthDropdownOpen(false);
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target)) setYearDropdownOpen(false);
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target)) setCityDropdownOpen(false);
+      if (weekDropdownRef.current && !weekDropdownRef.current.contains(event.target)) setWeekDropdownOpen(false);
+      if (dayDropdownRef.current && !dayDropdownRef.current.contains(event.target)) setDayDropdownOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -108,13 +100,14 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
     setSelectedDay(null);
   }, [selectedWeek]);
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     const payload = {
       year: selectedYear,
-      month: selectedMonth + 1,
+      month: selectedMonth + 1, // 1..12
       city,
       week: selectedWeek,
-      day: selectedDay, 
+      day: selectedDay,
+      keyword: keyword?.trim() || '',
       weeks,
     };
     onSearch?.(payload);
@@ -209,7 +202,7 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
             ) : (
               ciudades.map((ciu, idx) => (
                 <button
-                  key={idx}
+                  key={`${ciu}-${idx}`}
                   type="button"
                   className={city === ciu ? 'selected' : ''}
                   onClick={() => {
@@ -257,7 +250,7 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
             </button>
             {weeks.map(([d1, d2], idx) => (
               <button
-                key={idx + 1}
+                key={`wk-${idx + 1}`}
                 type="button"
                 className={selectedWeek === idx + 1 ? 'selected' : ''}
                 onClick={() => {
@@ -272,7 +265,7 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
         )}
       </div>
 
-      {/* Día (NUEVO) */}
+      {/* Día */}
       <div className="dropdown filtro" ref={dayDropdownRef}>
         <button
           type="button"
@@ -314,11 +307,25 @@ const FiltrarDisponibilidad = ({ onSearch }) => {
         )}
       </div>
 
-      <button onClick={handleSearch} className="search-button">
-        BUSCAR DISPONIBILIDAD
+      {/* Palabras clave */}
+      <div className="filtro filtro-keyword">
+        <input
+          type="text"
+          className="keyword-input"
+          placeholder="Buscar por palabra clave…"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSearch();
+          }}
+        />
+      </div>
+
+      <button id="buscarServicios" onClick={handleSearch} className="search-button">
+        BUSCAR SERVICIOS
       </button>
     </div>
   );
 };
 
-export default FiltrarDisponibilidad;
+export default FiltrarServicios;

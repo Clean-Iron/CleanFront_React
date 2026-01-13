@@ -1,0 +1,149 @@
+/* Calendario multi-fecha dentro del modal */
+/* Usa tu look & feel (bordes redondeados, sombra suave, etc.) */
+
+.mff-header {
+  margin-bottom: 10px;
+}
+
+.mff-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.mff-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.mff-cal {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #B8D4F0;
+  border-radius: 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.08);
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.mff-cal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mff-month {
+  font-size: 14px;
+  font-weight: 800;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.mff-nav {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.mff-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #B8D4F0;
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(0,0,0,.08);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 900;
+  color: #111827;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.mff-nav-btn:hover {
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.25);
+  transform: translateY(-1px);
+}
+
+.mff-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.mff-weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #6b7280;
+  letter-spacing: .5px;
+}
+
+.mff-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.mff-day {
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 212, 240, 0.9);
+  background: #fff;
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+
+  box-shadow: 0 1px 5px rgba(0,0,0,.06);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.mff-day:hover {
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.25);
+  transform: translateY(-1px);
+}
+
+.mff-day--muted {
+  opacity: 0.45;
+  font-weight: 800;
+}
+
+.mff-day--selected {
+  background: rgba(35, 196, 131, 0.18);
+  border-color: rgba(35, 196, 131, 0.9);
+  color: #065f46;
+}
+
+.mff-day--today {
+  outline: 2px solid rgba(70, 130, 180, 0.35);
+  outline-offset: 1px;
+}
+
+.mff-cal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mff-link {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1976d2;
+}
+
+.mff-link:hover {
+  text-decoration: underline;
+}
+

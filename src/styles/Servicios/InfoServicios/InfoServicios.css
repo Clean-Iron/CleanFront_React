@@ -1,0 +1,197 @@
+/* Root igual al enfoque de disponibilidad */
+.info-servicios-ciudad {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* Panel blanco (como .disp-weekly-panel) */
+.info-servicios-ciudad__panel {
+  flex: 1;
+  width: 100%;
+  background-color: #ffffff;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  padding: 16px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  overflow: hidden; /* el scroll real lo maneja el shell */
+}
+
+/* Empty + Loading igual a .disp-empty-state */
+.info-servicios-ciudad__emptyState {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  gap: 10px;
+}
+
+/* Spinner simple */
+.info-servicios-ciudad__spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 3px solid rgba(107, 114, 128, 0.25);
+  border-top-color: rgba(107, 114, 128, 0.9);
+  animation: infoSpin 0.9s linear infinite;
+}
+
+@keyframes infoSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Shell scrolleable para sticky (como tu panel de disponibilidad) */
+.info-servicios-ciudad__tableShell {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 14px;
+  overflow: auto; /* scroll vertical + horizontal */
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Scrollbars estilo disponibilidad */
+.info-servicios-ciudad__tableShell::-webkit-scrollbar { height: 10px; width: 10px; }
+.info-servicios-ciudad__tableShell::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+.info-servicios-ciudad__tableShell::-webkit-scrollbar-thumb { background: #cfcfcf; border-radius: 8px; }
+.info-servicios-ciudad__tableShell::-webkit-scrollbar-thumb:hover { background: #b5b5b5; }
+
+/* Tabla */
+.info-servicios-ciudad__table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 1100px;
+  background: transparent;
+}
+
+/* Base tipografía como disponibilidad (#374151) */
+.info-servicios-ciudad__table th,
+.info-servicios-ciudad__table td {
+  border: 1px solid var(--ci-azul-borde);
+  padding: 10px 10px;
+  font-size: 12.8px;
+  font-weight: 700;
+  color: #374151;
+  vertical-align: top;
+  background-clip: padding-box;
+}
+
+/* Sticky header con z-index BAJO (para no tapar dropdown) */
+.thead-title th {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  background: #ffe699;
+}
+
+.thead-dow th {
+  position: sticky;
+  top: 44px;
+  z-index: 7;
+}
+
+.thead-day th {
+  position: sticky;
+  top: 84px;
+  z-index: 6;
+}
+
+/* Columna sticky izquierda */
+.info-servicios-ciudad__leftCol {
+  width: 240px;
+  min-width: 240px;
+  position: sticky;
+  left: 0;
+  z-index: 9;
+  background: #ffffff;
+  border-right: 2px solid rgba(184, 212, 240, 0.95);
+}
+
+/* Encabezados */
+.info-servicios-ciudad__title {
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.info-servicios-ciudad__leftLabel {
+  background: #ff00ff;
+  color: #fff;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+.info-servicios-ciudad__dow {
+  background: #d9e1f2;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  min-width: 160px;
+}
+
+.info-servicios-ciudad__dayNum {
+  background: #ffffff;
+  text-align: center;
+  font-weight: 800;
+  min-width: 160px;
+}
+
+/* Celdas */
+.info-servicios-ciudad__employeeName {
+  font-weight: 800;
+  color: #374151; /* como en disponibilidad */
+}
+
+.info-servicios-ciudad__totalsLabel {
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.info-servicios-ciudad__cell {
+  white-space: pre-wrap;
+  line-height: 1.25;
+  min-width: 160px;
+}
+
+.info-servicios-ciudad__cell--single { background: #c6e0b4; }
+.info-servicios-ciudad__cell--multiple { background: #a9d18e; }
+
+.info-servicios-ciudad__cell--empty {
+  background: #fce4d6;
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+.info-servicios-ciudad__total {
+  text-align: center;
+  font-weight: 800;
+  color: #ef4444;
+  min-width: 160px;
+  background: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .info-servicios-ciudad__panel { padding: 12px; }
+  .info-servicios-ciudad__table { min-width: 900px; }
+  .info-servicios-ciudad__leftCol { width: 210px; min-width: 210px; }
+}

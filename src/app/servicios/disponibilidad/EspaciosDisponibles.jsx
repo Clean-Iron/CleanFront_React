@@ -31,7 +31,8 @@ function calcHoursFromTimes(startHour, endHour, breakMinutes) {
   if (!startHour || !endHour) return null;
   const [sh, sm] = String(startHour).split(':').map(Number);
   const [eh, em] = String(endHour).split(':').map(Number);
-  if (!Number.isFinite(sh) || !Number.isFinite(sm) || !Number.isFinite(eh) || !Number.isFinite(em)) return null;
+  if (!Number.isFinite(sh) || !Number.isFinite(sm) || !Number.isFinite(eh) || !Number.isFinite(em))
+    return null;
 
   const startMin = sh * 60 + sm;
   const endMin = eh * 60 + em;
@@ -60,7 +61,7 @@ function buildDatesForWeek(year, month1, range) {
   for (let d = d1; d <= d2; d++) {
     out.push({ day: d, iso: buildISODate(year, month1, d), empty: false });
   }
-  // Mantener 7 columnas para “look calendario” cuando NO hay filtro por día
+  // Mantener 7 columnas cuando NO hay filtro por día
   while (out.length < 7) {
     out.push({ day: null, iso: `empty-${year}-${month1}-${d1}-${out.length}`, empty: true });
   }
@@ -84,7 +85,7 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
       return { weeksToRender: [], weekBlocks: {}, allEmployees: [], busyByDate: {}, selectedDayISO: null };
     }
 
-    // Si NO hay semana pero sí hay día, inferimos la semana donde cae ese día
+    // Si NO hay semana pero sí hay día, inferimos la semana del día
     let weeksToRender;
     if (!selectedWeek && selectedDayISO) {
       const dayOfMonth = Number(String(selectedDayISO).slice(8, 10));
@@ -94,7 +95,7 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
       weeksToRender = selectedWeek ? [selectedWeek] : weeksRanges.map((_, idx) => idx + 1);
     }
 
-    // empleados del mes (desde services)
+    // empleados del mes
     const empMap = new Map();
     for (const s of Array.isArray(services) ? services : []) {
       const emps = Array.isArray(s?.employees) ? s.employees : [];
@@ -132,9 +133,7 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
       const rawTotal = safeNumber(s?.totalServiceHours);
       let hours = rawTotal && rawTotal > 0 ? rawTotal : null;
 
-      if (hours === null) {
-        hours = calcHoursFromTimes(s?.startHour, s?.endHour, s?.breakMinutes);
-      }
+      if (hours === null) hours = calcHoursFromTimes(s?.startHour, s?.endHour, s?.breakMinutes);
       if (hours === null) hours = 0;
 
       const startTxt = shortHM(s?.startHour);
@@ -165,9 +164,9 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
       const range = weeksRanges[wk - 1];
       let dates = range ? buildDatesForWeek(year, month, range) : [];
 
-      // Si hay filtro por día, dejamos SOLO ese día (sin placeholders)
+      // Si hay filtro por día: solo ese día (sin placeholders)
       if (selectedDayISO) {
-        dates = dates.filter(d => !d.empty && d.iso === selectedDayISO);
+        dates = dates.filter((d) => !d.empty && d.iso === selectedDayISO);
       }
 
       weekBlocks[wk] = { weekNumber: wk, range, dates };
@@ -190,12 +189,9 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
     const count = busyStats.count || 0;
     const total = busyStats.totalHours || 0;
 
-    // “Copado” si: 2 servicios o ≥8h total
     if (count >= MAX_SERVICES_PER_DAY) return false;
     if (total >= MAX_HOURS_PER_DAY) return false;
-
-    // o si un servicio individual ya es ≥8h
-    if ((busyStats.services || []).some(s => (s.hours || 0) >= MAX_HOURS_PER_DAY)) return false;
+    if ((busyStats.services || []).some((s) => (s.hours || 0) >= MAX_HOURS_PER_DAY)) return false;
 
     return true;
   };
@@ -204,15 +200,18 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
     <div className="disp-weekly-root">
       <div className="disp-weekly-panel">
         {!hasFilters ? (
-          <div className="disp-empty-state">
+          <div className="disp-empty-state disp-empty-state--strong">
             <p>Realiza una búsqueda para ver la disponibilidad.</p>
           </div>
         ) : loading ? (
-          <div className="disp-empty-state">
-            <p>Cargando…</p>
+          <div className="disp-empty-state disp-empty-state--strong">
+            <div className="disp-empty-inner">
+              <span className="disp-spinner" aria-hidden="true" />
+              <p>Cargando disponibilidad…</p>
+            </div>
           </div>
         ) : computed.weeksToRender.length === 0 ? (
-          <div className="disp-empty-state">
+          <div className="disp-empty-state disp-empty-state--strong">
             <p>No hay semanas para mostrar.</p>
           </div>
         ) : (
@@ -222,10 +221,7 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
             const singleDay = !!computed.selectedDayISO;
 
             return (
-              <div
-                className={`disp-week-grid ${singleDay ? 'disp-week-grid--single' : ''}`}
-                key={wk}
-              >
+              <div className={`disp-week-grid ${singleDay ? 'disp-week-grid--single' : ''}`} key={wk}>
                 <div className="disp-week-header">
                   Semana {wk} {range ? `(${range[0]}–${range[1]})` : ''}
                 </div>
@@ -243,16 +239,13 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
 
                     const dayBusy = computed.busyByDate[d.iso] || {};
 
-                    // Calculamos disponibilidad por empleado
                     const employeesForDay = computed.allEmployees
                       .map((emp) => {
                         const busy = dayBusy[emp.document];
                         const available = isEmployeeAvailable(busy);
                         return { emp, busy, available };
                       })
-                      // ✅ NO mostrar copados
-                      .filter(x => x.available)
-                      // Orden por nombre
+                      .filter((x) => x.available) // ✅ no mostrar copados
                       .sort((a, b) => (a.emp.completeName || '').localeCompare(b.emp.completeName || ''));
 
                     return (
@@ -270,18 +263,17 @@ const EspaciosDisponibles = ({ services = [], filters, loading = false, onAssign
                               <div className="disp-emp-card" key={`${d.iso}-${emp.document}`}>
                                 <div className="disp-emp-info">
                                   <div className="disp-emp-top">
-                                    <h4 className="disp-emp-name">
-                                      {emp.completeName || emp.document}
-                                    </h4>
+                                    <h4 className="disp-emp-name">{emp.completeName || emp.document}</h4>
 
                                     <span className="disp-status disp-status--ok">
-                                      {count > 0 ? `Ocupado parcial (${count} / ${total.toFixed(1)}h)` : 'Disponible'}
+                                      {count > 0
+                                        ? `Ocupado parcial (${count} / ${total.toFixed(1)}h)`
+                                        : 'Disponible'}
                                     </span>
                                   </div>
 
                                   <p className="disp-emp-doc">Documento: {emp.document}</p>
 
-                                  {/* Servicios existentes (solo para contexto del “parcial”) */}
                                   {busy?.services?.length ? (
                                     <div className="disp-services">
                                       {busy.services
