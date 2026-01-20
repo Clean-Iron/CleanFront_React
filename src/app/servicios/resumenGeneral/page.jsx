@@ -8,12 +8,13 @@ import {
   buscarServiciosPorMesDeEmpleado,
   buscarClientesByCity,
   buscarServiciosPorMesDeClientes,
+  buscarServiciosPorMesPorCiudad,
 } from "@/lib/Logic.js";
 
 import { useCiudades } from "@/lib/Hooks.js";
 import CalendarioServicios from "./CalendarioServicios";
-import CalendarioEspacios from "./CalendarioEspacios";
 import CalendarioClientes from "./CalendarioClientes";
+import CalendarioInfo from "./CalendarioInfo";
 
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
@@ -71,6 +72,13 @@ const ResumenGeneral = () => {
   // Servicios cliente
   const [dataServiciosCliente, setDataServiciosCliente] = useState([]);
 
+  // ✅ Servicios ciudad
+  const [dataServiciosCiudad, setDataServiciosCiudad] = useState([]);
+  const [loadingServiciosCiudad, setLoadingServiciosCiudad] = useState(false);
+
+  // ✅ filtros extra (solo keyword)
+  const [keywordCiudad, setKeywordCiudad] = useState("");
+
   // Dropdowns
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
@@ -100,7 +108,7 @@ const ResumenGeneral = () => {
     [selectedYear, selectedMonth]
   );
 
-  // Entidad sobre la que aplica el filtro de semanas
+  // Entidad sobre la que aplica el filtro de semanas (para calendario de empleado/cliente)
   const selectedEntity =
     viewMode === "employees" ? selectedEmployee : selectedClient;
 
@@ -190,6 +198,37 @@ const ResumenGeneral = () => {
         setDataServiciosCliente([]);
       });
   }, [selectedClient, selectedMonth, selectedYear]);
+
+  // ✅ Servicios por ciudad (mes/año/city)
+  useEffect(() => {
+    const run = async () => {
+      if (!city) {
+        setDataServiciosCiudad([]);
+        return;
+      }
+      try {
+        setLoadingServiciosCiudad(true);
+        const data = await buscarServiciosPorMesPorCiudad(
+          city,
+          selectedYear,
+          selectedMonth + 1
+        );
+        setDataServiciosCiudad(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setDataServiciosCiudad([]);
+      } finally {
+        setLoadingServiciosCiudad(false);
+      }
+    };
+
+    run();
+  }, [city, selectedYear, selectedMonth]);
+
+  // ✅ reset de keyword cuando cambia el contexto base
+  useEffect(() => {
+    setKeywordCiudad("");
+  }, [city, selectedYear, selectedMonth]);
 
   // Cerrar dropdowns al hacer clic fuera
   useEffect(() => {
@@ -300,6 +339,56 @@ const ResumenGeneral = () => {
     };
   }, [selectedEmployee, selectedMonth, selectedYear]);
 
+  // ✅ filtro keyword para la data ciudad
+  const dataServiciosCiudadFiltrados = useMemo(() => {
+    const q = (keywordCiudad || "").trim();
+    if (!q) return dataServiciosCiudad || [];
+
+    const norm = (t) =>
+      String(t ?? "")
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .toLowerCase();
+
+    const nq = norm(q);
+
+    return (dataServiciosCiudad || []).filter((it) => {
+      const empTxt = (it.employees || [])
+        .map((e) => e.employeeCompleteName || `${e.employeeName || ""} ${e.employeeSurname || ""}`)
+        .join(" ");
+
+      const srvTxt = (it.services || [])
+        .map((s) => s.serviceDescription || s.description || "")
+        .join(" ");
+
+      const blob = [
+        it.serviceDate,
+        it.clientCompleteName,
+        it.clientName,
+        it.addressService,
+        it.city,
+        it.startHour,
+        it.endHour,
+        it.state,
+        it.comments,
+        empTxt,
+        srvTxt,
+      ].join(" ");
+
+      return norm(blob).includes(nq);
+    });
+  }, [dataServiciosCiudad, keywordCiudad]);
+
+  // ✅ filters para CalendarioInfo (sin day)
+  const filtersCiudad = useMemo(() => ({
+    year: selectedYear,
+    month: selectedMonth + 1,
+    city,
+    week: selectedWeek,
+    keyword: keywordCiudad,
+    weeks,
+  }), [selectedYear, selectedMonth, city, selectedWeek, keywordCiudad, weeks]);
+
   return (
     <div className="resumen-layout">
       <div className="resumen-container">
@@ -371,8 +460,7 @@ const ResumenGeneral = () => {
             <div className="dropdown filtro" ref={cityDropdownRef}>
               <button
                 type="button"
-                className={`dropdown-trigger ${cityDropdownOpen ? "open" : ""} ${city ? "city-selected" : ""
-                  }`}
+                className={`dropdown-trigger ${cityDropdownOpen ? "open" : ""} ${city ? "city-selected" : ""}`}
                 onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
               >
                 <span>{city || "Seleccionar ciudad"}</span>
@@ -411,8 +499,7 @@ const ResumenGeneral = () => {
             <div className="view-toggle">
               <button
                 type="button"
-                className={`view-option ${viewMode === "clients" ? "active" : ""
-                  }`}
+                className={`view-option ${viewMode === "clients" ? "active" : ""}`}
                 onClick={() => {
                   setViewMode("clients");
                   setSelectedEmployee(null);
@@ -426,8 +513,7 @@ const ResumenGeneral = () => {
 
               <button
                 type="button"
-                className={`view-option ${viewMode === "employees" ? "active" : ""
-                  }`}
+                className={`view-option ${viewMode === "employees" ? "active" : ""}`}
                 onClick={() => {
                   setViewMode("employees");
                   setSelectedClient(null);
@@ -441,9 +527,11 @@ const ResumenGeneral = () => {
             </div>
           </div>
 
-          {((viewMode === "employees" && employees.length > 0) ||
+          {(city ||
+            (viewMode === "employees" && employees.length > 0) ||
             (viewMode === "clients" && clients.length > 0)) && (
               <div className="filtros-row filtros-row-secondary">
+
                 {viewMode === "employees" ? (
                   <div className="dropdown filtro" ref={employeeRef}>
                     <input
@@ -462,11 +550,7 @@ const ResumenGeneral = () => {
                           <button
                             key={emp.document}
                             type="button"
-                            className={
-                              selectedEmployee?.document === emp.document
-                                ? "selected"
-                                : ""
-                            }
+                            className={selectedEmployee?.document === emp.document ? "selected" : ""}
                             onClick={() => handleEmployeeSelect(emp)}
                           >
                             {emp.name} {emp.surname}
@@ -493,11 +577,7 @@ const ResumenGeneral = () => {
                           <button
                             key={cli.document}
                             type="button"
-                            className={
-                              selectedClient?.document === cli.document
-                                ? "selected"
-                                : ""
-                            }
+                            className={selectedClient?.document === cli.document ? "selected" : ""}
                             onClick={() => handleClientSelect(cli)}
                           >
                             {cli.name} {cli.surname}
@@ -508,23 +588,18 @@ const ResumenGeneral = () => {
                   </div>
                 )}
 
-                {/* Dropdown de semanas */}
-                {selectedEntity && (
+                {(selectedEntity || city) && (
                   <div className="dropdown filtro" ref={weekDropdownRef}>
                     <button
                       type="button"
-                      className={`dropdown-trigger ${weekDropdownOpen ? "open" : ""
-                        }`}
+                      className={`dropdown-trigger ${weekDropdownOpen ? "open" : ""}`}
                       onClick={() => setWeekDropdownOpen(!weekDropdownOpen)}
                     >
                       <span>
                         {selectedWeek
                           ? (() => {
-                            const [d1, d2] =
-                              weeks[selectedWeek - 1] || [null, null];
-                            return d1 && d2
-                              ? `Semana ${selectedWeek} (${d1}–${d2})`
-                              : `Semana ${selectedWeek}`;
+                            const [d1, d2] = weeks[selectedWeek - 1] || [null, null];
+                            return d1 && d2 ? `Semana ${selectedWeek} (${d1}–${d2})` : `Semana ${selectedWeek}`;
                           })()
                           : "Todas las semanas"}
                       </span>
@@ -546,9 +621,7 @@ const ResumenGeneral = () => {
                           <button
                             key={idx + 1}
                             type="button"
-                            className={
-                              selectedWeek === idx + 1 ? "selected" : ""
-                            }
+                            className={selectedWeek === idx + 1 ? "selected" : ""}
                             onClick={() => {
                               setSelectedWeek(idx + 1);
                               setWeekDropdownOpen(false);
@@ -559,6 +632,19 @@ const ResumenGeneral = () => {
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Keyword */}
+                {!selectedEntity && city && (
+                  <div className="dropdown">
+                    <input
+                      type="text"
+                      className="keyword-input"
+                      placeholder="Buscar por palabra clave…"
+                      value={keywordCiudad}
+                      onChange={(e) => setKeywordCiudad(e.target.value)}
+                    />
                   </div>
                 )}
               </div>
@@ -584,10 +670,10 @@ const ResumenGeneral = () => {
             calendarCity={city}
           />
         ) : (
-          <CalendarioEspacios
-            city={city}
-            currentMonth={selectedMonth}
-            currentYear={selectedYear}
+          <CalendarioInfo
+            services={dataServiciosCiudadFiltrados}
+            loading={loadingServiciosCiudad}
+            filters={filtersCiudad}
           />
         )}
       </div>

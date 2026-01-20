@@ -99,3 +99,231 @@
   transform: translateY(0);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
+
+/* =========================
+   Notificaciones y Tareas (FAB + panel)
+   ========================= */
+
+.nt-fab {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 10000;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 48px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(184, 212, 240, 0.95);
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .2px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
+}
+
+.nt-fab:hover {
+  transform: translateY(-1px);
+  border-color: #4682B4;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.nt-fab-icon { font-size: 18px; }
+.nt-fab-text { white-space: nowrap; }
+
+.nt-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+/* Panel */
+.nt-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 74px;
+  z-index: 10000;
+
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(520px, calc(100vh - 120px));
+
+  background: #fff;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 18px;
+
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.20);
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.nt-head {
+  padding: 12px 12px 10px 12px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nt-tabs {
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nt-tab {
+  height: 34px;
+  padding: 0 10px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  background: rgba(243, 244, 246, 0.65);
+  color: #111;
+
+  font-size: 12px;
+  font-weight: 1000;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nt-tab.is-active {
+  background: rgba(3, 169, 244, 0.14);
+  border-color: rgba(3, 169, 244, 0.22);
+  color: #0b4b7a;
+}
+
+.nt-tab-count {
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.08);
+  font-weight: 1000;
+}
+
+.nt-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 1000;
+}
+
+.nt-body {
+  padding: 10px 12px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.nt-empty {
+  padding: 18px 10px;
+  text-align: center;
+  color: #6b7280;
+  font-weight: 800;
+}
+
+.nt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nt-item {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  background: rgba(249, 250, 251, 0.7);
+}
+
+.nt-item-title {
+  font-weight: 1000;
+  color: #111827;
+  font-size: 13px;
+}
+
+.nt-item-detail {
+  margin-top: 3px;
+  color: #374151;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+
+.nt-item-time {
+  margin-top: 6px;
+  color: #6b7280;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.nt-item--task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #f59e0b;
+  flex: 0 0 auto;
+}
+.nt-dot.is-done { background: #22c55e; }
+
+.nt-foot {
+  padding: 10px 12px;
+  border-top: 1px solid rgba(229, 231, 235, 0.7);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nt-action {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  background: #fff;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.nt-action:hover {
+  background: rgba(243, 244, 246, 0.7);
+}
+
+/* Responsive: en móvil ocupa casi todo el ancho */
+@media (max-width: 520px) {
+  .nt-fab {
+    left: 12px;
+    bottom: 12px;
+  }
+  .nt-panel {
+    left: 12px;
+    bottom: 70px;
+    width: calc(100vw - 24px);
+  }
+}

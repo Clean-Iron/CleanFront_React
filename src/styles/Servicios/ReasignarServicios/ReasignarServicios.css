@@ -1,0 +1,823 @@
+/* ========== LAYOUT RM ========== */
+.rm-root {
+  width: 100%;
+  height: 100%;
+}
+
+.rm-shell {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 16px;
+  align-items: stretch;
+
+  padding: 12px;
+  overflow-x: hidden;
+}
+
+/* Columna izquierda (solo un card) */
+.rm-left {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Columna derecha: sin scroll en contenedor */
+.rm-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+
+  overflow: hidden;
+}
+
+/* Apila Servicios + Reasignación y toma el alto disponible */
+.rm-right-top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Spacer */
+.rm-right-bottom-spacer {
+  display: none;
+}
+
+/* Card base */
+.rm-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Header */
+.rm-card__head {
+  padding: 14px 14px 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+.rm-card__head h2,
+.rm-card__head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.rm-pill {
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(243, 244, 246, 0.85);
+  color: #374151;
+  white-space: nowrap;
+}
+
+/* ========== EMPLEADOS ========== */
+.rm-card--employees {
+  flex: 1;
+  min-height: 0;
+}
+
+.rm-search {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+.rm-search input {
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  outline: none;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.rm-search input:focus {
+  border-color: rgba(35, 196, 131, 0.8);
+  box-shadow: 0 0 0 4px rgba(35, 196, 131, 0.14);
+}
+
+.rm-emp-list {
+  padding: 10px;
+  overflow: auto;
+  min-height: 0;
+  max-height: calc(100% - 64px);
+}
+
+.rm-emp-row {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(229, 231, 235, 0.7);
+  background: rgba(249, 250, 251, 0.65);
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.rm-emp-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.08);
+  background: rgba(243, 244, 246, 0.9);
+}
+
+.rm-emp-row.is-checked {
+  border-color: rgba(35, 196, 131, 0.55);
+  background: rgba(35, 196, 131, 0.08);
+}
+
+.rm-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 2px solid rgba(156, 163, 175, 0.9);
+  background: #fff;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.rm-check.is-on {
+  border-color: rgba(35, 196, 131, 1);
+  background: rgba(35, 196, 131, 0.12);
+}
+
+.rm-check.is-on::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 6px;
+  height: 10px;
+  border-right: 3px solid rgba(35, 196, 131, 1);
+  border-bottom: 3px solid rgba(35, 196, 131, 1);
+  transform: rotate(40deg);
+}
+
+.rm-emp-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rm-emp-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rm-emp-doc {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.rm-emp-view {
+  cursor: pointer;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  background: #fff;
+  font-weight: 900;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.rm-emp-view:hover {
+  background: rgba(243, 244, 246, 0.7);
+}
+
+/* ========== DERECHA: SERVICIOS ARRIBA / REASIGNACIÓN ABAJO ========== */
+.rm-card--services {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.rm-right-head {
+  padding: 14px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rm-right-title {
+  min-width: 0;
+}
+
+.rm-right-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 1000;
+  color: #111827;
+}
+
+.rm-sub {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.rm-kpis {
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 12.5px;
+  color: #374151;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+.rm-muted {
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.rm-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px;
+}
+
+/* Scroll de tabla dentro del card superior */
+.rm-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.rm-table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  width: max-content;
+  min-width: 980px;
+}
+
+.rm-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: saturate(120%) blur(4px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 1000;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.rm-table tbody td {
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  padding: 10px 12px;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.rm-cell-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rm-cell-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.rm-addr,
+.rm-services {
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 1000;
+  white-space: nowrap;
+  border: 1px solid rgba(229, 231, 235, 0.85);
+  background: rgba(243, 244, 246, 0.75);
+  color: #374151;
+}
+
+.rm-badge--date,
+.rm-badge--blue {
+  background: rgba(59, 130, 246, 0.10);
+  color: #1e40af;
+  border-color: rgba(59, 130, 246, 0.18);
+}
+
+.rm-badge--target {
+  background: rgba(16, 185, 129, 0.12);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.rm-badge--gray {
+  background: rgba(107, 114, 128, 0.12);
+  color: #374151;
+  border-color: rgba(107, 114, 128, 0.18);
+}
+
+.rm-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 1000;
+  border: 1px solid transparent;
+}
+
+.rm-chip--ok {
+  background: rgba(35, 196, 131, 0.14);
+  border-color: rgba(35, 196, 131, 0.22);
+  color: #065f46;
+}
+
+.rm-chip--bad {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.22);
+  color: #991b1b;
+}
+
+/* ========== REASIGNACIÓN (Opción A) ========== */
+.rm-card--reassign {
+  flex: 0 0 auto;
+}
+
+.rm-reassign-body {
+  padding: 12px 14px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rm-reassign-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rm-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #374151;
+}
+
+.rm-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rm-inline input,
+.rm-inline select {
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  outline: none;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #111827;
+  box-sizing: border-box;
+  background: #fff;
+  min-width: 0;
+}
+
+.rm-inline input:focus,
+.rm-inline select:focus {
+  border-color: rgba(35, 196, 131, 0.8);
+  box-shadow: 0 0 0 4px rgba(35, 196, 131, 0.14);
+}
+
+/* Resumen */
+.rm-summary {
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  background: rgba(249, 250, 251, 0.7);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.rm-summary-title {
+  font-size: 13px;
+  font-weight: 1000;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.rm-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.rm-summary-k {
+  font-size: 12px;
+  font-weight: 900;
+  color: #6b7280;
+}
+
+.rm-summary-v {
+  font-size: 13px;
+  font-weight: 1000;
+  color: #111827;
+  margin-top: 2px;
+}
+
+.rm-summary-note {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+/* Acciones */
+.rm-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.rm-actions--row {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.rm-btn {
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  background: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.rm-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0px 10px 14px rgba(0, 0, 0, 0.08);
+  background: rgba(243, 244, 246, 0.7);
+}
+
+.rm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.rm-btn--primary {
+  border: none;
+  color: #fff;
+  background: #23c483;
+  box-shadow: 0px 8px 14px rgba(35, 196, 131, 0.22);
+}
+
+.rm-btn--primary:hover {
+  background: #1fa374;
+}
+
+.rm-btn--danger {
+  border: none;
+  color: #fff;
+  background: #6b7280;
+  box-shadow: 0px 8px 14px rgba(107, 114, 128, 0.20);
+}
+
+.rm-btn--danger:hover {
+  background: #4b5563;
+}
+
+/* Details (Renuncia/Reemplazo) */
+.rm-details {
+  border-top: 1px solid rgba(229, 231, 235, 0.8);
+  padding-top: 10px;
+}
+
+.rm-details-summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 1000;
+  color: #374151;
+  list-style: none;
+}
+
+.rm-details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Reutilizamos estilos del bloque de transfer (adentro) */
+.rm-transfer-body {
+  padding: 12px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rm-transfer-sub {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+.rm-transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rm-card--reassign select {
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  outline: none;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #111827;
+  box-sizing: border-box;
+  background: #fff;
+  width: 100%;
+  min-width: 0;
+}
+
+.rm-card--reassign select:focus {
+  border-color: rgba(35, 196, 131, 0.8);
+  box-shadow: 0 0 0 4px rgba(35, 196, 131, 0.14);
+}
+
+.rm-transfer-hint {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+/* Scrollbars (solo donde hay scroll real) */
+.rm-emp-list::-webkit-scrollbar,
+.rm-table-wrap::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.rm-emp-list::-webkit-scrollbar-track,
+.rm-table-wrap::-webkit-scrollbar-track {
+  background: #eef2f7;
+  border-radius: 10px;
+}
+
+.rm-emp-list::-webkit-scrollbar-thumb,
+.rm-table-wrap::-webkit-scrollbar-thumb {
+  background: #c8d1df;
+  border-radius: 10px;
+  border: 3px solid #eef2f7;
+}
+
+.rm-emp-list::-webkit-scrollbar-thumb:hover,
+.rm-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #aab6c9;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+/* 1) Shell: sidebar fluida */
+.rm-shell {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns: clamp(280px, 34vw, 380px) 1fr; /* ✅ fluido */
+  gap: 16px;
+  align-items: stretch;
+
+  padding: 12px;
+  overflow-x: hidden;
+}
+
+/* 2) Cards un poco más flexibles en pantallas chicas */
+.rm-card {
+  border-radius: 18px;
+  min-width: 0;
+}
+
+/* 3) Acciones: 3 columnas en desktop, 2 en tablet, 1 en móvil */
+.rm-actions--row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* 4) Tabla: ajusta mínimo según ancho (sigue con scroll en rm-table-wrap) */
+.rm-table {
+  width: max-content;
+  min-width: 980px;
+}
+
+/* =========================
+   BREAKPOINTS
+   ========================= */
+
+/* Tablet grande */
+@media (max-width: 1100px) {
+  .rm-shell {
+    grid-template-columns: clamp(260px, 36vw, 340px) 1fr;
+    padding: 10px;
+  }
+
+  .rm-actions--row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* ✅ 2 columnas */
+  }
+}
+
+/* Tablet / móvil grande: 1 columna, apilado */
+@media (max-width: 900px) {
+  .rm-shell {
+    grid-template-columns: 1fr; /* ✅ todo apilado */
+    padding: 10px;
+  }
+
+  /* ✅ Para que el listado no se coma toda la pantalla */
+  .rm-card--employees {
+    max-height: 46dvh; /* usa viewport dinámico en móviles */
+  }
+
+  .rm-emp-list {
+    max-height: calc(46dvh - 64px); /* respeta el search */
+  }
+
+  /* ✅ Servicios arriba: que no desborde, su scroll queda adentro */
+  .rm-card--services {
+    max-height: 52dvh;
+  }
+
+  .rm-empty {
+    min-height: 180px;
+  }
+
+  /* ✅ Reasignación: se ve completa sin empujar */
+  .rm-card--reassign {
+    max-height: none;
+  }
+
+  /* Botones: 1 columna */
+  .rm-actions--row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Reasignación: campos en 1 columna */
+  .rm-reassign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rm-transfer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tabla más compacta */
+  .rm-table {
+    min-width: 860px;
+  }
+}
+
+/* Móvil */
+@media (max-width: 640px) {
+  .rm-shell {
+    gap: 12px;
+    padding: 8px;
+  }
+
+  .rm-card {
+    border-radius: 16px;
+  }
+
+  .rm-search input {
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  /* Filas de empleados más compactas */
+  .rm-emp-row {
+    padding: 9px 9px;
+    border-radius: 12px;
+  }
+
+  .rm-emp-view {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  /* Chips/Badges más compactos */
+  .rm-badge {
+    padding: 5px 9px;
+    font-size: 11.5px;
+  }
+
+  .rm-pill {
+    font-size: 11.5px;
+    padding: 5px 9px;
+  }
+
+  /* Tabla: mínimo menor para no forzar tanto horizontal */
+  .rm-table {
+    min-width: 760px;
+  }
+
+  /* Texto largo: más elipsis */
+  .rm-addr,
+  .rm-services {
+    max-width: 260px;
+  }
+}
+
+/* Pantallas bajitas (laptops con poca altura / split screen) */
+@media (max-height: 760px) {
+  .rm-card--employees {
+    max-height: 44dvh;
+  }
+  .rm-card--services {
+    max-height: 46dvh;
+  }
+  .rm-empty {
+    min-height: 160px;
+  }
+}
+

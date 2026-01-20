@@ -25,18 +25,18 @@ const Menu = ({ onNavClick, seccionActiva }) => {
 					</li>
 					<li>
 						<button
-							className={`menu-btn ${seccionActiva === "infoServicios" ? "activo" : ""}`}
-							onClick={() => onNavClick("infoServicios")}
-						>
-							📝 Información Tareas
-						</button>
-					</li>
-					<li>
-						<button
 							className={`menu-btn ${seccionActiva === "infoDisponibilidad" ? "activo" : ""}`}
 							onClick={() => onNavClick("infoDisponibilidad")}
 						>
 							🔍 Buscar Disponibilidad
+						</button>
+					</li>
+					<li>
+						<button
+							className={`menu-btn ${seccionActiva === "reasignarServicios" ? "activo" : ""}`}
+							onClick={() => onNavClick("reasignarServicios")}
+						>
+							🔁 Reasignar Tareas
 						</button>
 					</li>
 				</ul>

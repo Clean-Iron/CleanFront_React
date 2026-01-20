@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { buscarEmpleados } from "@/lib/Logic.js";
-import "@/styles/Empleados/ListaEmpleados.css";
 import {
   TableContainer, Table, TableHead, TableRow, TableCell, TableBody,
   Menu, MenuItem, CircularProgress, Switch, FormControlLabel, Chip
 } from "@mui/material";
+import "@/styles/Empleados/ListaEmpleados.css";
 
 const norm = (v) => (v ?? "").toString().trim();
 const normLower = (v) => norm(v).toLowerCase();
@@ -110,6 +111,66 @@ const ListaEmpleados = () => {
     return filtered;
   }, [empleados, busqueda, filtros, soloActivos]);
 
+  const onDownloadExcel = () => {
+    const yyyyMMdd = new Date().toISOString().slice(0, 10);
+    const estadoTag = soloActivos ? "activos" : "inactivos";
+    const filename = `empleados_${estadoTag}_${yyyyMMdd}.xlsx`;
+    const sheetName = soloActivos ? "Activos" : "Inactivos";
+
+    const data = [
+      HEADERS,
+      ...empleadosFiltrados.map((e) => {
+        const nombre = `${e.name ?? ""} ${e.surname ?? ""}`.trim() || "—";
+        const estado = e.state === true ? "ACTIVO" : e.state === false ? "INACTIVO" : "—";
+
+        return [
+          nombre,
+          e.phone || "—",
+          e.typeId || "—",
+          e.document || "—",
+          e.email || "—",
+          e.addressResidence || "—",
+          e.city || "—",
+          e.contractType || "—",
+          estado,
+        ];
+      }),
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // Anchos aproximados (opcional)
+    ws["!cols"] = [
+      { wch: 28 }, // Nombre
+      { wch: 16 }, // Número Contacto
+      { wch: 8 },  // ID
+      { wch: 14 }, // Documento
+      { wch: 28 }, // Email
+      { wch: 34 }, // Dirección
+      { wch: 16 }, // Ciudad
+      { wch: 16 }, // Tipo contrato
+      { wch: 12 }, // Estado
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+    // Descargar en navegador sin dependencias extra
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // Menú dinámico
   const menuItems =
     menuKey === "Ciudad"
@@ -125,7 +186,11 @@ const ListaEmpleados = () => {
         ? [
             <MenuItem key="all" onClick={() => setFiltro("tipoId", "")}>Todos los tipos</MenuItem>,
             ...tiposId.map((t) => (
-              <MenuItem key={t} onClick={() => setFiltro("tipoId", t)} selected={(filtros.tipoId || "").toUpperCase() === t}>
+              <MenuItem
+                key={t}
+                onClick={() => setFiltro("tipoId", t)}
+                selected={(filtros.tipoId || "").toUpperCase() === t}
+              >
                 {t}
               </MenuItem>
             )),
@@ -160,6 +225,8 @@ const ListaEmpleados = () => {
       </div>
     );
   }
+
+  const excelDisabled = empleadosFiltrados.length === 0;
 
   return (
     <div className="container">
@@ -200,6 +267,23 @@ const ListaEmpleados = () => {
                 {f} {menuKey === f ? "▲" : "▼"}
               </button>
             ))}
+
+            {/* ✅ Botón Excel */}
+            <button
+              type="button"
+              className="menu-btn-listaclientes excel-btn"
+              onClick={onDownloadExcel}
+              disabled={excelDisabled}
+              title={
+                excelDisabled
+                  ? "No hay datos para descargar"
+                  : soloActivos
+                    ? "Descargar Excel de Activos"
+                    : "Descargar Excel de Inactivos"
+              }
+            >
+              {soloActivos ? "Descargar Excel (Activos)" : "Descargar Excel (Inactivos)"}
+            </button>
           </div>
 
           <Menu
@@ -233,7 +317,11 @@ const ListaEmpleados = () => {
             <TableBody>
               {empleadosFiltrados.length > 0 ? (
                 empleadosFiltrados.map((e, i) => {
-                  const rowKey = e.document ?? e.email ?? `${i}-${(typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random()}`;
+                  const rowKey =
+                    e.document ??
+                    e.email ??
+                    `${i}-${(typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random()}`;
+
                   const cells = [
                     `${e.name ?? ""} ${e.surname ?? ""}`.trim() || "—",
                     e.phone || "—",

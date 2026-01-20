@@ -124,9 +124,9 @@ export default function ModalAsignacion({
     const handleOutside = (e) => {
       const t = e.target;
       if (startTimeOpen && !isInside(startRef, t)) setStartTimeOpen(false);
-      if (endTimeOpen   && !isInside(endRef, t))   setEndTimeOpen(false);
-      if (breakOpen     && !isInside(breakRef, t)) setBreakOpen(false);
-      if (stateOpen     && !isInside(recurrencyRef, t)) setStateOpen(false);
+      if (endTimeOpen && !isInside(endRef, t)) setEndTimeOpen(false);
+      if (breakOpen && !isInside(breakRef, t)) setBreakOpen(false);
+      if (stateOpen && !isInside(recurrencyRef, t)) setStateOpen(false);
       if (mostrarDropdownClientes && !isInside(clienteRef, t)) setMostrarDropdownClientes(false);
       if (mostrarDropdownEmpleados && !isInside(empleadosRef, t)) setMostrarDropdownEmpleados(false);
       if (mostrarDropdownServicios && !isInside(serviciosRef, t)) setMostrarDropdownServicios(false);
@@ -232,8 +232,8 @@ export default function ModalAsignacion({
   const calcCategory = () => {
     if (!startHour || !endHour) return null;
     const startM = toMin(startHour);
-    const endM   = toMin(endHour);
-    const realH  = Math.max(0, (endM - startM - breakMinutes) / 60);
+    const endM = toMin(endHour);
+    const realH = Math.max(0, (endM - startM - breakMinutes) / 60);
     if (realH >= 8) return 'full';
     const mid = (startM + endM) / 2;
     return (mid >= T1_END_MIN) ? 'afternoon' : 'morning';
@@ -252,22 +252,22 @@ export default function ModalAsignacion({
 
     // bloqueo “NO DISPONIBLE” día completo
     if (dayUsage.blockFullDay) {
-      alert('Este día está bloqueado por NO DISPONIBLE. No se pueden crear servicios.'); 
+      alert('Este día está bloqueado por NO DISPONIBLE. No se pueden crear servicios.');
       return;
     }
 
     const cat = calcCategory(); // 'morning' | 'afternoon' | 'full'
     if (!cat) {
-      alert('Horas inválidas.'); 
+      alert('Horas inválidas.');
       return;
     }
 
     // 1 por turno y 1 full-day
-    if (cat === 'morning' && dayUsage.hasMorning)   { alert('Ya existe un servicio en la mañana.');   return; }
-    if (cat === 'afternoon' && dayUsage.hasAfternoon){ alert('Ya existe un servicio en la tarde.');    return; }
-    if (cat === 'full' && dayUsage.hasFullDay)       { alert('Ya existe un servicio de día completo.'); return; }
+    if (cat === 'morning' && dayUsage.hasMorning) { alert('Ya existe un servicio en la mañana.'); return; }
+    if (cat === 'afternoon' && dayUsage.hasAfternoon) { alert('Ya existe un servicio en la tarde.'); return; }
+    if (cat === 'full' && dayUsage.hasFullDay) { alert('Ya existe un servicio de día completo.'); return; }
 
-    const used = (dayUsage.hasMorning?1:0) + (dayUsage.hasAfternoon?1:0) + (dayUsage.hasFullDay?1:0);
+    const used = (dayUsage.hasMorning ? 1 : 0) + (dayUsage.hasAfternoon ? 1 : 0) + (dayUsage.hasFullDay ? 1 : 0);
     const newUsed = used + 1; // vamos a crear una categoría nueva (ya validamos duplicados)
 
     if (newUsed > 3) {
@@ -276,29 +276,36 @@ export default function ModalAsignacion({
     }
 
     const fechas = (selectedDates.length > 0) ? selectedDates : [date];
-    const schedules = fechas.map((d) => ({
-      client: clienteSeleccionado,
-      serviceAddress: direccionSeleccionada,
-      employees: [empleado, ...empleadosAdicionales],
-      services: servicios,
+
+    const payload = fechas.map((d) => ({
+      clientDocument: String(clienteSeleccionado?.document || '').trim(),
+      addressId: Number(direccionSeleccionada?.id),
+      employeeDocuments: [empleado, ...empleadosAdicionales]
+        .map(e => String(e?.document || '').trim())
+        .filter(Boolean),
+      serviceIds: (servicios || [])
+        .map(s => Number(s?.id))
+        .filter(Number.isFinite),
+
       date: d,
-      startHour,
+      startHour, // asegúrate que sea "HH:mm:ss"
       endHour,
-      breakMinutes,
-      comments: comentarios,
+      breakMinutes: Number.isFinite(Number(breakMinutes)) ? Number(breakMinutes) : 0,
+      comments: comentarios ?? '',
+
       state: 'PROGRAMADA',
-      recurrenceType: currentRecurrency === 'NINGUNA' ? 'PUNTUAL' : currentRecurrency,
+      recurrenceType: (currentRecurrency === 'NINGUNA') ? 'PUNTUAL' : currentRecurrency,
     }));
 
     try {
-      await withLoading(() => asignarServicio(schedules), 'Asignando servicio(s)...');
+      await withLoading(() => asignarServicio(payload), 'Asignando servicio(s)...');
     } catch (err) {
       console.error(err);
       alert('Error al asignar servicio(s)');
       return;
     }
 
-    alert(`Servicio(s) asignado(s) correctamente (${schedules.length})`);
+    alert(`Servicio(s) asignado(s) correctamente (${payload.length})`);
     onAssigned?.();
     onClose();
   };
@@ -310,7 +317,6 @@ export default function ModalAsignacion({
       {OverlayPortal}
       <div className="modal-overlay">
         <div className="modal-container" aria-busy={assigning}>
-          {/* Superiores */}
           <div className="modal-datos-superiores">
             <span>{date}</span>
 

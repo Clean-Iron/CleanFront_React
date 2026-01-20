@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import '@/styles/MenuPrincipal.css';
@@ -8,16 +8,36 @@ import '@/styles/MenuPrincipal.css';
 const MenuPrincipal = () => {
   const router = useRouter();
 
+  // ✅ NUEVO: panel notif/tareas
+  const [ntOpen, setNtOpen] = useState(false);
+  const [ntTab, setNtTab] = useState('notificaciones'); // 'notificaciones' | 'tareas'
+
+  // ✅ (placeholder) listas: luego las conectas a tu API
+  const notifications = useMemo(
+    () => [
+      { id: 1, title: 'Servicio asignado', detail: 'Agenda creada para 2026-01-18', time: 'Hoy' },
+      { id: 2, title: 'Pago pendiente', detail: 'Cliente 0000000004', time: 'Ayer' },
+    ],
+    []
+  );
+
+  const tasks = useMemo(
+    () => [
+      { id: 1, title: 'Confirmar disponibilidad', done: false },
+      { id: 2, title: 'Revisar migración a Postgres', done: true },
+    ],
+    []
+  );
+
+  const notifCount = notifications.length;
+  const pendingTasks = tasks.filter(t => !t.done).length;
+
   const handleLogout = useCallback(() => {
     try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('expiresAt');
-      // si quieres limpiar TODO:
-      // localStorage.clear();
+      localStorage.clear();
     } catch (e) {
       console.error('Error limpiando localStorage:', e);
     }
-
     router.replace('/?reason=logout');
   }, [router]);
 
@@ -97,6 +117,85 @@ const MenuPrincipal = () => {
           <span className="menu-label">Empleados</span>
         </Link>
       </div>
+
+      {/* ✅ NUEVO: Botón flotante inferior izquierdo */}
+      <button
+        type="button"
+        className="nt-fab"
+        onClick={() => setNtOpen((v) => !v)}
+        aria-expanded={ntOpen}
+        aria-controls="nt-panel"
+        title="Notificaciones y tareas"
+      >
+        <span className="nt-fab-icon">🔔</span>
+        <span className="nt-fab-text">Alertas</span>
+        {(notifCount + pendingTasks) > 0 && (
+          <span className="nt-badge">{notifCount + pendingTasks}</span>
+        )}
+      </button>
+
+      {/* ✅ NUEVO: Panel */}
+      {ntOpen && (
+        <div id="nt-panel" className="nt-panel" role="dialog" aria-label="Notificaciones y tareas">
+          <div className="nt-head">
+            <div className="nt-tabs">
+              <button
+                type="button"
+                className={`nt-tab ${ntTab === 'notificaciones' ? 'is-active' : ''}`}
+                onClick={() => setNtTab('notificaciones')}
+              >
+                Notificaciones <span className="nt-tab-count">{notifCount}</span>
+              </button>
+              <button
+                type="button"
+                className={`nt-tab ${ntTab === 'tareas' ? 'is-active' : ''}`}
+                onClick={() => setNtTab('tareas')}
+              >
+                Tareas <span className="nt-tab-count">{pendingTasks}</span>
+              </button>
+            </div>
+
+            <button type="button" className="nt-close" onClick={() => setNtOpen(false)} aria-label="Cerrar">
+              ✕
+            </button>
+          </div>
+
+          <div className="nt-body">
+            {ntTab === 'notificaciones' ? (
+              notifications.length === 0 ? (
+                <div className="nt-empty">No hay notificaciones.</div>
+              ) : (
+                <div className="nt-list">
+                  {notifications.map((n) => (
+                    <div key={n.id} className="nt-item">
+                      <div className="nt-item-title">{n.title}</div>
+                      <div className="nt-item-detail">{n.detail}</div>
+                      <div className="nt-item-time">{n.time}</div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : tasks.length === 0 ? (
+              <div className="nt-empty">No hay tareas.</div>
+            ) : (
+              <div className="nt-list">
+                {tasks.map((t) => (
+                  <div key={t.id} className="nt-item nt-item--task">
+                    <span className={`nt-dot ${t.done ? 'is-done' : ''}`} />
+                    <div className="nt-item-title">{t.title}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="nt-foot">
+            <button type="button" className="nt-action" onClick={() => alert('Luego conectamos esto a tu API 🙂')}>
+              Marcar como leído / hecho
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

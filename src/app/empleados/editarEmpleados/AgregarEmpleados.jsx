@@ -72,7 +72,6 @@ const AgregarEmpleados = () => {
   const onComentarios = (e) => setComentarios(uc(e.target.value));
 
   const handleSubmit = async () => {
-    // === Validación fuerte (lista campos faltantes) ===
     const faltantes = [];
     const req = (val) => (typeof val === "string" ? val.trim() !== "" : !!val);
 

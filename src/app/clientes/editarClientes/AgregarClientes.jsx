@@ -49,15 +49,12 @@ const AgregarClientes = () => {
   const inputUpperStyle = { textTransform: "uppercase" };
 
   const handleSubmit = async () => {
-    // ===== Validación detallada (con lista de faltantes) =====
     const faltantes = [];
     const req = (val) => (typeof val === "string" ? val.trim() !== "" : !!val);
 
     if (!req(tipoDocumento)) faltantes.push("Tipo de ID");
     if (!req(documento))     faltantes.push("Documento");
     if (!req(nombre))        faltantes.push("Nombre");
-    // Apellido no obligatorio, quítale el comentario si lo quieres obligatorio
-    // if (!req(apellido))       faltantes.push("Apellido");
     if (!req(email))         faltantes.push("Correo electrónico");
 
     // Al menos una dirección válida (con 'address' no vacío)
@@ -83,11 +80,10 @@ const AgregarClientes = () => {
       return;
     }
 
-    // Normaliza direcciones a MAYÚSCULAS (address/city si existen)
+    // Normaliza direcciones a MAYÚSCULAS 
     const addressesNorm = (direcciones || []).map(d => ({
       ...d,
-      address: uc(d?.address || "").trim(),
-      city: uc(d?.city || "").trim(),
+      address: uc(d?.address || "").trim()
     }));
 
     const nuevoCliente = {

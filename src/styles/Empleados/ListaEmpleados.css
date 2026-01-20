@@ -1,3 +1,12 @@
+/* ==============================
+   ListaEmpleados.css (COMPLETO)
+   Incluye:
+   - estilos que me enviaste
+   - botón Excel al lado de filtros
+   - top-bar responsive (wrap)
+============================== */
+
+/* Contenedor general del módulo */
 .lista-clientes-content {
   width: 100%;
   height: 100%;
@@ -10,13 +19,19 @@
   box-sizing: border-box;
 }
 
+/* Barra superior */
 .top-bar {
   display: flex;
   align-items: center;
   width: 100%;
   margin-bottom: 20px;
+
+  /* ✅ para que no se rompa en pantallas chicas */
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
+/* Botón X de limpiar búsqueda */
 .clear-search {
   position: absolute;
   top: 50%;
@@ -46,6 +61,9 @@
   align-items: center;
   gap: 10px;
   margin-left: 15px;
+
+  /* ✅ si no cabe, que baje a otra línea */
+  flex-wrap: wrap;
 }
 
 /* Botones de filtro */
@@ -68,6 +86,7 @@
   outline: none;
   text-align: center;
   box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .menu-btn-listaclientes:hover {
@@ -87,23 +106,75 @@
   box-shadow: 0px 8px 15px rgba(46, 229, 157, 0.4);
 }
 
+/* ✅ Botón Excel (mismo estilo base, color diferente) */
+.excel-btn {
+  background-color: #1b64e0;
+  color: #fff;
+}
+
+.excel-btn:hover {
+  background-color: #174fb2;
+  box-shadow: 0px 15px 20px rgba(27, 100, 224, 0.25);
+  color: #fff;
+}
+
+/* ✅ Disabled para botones (incluye Excel) */
+.menu-btn-listaclientes:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.08);
+}
+
+.menu-btn-listaclientes:disabled:hover {
+  background-color: #fff;
+  color: #000;
+  transform: none;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Mantener look del excel cuando está disabled */
+.menu-btn-listaclientes.excel-btn:disabled {
+  background-color: #1b64e0;
+  color: #fff;
+  box-shadow: 0px 8px 15px rgba(27, 100, 224, 0.18);
+}
+
+.menu-btn-listaclientes.excel-btn:disabled:hover {
+  background-color: #1b64e0;
+  color: #fff;
+  box-shadow: 0px 8px 15px rgba(27, 100, 224, 0.18);
+}
+
+/* Info de resultados (si la usas) */
+.results-info {
+  width: 100%;
+  margin-bottom: 10px;
+  color: #333;
+  font-weight: 600;
+}
+
 /* Tabla principal */
 .tabla-clientes-container {
   display: block;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;          
-  overflow-y: auto;          
+  overflow-x: auto;
+  overflow-y: auto;
   border-radius: 10px;
   box-shadow: 0 4px 8px #E8F4FD;
   box-sizing: border-box;
+
+  /* ✅ permite que la tabla ocupe el alto disponible del contenedor */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* La tabla puede ser más ancha que el contenedor, pero nunca más estrecha */
 .tabla-clientes {
-  width: max-content;        
-  min-width: 100%;           
-  table-layout: auto;        
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: 14px;
 }
@@ -127,5 +198,25 @@
 }
 
 /* Estilo de filas */
-.cliente-row { border-bottom: 1px solid #e9ecef; transition: background-color .2s; }
-.cliente-row:hover { background-color: #f8f9fa; }
+.cliente-row {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color .2s;
+}
+
+.cliente-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* =====================
+   Responsive opcional
+===================== */
+@media (max-width: 768px) {
+  .filter-buttons {
+    margin-left: 0;
+  }
+
+  .menu-btn-listaclientes {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
