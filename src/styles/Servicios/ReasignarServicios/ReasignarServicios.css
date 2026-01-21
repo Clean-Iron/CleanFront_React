@@ -1,4 +1,4 @@
-/* ========== LAYOUT RM ========== */
+/* ========== LAYOUT RM (SIN CUADRO DE SERVICIOS) ========== */
 .rm-root {
   width: 100%;
   height: 100%;
@@ -10,7 +10,7 @@
   box-sizing: border-box;
 
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: clamp(280px, 34vw, 380px) 1fr;
   gap: 16px;
   align-items: stretch;
 
@@ -18,7 +18,7 @@
   overflow-x: hidden;
 }
 
-/* Columna izquierda (solo un card) */
+/* Columna izquierda */
 .rm-left {
   display: flex;
   flex-direction: column;
@@ -26,33 +26,14 @@
   min-width: 0;
 }
 
-/* Columna derecha: sin scroll en contenedor */
+/* Columna derecha: solo un card y ocupa todo el alto */
 .rm-right {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-
   min-height: 0;
   min-width: 0;
   max-width: 100%;
-
   overflow: hidden;
-}
-
-/* Apila Servicios + Reasignación y toma el alto disponible */
-.rm-right-top {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Spacer */
-.rm-right-bottom-spacer {
-  display: none;
 }
 
 /* Card base */
@@ -71,7 +52,7 @@
   max-width: 100%;
 }
 
-/* Header */
+/* Header genérico */
 .rm-card__head {
   padding: 14px 14px 10px 14px;
   display: flex;
@@ -99,9 +80,24 @@
   white-space: nowrap;
 }
 
-/* ========== EMPLEADOS ========== */
-.rm-card--employees {
+.rm-empty {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px;
+}
+
+/* ========== EMPLEADOS (IZQUIERDA) ========== */
+.rm-card--employees {
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -209,211 +205,10 @@
   font-weight: 700;
 }
 
-.rm-emp-view {
-  cursor: pointer;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(209, 213, 219, 0.9);
-  background: #fff;
-  font-weight: 900;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.rm-emp-view:hover {
-  background: rgba(243, 244, 246, 0.7);
-}
-
-/* ========== DERECHA: SERVICIOS ARRIBA / REASIGNACIÓN ABAJO ========== */
-.rm-card--services {
+/* ========== REASIGNACIÓN (DERECHA, OCUPA TODO) ========== */
+.rm-card--reassign {
   flex: 1 1 0;
   min-height: 0;
-}
-
-.rm-right-head {
-  padding: 14px;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
-}
-
-.rm-right-title {
-  min-width: 0;
-}
-
-.rm-right-title h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 1000;
-  color: #111827;
-}
-
-.rm-sub {
-  margin-top: 4px;
-  font-size: 12.5px;
-  color: #6b7280;
-  font-weight: 700;
-}
-
-.rm-kpis {
-  padding: 10px 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  font-size: 12.5px;
-  color: #374151;
-  font-weight: 800;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
-}
-
-.rm-muted {
-  color: #6b7280;
-  font-weight: 700;
-}
-
-.rm-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  min-height: 240px;
-  color: #6b7280;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: center;
-  padding: 16px;
-}
-
-/* Scroll de tabla dentro del card superior */
-.rm-table-wrap {
-  flex: 1 1 auto;
-  min-height: 0;
-  min-width: 0;
-  max-width: 100%;
-
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-.rm-table {
-  border-collapse: separate;
-  border-spacing: 0;
-
-  width: max-content;
-  min-width: 980px;
-}
-
-.rm-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: saturate(120%) blur(4px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
-  padding: 10px 12px;
-  font-size: 12px;
-  color: #374151;
-  font-weight: 1000;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.rm-table tbody td {
-  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
-  padding: 10px 12px;
-  vertical-align: top;
-  white-space: nowrap;
-}
-
-.rm-cell-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.rm-cell-sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 700;
-}
-
-.rm-addr,
-.rm-services {
-  max-width: 380px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rm-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 1000;
-  white-space: nowrap;
-  border: 1px solid rgba(229, 231, 235, 0.85);
-  background: rgba(243, 244, 246, 0.75);
-  color: #374151;
-}
-
-.rm-badge--date,
-.rm-badge--blue {
-  background: rgba(59, 130, 246, 0.10);
-  color: #1e40af;
-  border-color: rgba(59, 130, 246, 0.18);
-}
-
-.rm-badge--target {
-  background: rgba(16, 185, 129, 0.12);
-  color: #065f46;
-  border-color: rgba(16, 185, 129, 0.18);
-}
-
-.rm-badge--gray {
-  background: rgba(107, 114, 128, 0.12);
-  color: #374151;
-  border-color: rgba(107, 114, 128, 0.18);
-}
-
-.rm-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 92px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 1000;
-  border: 1px solid transparent;
-}
-
-.rm-chip--ok {
-  background: rgba(35, 196, 131, 0.14);
-  border-color: rgba(35, 196, 131, 0.22);
-  color: #065f46;
-}
-
-.rm-chip--bad {
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.22);
-  color: #991b1b;
-}
-
-/* ========== REASIGNACIÓN (Opción A) ========== */
-.rm-card--reassign {
-  flex: 0 0 auto;
 }
 
 .rm-reassign-body {
@@ -421,6 +216,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
   min-width: 0;
 }
 
@@ -513,7 +312,8 @@
 }
 
 .rm-actions--row {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .rm-btn {
@@ -563,25 +363,21 @@
   background: #4b5563;
 }
 
-/* Details (Renuncia/Reemplazo) */
-.rm-details {
+/* ✅ Sección fija (renuncia / reemplazo sin acordeón) */
+.rm-section {
   border-top: 1px solid rgba(229, 231, 235, 0.8);
-  padding-top: 10px;
+  padding-top: 12px;
+  margin-top: 2px;
 }
 
-.rm-details-summary {
-  cursor: pointer;
-  font-size: 12.5px;
+.rm-section-title {
+  font-size: 13px;
   font-weight: 1000;
-  color: #374151;
-  list-style: none;
+  color: #111827;
+  margin-bottom: 8px;
 }
 
-.rm-details summary::-webkit-details-marker {
-  display: none;
-}
-
-/* Reutilizamos estilos del bloque de transfer (adentro) */
+/* Transfer */
 .rm-transfer-body {
   padding: 12px 0 0 0;
   display: flex;
@@ -629,70 +425,33 @@
   color: #6b7280;
 }
 
-/* Scrollbars (solo donde hay scroll real) */
+/* Scrollbars */
 .rm-emp-list::-webkit-scrollbar,
-.rm-table-wrap::-webkit-scrollbar {
+.rm-reassign-body::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
 
 .rm-emp-list::-webkit-scrollbar-track,
-.rm-table-wrap::-webkit-scrollbar-track {
+.rm-reassign-body::-webkit-scrollbar-track {
   background: #eef2f7;
   border-radius: 10px;
 }
 
 .rm-emp-list::-webkit-scrollbar-thumb,
-.rm-table-wrap::-webkit-scrollbar-thumb {
+.rm-reassign-body::-webkit-scrollbar-thumb {
   background: #c8d1df;
   border-radius: 10px;
   border: 3px solid #eef2f7;
 }
 
 .rm-emp-list::-webkit-scrollbar-thumb:hover,
-.rm-table-wrap::-webkit-scrollbar-thumb:hover {
+.rm-reassign-body::-webkit-scrollbar-thumb:hover {
   background: #aab6c9;
 }
 
 /* =========================
    RESPONSIVE
-   ========================= */
-
-/* 1) Shell: sidebar fluida */
-.rm-shell {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-
-  display: grid;
-  grid-template-columns: clamp(280px, 34vw, 380px) 1fr; /* ✅ fluido */
-  gap: 16px;
-  align-items: stretch;
-
-  padding: 12px;
-  overflow-x: hidden;
-}
-
-/* 2) Cards un poco más flexibles en pantallas chicas */
-.rm-card {
-  border-radius: 18px;
-  min-width: 0;
-}
-
-/* 3) Acciones: 3 columnas en desktop, 2 en tablet, 1 en móvil */
-.rm-actions--row {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-/* 4) Tabla: ajusta mínimo según ancho (sigue con scroll en rm-table-wrap) */
-.rm-table {
-  width: max-content;
-  min-width: 980px;
-}
-
-/* =========================
-   BREAKPOINTS
    ========================= */
 
 /* Tablet grande */
@@ -703,57 +462,35 @@
   }
 
   .rm-actions--row {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* ✅ 2 columnas */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Tablet / móvil grande: 1 columna, apilado */
+/* Tablet / móvil grande */
 @media (max-width: 900px) {
   .rm-shell {
-    grid-template-columns: 1fr; /* ✅ todo apilado */
+    grid-template-columns: 1fr;
     padding: 10px;
   }
 
-  /* ✅ Para que el listado no se coma toda la pantalla */
   .rm-card--employees {
-    max-height: 46dvh; /* usa viewport dinámico en móviles */
+    max-height: 46dvh;
   }
 
   .rm-emp-list {
-    max-height: calc(46dvh - 64px); /* respeta el search */
+    max-height: calc(46dvh - 64px);
   }
 
-  /* ✅ Servicios arriba: que no desborde, su scroll queda adentro */
-  .rm-card--services {
-    max-height: 52dvh;
-  }
-
-  .rm-empty {
-    min-height: 180px;
-  }
-
-  /* ✅ Reasignación: se ve completa sin empujar */
-  .rm-card--reassign {
-    max-height: none;
-  }
-
-  /* Botones: 1 columna */
   .rm-actions--row {
     grid-template-columns: 1fr;
   }
 
-  /* Reasignación: campos en 1 columna */
   .rm-reassign-grid {
     grid-template-columns: 1fr;
   }
 
   .rm-transfer-grid {
     grid-template-columns: 1fr;
-  }
-
-  /* Tabla más compacta */
-  .rm-table {
-    min-width: 860px;
   }
 }
 
@@ -773,51 +510,20 @@
     border-radius: 12px;
   }
 
-  /* Filas de empleados más compactas */
   .rm-emp-row {
     padding: 9px 9px;
     border-radius: 12px;
-  }
-
-  .rm-emp-view {
-    height: 32px;
-    padding: 0 10px;
-    font-size: 12px;
-  }
-
-  /* Chips/Badges más compactos */
-  .rm-badge {
-    padding: 5px 9px;
-    font-size: 11.5px;
   }
 
   .rm-pill {
     font-size: 11.5px;
     padding: 5px 9px;
   }
-
-  /* Tabla: mínimo menor para no forzar tanto horizontal */
-  .rm-table {
-    min-width: 760px;
-  }
-
-  /* Texto largo: más elipsis */
-  .rm-addr,
-  .rm-services {
-    max-width: 260px;
-  }
 }
 
-/* Pantallas bajitas (laptops con poca altura / split screen) */
+/* Pantallas bajitas */
 @media (max-height: 760px) {
   .rm-card--employees {
     max-height: 44dvh;
   }
-  .rm-card--services {
-    max-height: 46dvh;
-  }
-  .rm-empty {
-    min-height: 160px;
-  }
 }
-
