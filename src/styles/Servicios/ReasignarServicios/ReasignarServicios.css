@@ -665,7 +665,8 @@
   box-sizing: border-box;
 
   display: grid;
-  grid-template-columns: clamp(280px, 34vw, 380px) 1fr; /* ✅ fluido */
+  grid-template-columns: clamp(280px, 34vw, 380px) 1fr;
+  /* ✅ fluido */
   gap: 16px;
   align-items: stretch;
 
@@ -703,24 +704,28 @@
   }
 
   .rm-actions--row {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); /* ✅ 2 columnas */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* ✅ 2 columnas */
   }
 }
 
 /* Tablet / móvil grande: 1 columna, apilado */
 @media (max-width: 900px) {
   .rm-shell {
-    grid-template-columns: 1fr; /* ✅ todo apilado */
+    grid-template-columns: 1fr;
+    /* ✅ todo apilado */
     padding: 10px;
   }
 
   /* ✅ Para que el listado no se coma toda la pantalla */
   .rm-card--employees {
-    max-height: 46dvh; /* usa viewport dinámico en móviles */
+    max-height: 46dvh;
+    /* usa viewport dinámico en móviles */
   }
 
   .rm-emp-list {
-    max-height: calc(46dvh - 64px); /* respeta el search */
+    max-height: calc(46dvh - 64px);
+    /* respeta el search */
   }
 
   /* ✅ Servicios arriba: que no desborde, su scroll queda adentro */
@@ -813,11 +818,12 @@
   .rm-card--employees {
     max-height: 44dvh;
   }
+
   .rm-card--services {
     max-height: 46dvh;
   }
+
   .rm-empty {
     min-height: 160px;
   }
 }
-

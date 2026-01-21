@@ -188,7 +188,7 @@ export const useEmployeeMonthServices = (employeeDoc, year, month) => {
     keepPreviousData: true,
   });
 
-  const services = normalizeArrayPayload(swr.data); // aquí ya es List<ScheduleDetailGroupedDto>
+  const services = normalizeArrayPayload(swr.data);
 
   return {
     services,

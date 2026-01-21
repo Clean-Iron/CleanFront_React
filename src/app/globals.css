@@ -717,6 +717,7 @@ body {
 }
 
 .modal-asignacion-btn-cancelar,
+.modal-asignacion-btn-eliminar,
 .modal-asignacion-btn-confirmar {
   padding: 12px 24px;
   border-radius: 20px;
@@ -737,6 +738,17 @@ body {
   background-color: #da190b;
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.modal-asignacion-btn-eliminar {
+    background-color: #2394c4;
+    color: white;
+}
+
+.modal-asignacion-btn-eliminar:hover {
+    background-color: #1f56a3;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .modal-asignacion-btn-confirmar {
