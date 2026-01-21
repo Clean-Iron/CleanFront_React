@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useEmployees, useEmployeeMonthServices } from '@/lib/Hooks';
+import { useEmployees } from '@/lib/Hooks';
 import '@/styles/Servicios/ReasignarServicios/ReasignarServicios.css';
 
 const monthOptions = [
@@ -55,11 +55,7 @@ const ReasignarServicios = () => {
   const [qEmp, setQEmp] = useState('');
   const [selectedDocs, setSelectedDocs] = useState(() => new Set());
 
-  // Vista (tabla derecha)
-  const [previewDoc, setPreviewDoc] = useState('');
-  const previewServices = useEmployeeMonthServices(previewDoc, originYear, originMonth);
-
-  // Renuncia / reemplazo (colapsable)
+  // Renuncia / reemplazo (siempre visible)
   const [transferFromDoc, setTransferFromDoc] = useState('');
   const [transferToDoc, setTransferToDoc] = useState('');
 
@@ -95,24 +91,11 @@ const ReasignarServicios = () => {
     });
   };
 
-  const pickPreview = (doc) => {
-    const d = formatDoc(doc);
-    if (!d) return;
-    setPreviewDoc(d);
-    setSelectedDocs((prev) => new Set([...prev, d]));
-  };
-
   const selectedCount = selectedDocs.size;
-
-  const kpis = useMemo(() => {
-    const total = previewServices.services?.length || 0;
-    return { total };
-  }, [previewServices.services]);
 
   const onClear = () => {
     setSelectedDocs(new Set());
     setQEmp('');
-    setPreviewDoc('');
     setTransferFromDoc('');
     setTransferToDoc('');
   };
@@ -171,22 +154,18 @@ const ReasignarServicios = () => {
   const targetLabel = `${targetYear} / ${monthText(targetMonth)}`;
 
   const summary = useMemo(() => {
-    // Esto es resumen UI (no “cálculo real” de todos los empleados, porque no cargamos todos los meses de todos)
-    const viewCount = previewDoc ? (kpis.total || 0) : 0;
     return {
       selectedCount,
       originLabel,
       targetLabel,
-      previewDoc,
-      viewCount,
     };
-  }, [selectedCount, originLabel, targetLabel, previewDoc, kpis.total]);
+  }, [selectedCount, originLabel, targetLabel]);
 
   return (
     <div className="container">
       <div className="rm-root">
         <div className="rm-shell">
-          {/* IZQUIERDA (solo empleados, ocupa todo el alto) */}
+          {/* IZQUIERDA (empleados) */}
           <div className="rm-left">
             <div className="rm-card rm-card--employees">
               <div className="rm-card__head">
@@ -213,7 +192,6 @@ const ReasignarServicios = () => {
                   filteredEmployees.map((e) => {
                     const doc = formatDoc(e.document);
                     const checked = selectedDocs.has(doc);
-                    const isPreview = previewDoc === doc;
 
                     return (
                       <div
@@ -230,24 +208,9 @@ const ReasignarServicios = () => {
                         <span className={`rm-check ${checked ? 'is-on' : ''}`} />
 
                         <div className="rm-emp-meta" style={{ flex: 1, minWidth: 0 }}>
-                          <div className="rm-emp-name">
-                            {buildEmployeeLabel(e)}{' '}
-                            {isPreview ? <span className="rm-badge rm-badge--target">Vista</span> : null}
-                          </div>
+                          <div className="rm-emp-name">{buildEmployeeLabel(e)}</div>
                           <div className="rm-emp-doc">Documento: {doc}</div>
                         </div>
-
-                        <button
-                          type="button"
-                          className="rm-emp-view"
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            pickPreview(doc);
-                          }}
-                          title="Ver servicios (carga a la derecha)"
-                        >
-                          Ver
-                        </button>
                       </div>
                     );
                   })
@@ -256,285 +219,155 @@ const ReasignarServicios = () => {
             </div>
           </div>
 
-          {/* DERECHA (dos cuadros apilados) */}
+          {/* DERECHA (reasignación ocupa todo el alto) */}
           <div className="rm-right">
-            <div className="rm-right-top">
-              {/* Cuadro 1: Vista */}
-              <div className="rm-card rm-card--services">
-                <div className="rm-right-head">
-                  <div className="rm-right-title">
-                    <h2>Servicios (vista)</h2>
-                    <div className="rm-sub">
-                      Usa el botón “Ver” (en la izquierda) para cargar los servicios del mes origen.
+            <div className="rm-card rm-card--reassign">
+              <div className="rm-reassign-body">
+                <div className="rm-reassign-grid">
+                  <div className="rm-field">
+                    <label>Mes origen (Año / Mes)</label>
+                    <div className="rm-inline">
+                      <input
+                        type="number"
+                        value={originYear}
+                        onChange={(e) => setOriginYear(toNum(e.target.value) || nowYear)}
+                        min={2000}
+                        max={2100}
+                      />
+                      <select value={originMonth} onChange={(e) => setOriginMonth(Number(e.target.value))}>
+                        {monthOptions.map((m) => (
+                          <option key={m.v} value={m.v}>
+                            {m.t}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
-                  <span className="rm-pill">{previewDoc ? `Doc: ${previewDoc}` : 'Sin vista'}</span>
-                </div>
 
-                <div className="rm-kpis">
-                  <span>
-                    Servicios (vista): <b>{summary.viewCount}</b>
-                  </span>
-                  <span className="rm-muted">Estado: PROGRAMADA / COMPLETADA</span>
-                  <span className="rm-muted">Mes origen: {originLabel}</span>
-                </div>
-
-                {!previewDoc ? (
-                  <div className="rm-empty">Selecciona “Ver” en un empleado para cargar su agenda.</div>
-                ) : previewServices.isLoading ? (
-                  <div className="rm-empty">Cargando servicios…</div>
-                ) : previewServices.isError ? (
-                  <div className="rm-empty">No se pudieron cargar servicios de este empleado.</div>
-                ) : (previewServices.services?.length || 0) === 0 ? (
-                  <div className="rm-empty">No hay servicios para el mes origen seleccionado.</div>
-                ) : (
-                  <div className="rm-table-wrap">
-                    <table className="rm-table">
-                      <thead>
-                        <tr>
-                          <th>Fecha</th>
-                          <th>Cliente</th>
-                          <th>Horario</th>
-                          <th>Ciudad</th>
-                          <th>Dirección</th>
-                          <th>Servicios</th>
-                          <th>Estado</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {previewServices.services.map((s) => {
-                          const st = String(s.state || '').toUpperCase();
-                          const isOk = st === 'PROGRAMADA' || st === 'COMPLETADA';
-
-                          const servicesText = Array.isArray(s.services)
-                            ? s.services.map((x) => x?.serviceDescription).filter(Boolean).join(', ')
-                            : '';
-
-                          const clientName =
-                            s.clientCompleteName ||
-                            `${s.clientName || ''} ${s.clientSurname || ''}`.trim() ||
-                            'Cliente';
-
-                          return (
-                            <tr key={`${s.id}-${s.serviceDate}-${s.startHour}-${s.clientDocument}`}>
-                              <td>
-                                <div className="rm-cell-main">
-                                  <span className="rm-badge rm-badge--date">{String(s.serviceDate || '')}</span>
-                                </div>
-                              </td>
-
-                              <td>
-                                <div className="rm-cell-main">
-                                  <span className="rm-badge rm-badge--blue">{clientName}</span>
-                                </div>
-                                <div className="rm-cell-sub">{s.clientDocument ? `Doc: ${s.clientDocument}` : ''}</div>
-                              </td>
-
-                              <td>
-                                <div className="rm-cell-main">
-                                  <span className="rm-badge rm-badge--gray">
-                                    {String(s.startHour || '').slice(0, 5) || '--:--'} –{' '}
-                                    {String(s.endHour || '').slice(0, 5) || '--:--'}
-                                  </span>
-                                  <span className="rm-badge rm-badge--gray">
-                                    {Number.isFinite(s.totalServiceHours)
-                                      ? `${s.totalServiceHours.toFixed(1)}h`
-                                      : '0.0h'}
-                                  </span>
-                                </div>
-                              </td>
-
-                              <td>
-                                <span className="rm-badge rm-badge--gray">{s.city || '—'}</span>
-                              </td>
-
-                              <td>
-                                <div className="rm-cell-sub rm-addr" style={{ fontWeight: 800 }}>
-                                  {s.addressService || '—'}
-                                </div>
-                              </td>
-
-                              <td>
-                                <div className="rm-cell-sub rm-services" style={{ fontWeight: 800 }}>
-                                  {servicesText || '—'}
-                                </div>
-                              </td>
-
-                              <td>
-                                <span className={`rm-chip ${isOk ? 'rm-chip--ok' : 'rm-chip--bad'}`}>
-                                  {st || '—'}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                  <div className="rm-field">
+                    <label>Mes destino (Año / Mes)</label>
+                    <div className="rm-inline">
+                      <input
+                        type="number"
+                        value={targetYear}
+                        onChange={(e) => setTargetYear(toNum(e.target.value) || nowYear)}
+                        min={2000}
+                        max={2100}
+                      />
+                      <select value={targetMonth} onChange={(e) => setTargetMonth(Number(e.target.value))}>
+                        {monthOptions.map((m) => (
+                          <option key={m.v} value={m.v}>
+                            {m.t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Cuadro 2: Opción A (resumen + acciones) */}
-              <div className="rm-card rm-card--reassign">
-                <div className="rm-reassign-body">
-                  <div className="rm-reassign-grid">
-                    <div className="rm-field">
-                      <label>Mes origen (Año / Mes)</label>
-                      <div className="rm-inline">
-                        <input
-                          type="number"
-                          value={originYear}
-                          onChange={(e) => setOriginYear(toNum(e.target.value) || nowYear)}
-                          min={2000}
-                          max={2100}
-                        />
-                        <select value={originMonth} onChange={(e) => setOriginMonth(Number(e.target.value))}>
-                          {monthOptions.map((m) => (
-                            <option key={m.v} value={m.v}>
-                              {m.t}
-                            </option>
-                          ))}
+                <div className="rm-summary">
+                  <div className="rm-summary-title">Resumen</div>
+                  <div className="rm-summary-grid">
+                    <div>
+                      <div className="rm-summary-k">Seleccionados</div>
+                      <div className="rm-summary-v">{summary.selectedCount}</div>
+                    </div>
+
+                    <div>
+                      <div className="rm-summary-k">Origen</div>
+                      <div className="rm-summary-v">{summary.originLabel}</div>
+                    </div>
+
+                    <div>
+                      <div className="rm-summary-k">Destino</div>
+                      <div className="rm-summary-v">{summary.targetLabel}</div>
+                    </div>
+                  </div>
+
+                  <div className="rm-summary-note">La operación se ejecuta sobre los empleados seleccionados.</div>
+                </div>
+
+                <div className="rm-actions rm-actions--row">
+                  <button type="button" className="rm-btn" onClick={onClear}>
+                    Limpiar
+                  </button>
+
+                  <button
+                    type="button"
+                    className="rm-btn rm-btn--primary"
+                    disabled={!cloneReady}
+                    onClick={onCloneSelected}
+                    title={!cloneReady ? 'Selecciona al menos un empleado' : 'Generar payloads de clonación'}
+                  >
+                    Clonar seleccionados
+                  </button>
+
+                  <button
+                    type="button"
+                    className="rm-btn rm-btn--danger"
+                    disabled={!transferReady}
+                    onClick={onTransfer}
+                    title={!transferReady ? 'Completa origen y destino en Renuncia/Reemplazo' : 'Generar payload de traspaso'}
+                  >
+                    Reasignar (renuncia / reemplazo)
+                  </button>
+                </div>
+
+                {/* ✅ RENUNCIA / REEMPLAZO SIEMPRE VISIBLE */}
+                <div className="rm-section">
+                  <div className="rm-section-title">Renuncia / reemplazo</div>
+
+                  <div className="rm-transfer-body" style={{ padding: 0 }}>
+                    <div className="rm-transfer-sub">
+                      Selecciona empleado origen y empleado destino. Esto genera 1 payload de traspaso.
+                    </div>
+
+                    <div className="rm-transfer-grid">
+                      <div className="rm-field">
+                        <label>Empleado origen</label>
+                        <select
+                          value={transferFromDoc}
+                          onChange={(e) => {
+                            const v = formatDoc(e.target.value);
+                            setTransferFromDoc(v);
+                            if (formatDoc(transferToDoc) === v) setTransferToDoc('');
+                          }}
+                        >
+                          <option value="">— Selecciona —</option>
+                          {activeEmployeesOnly.map((e) => {
+                            const doc = formatDoc(e.document);
+                            return (
+                              <option key={doc} value={doc}>
+                                {buildEmployeeLabel(e)} — {doc}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+
+                      <div className="rm-field">
+                        <label>Empleado destino</label>
+                        <select value={transferToDoc} onChange={(e) => setTransferToDoc(formatDoc(e.target.value))}>
+                          <option value="">— Selecciona —</option>
+                          {transferToOptions.map((e) => {
+                            const doc = formatDoc(e.document);
+                            return (
+                              <option key={doc} value={doc}>
+                                {buildEmployeeLabel(e)} — {doc}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     </div>
 
-                    <div className="rm-field">
-                      <label>Mes destino (Año / Mes)</label>
-                      <div className="rm-inline">
-                        <input
-                          type="number"
-                          value={targetYear}
-                          onChange={(e) => setTargetYear(toNum(e.target.value) || nowYear)}
-                          min={2000}
-                          max={2100}
-                        />
-                        <select value={targetMonth} onChange={(e) => setTargetMonth(Number(e.target.value))}>
-                          {monthOptions.map((m) => (
-                            <option key={m.v} value={m.v}>
-                              {m.t}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <div className="rm-transfer-hint">
+                      El botón <b>Reasignar (renuncia / reemplazo)</b> usará esta selección.
                     </div>
                   </div>
-
-                  <div className="rm-summary">
-                    <div className="rm-summary-title">Resumen</div>
-                    <div className="rm-summary-grid">
-                      <div>
-                        <div className="rm-summary-k">Seleccionados</div>
-                        <div className="rm-summary-v">{summary.selectedCount}</div>
-                      </div>
-
-                      <div>
-                        <div className="rm-summary-k">Origen</div>
-                        <div className="rm-summary-v">{summary.originLabel}</div>
-                      </div>
-
-                      <div>
-                        <div className="rm-summary-k">Destino</div>
-                        <div className="rm-summary-v">{summary.targetLabel}</div>
-                      </div>
-
-                      <div>
-                        <div className="rm-summary-k">Vista</div>
-                        <div className="rm-summary-v">
-                          {summary.previewDoc ? `Doc ${summary.previewDoc} (${summary.viewCount} servicios)` : 'Sin vista'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rm-summary-note">
-                      Este resumen usa la “vista” cargada para referencia. La operación real se ejecuta sobre los empleados
-                      seleccionados.
-                    </div>
-                  </div>
-
-                  <div className="rm-actions rm-actions--row">
-                    <button type="button" className="rm-btn" onClick={onClear}>
-                      Limpiar
-                    </button>
-
-                    <button
-                      type="button"
-                      className="rm-btn rm-btn--primary"
-                      disabled={!cloneReady}
-                      onClick={onCloneSelected}
-                      title={!cloneReady ? 'Selecciona al menos un empleado' : 'Generar payloads de clonación'}
-                    >
-                      Clonar seleccionados
-                    </button>
-
-                    <button
-                      type="button"
-                      className="rm-btn rm-btn--danger"
-                      disabled={!transferReady}
-                      onClick={onTransfer}
-                      title={!transferReady ? 'Completa origen y destino en Renuncia/Reemplazo' : 'Generar payload de traspaso'}
-                    >
-                      Reasignar (renuncia / reemplazo)
-                    </button>
-                  </div>
-
-                  <details className="rm-details">
-                    <summary className="rm-details-summary">Renuncia / reemplazo</summary>
-
-                    <div className="rm-transfer-body" style={{ padding: 0 }}>
-                      <div className="rm-transfer-sub">
-                        Selecciona empleado origen y empleado destino. Esto genera 1 payload de traspaso.
-                      </div>
-
-                      <div className="rm-transfer-grid">
-                        <div className="rm-field">
-                          <label>Empleado origen</label>
-                          <select
-                            value={transferFromDoc}
-                            onChange={(e) => {
-                              const v = formatDoc(e.target.value);
-                              setTransferFromDoc(v);
-                              if (formatDoc(transferToDoc) === v) setTransferToDoc('');
-                            }}
-                          >
-                            <option value="">— Selecciona —</option>
-                            {activeEmployeesOnly.map((e) => {
-                              const doc = formatDoc(e.document);
-                              return (
-                                <option key={doc} value={doc}>
-                                  {buildEmployeeLabel(e)} — {doc}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-
-                        <div className="rm-field">
-                          <label>Empleado destino</label>
-                          <select value={transferToDoc} onChange={(e) => setTransferToDoc(formatDoc(e.target.value))}>
-                            <option value="">— Selecciona —</option>
-                            {transferToOptions.map((e) => {
-                              const doc = formatDoc(e.document);
-                              return (
-                                <option key={doc} value={doc}>
-                                  {buildEmployeeLabel(e)} — {doc}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="rm-transfer-hint">
-                        El botón <b>Reasignar (renuncia / reemplazo)</b> usará esta selección.
-                      </div>
-                    </div>
-                  </details>
                 </div>
               </div>
             </div>
-
-            <div className="rm-right-bottom-spacer" />
           </div>
         </div>
       </div>

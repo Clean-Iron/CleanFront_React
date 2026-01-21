@@ -729,6 +729,17 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.modal-asignacion-btn-eliminar {
+    background-color: #2394c4;
+    color: white;
+}
+
+.modal-asignacion-btn-eliminar:hover {
+    background-color: #1f56a3;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
 .modal-asignacion-btn-cancelar {
   background-color: #f44336;
   color: white;
