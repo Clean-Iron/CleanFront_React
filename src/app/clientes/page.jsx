@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import Sidebar from "./MenuLateral";
 import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
 import ListaClientes from "./listaClientes/ListaClientes.jsx";
-import EditarEmpleados from "./editarClientes/EditarClientes";
-import ListaServicios from "./listaServicios/ListaServicios.jsx";
 
 const Clientes = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
@@ -20,10 +18,6 @@ const Clientes = () => {
         return <InfoGeneral />;
       case "listaClientes":
         return <ListaClientes />;
-      case "editarClientes":
-        return <EditarEmpleados />;
-      case "listaServicios":
-        return <ListaServicios />;
       default:
         return <ListaClientes />;
     }

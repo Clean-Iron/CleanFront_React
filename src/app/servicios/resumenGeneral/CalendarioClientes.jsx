@@ -24,23 +24,62 @@ const getNoDispReason = (s) => {
 };
 const isNoDisponible = (s) => !!getNoDispReason(s);
 
-const labelDeEmpleados = (s) => {
+// --- EmployeeDto helpers (tu DTO usa employeeDocument/employeeName/employeeSurname/employeeCompleteName) ---
+const empDoc = (e) => (e?.employeeDocument ?? '').toString().trim();
+const empFull = (e) =>
+  (e?.employeeCompleteName || '').toString().trim() ||
+  `${(e?.employeeName || '').toString().trim()} ${(e?.employeeSurname || '').toString().trim()}`.trim();
+
+const employeesFromService = (s) => {
   const arr = Array.isArray(s?.employees) ? s.employees : [];
-  if (arr.length) {
-    return arr
-      .map(
-        (e) =>
-          e.employeeCompleteName ||
-          `${e.employeeName || ''} ${e.employeeSurname || ''}`.trim()
-      )
-      .filter(Boolean)
-      .join(', ');
+  if (arr.length) return arr;
+
+  // fallback por si llega 1 empleado “suelto” (compatibilidad)
+  const full =
+    (s?.employeeCompleteName || '').toString().trim() ||
+    `${(s?.employeeName || '').toString().trim()} ${(s?.employeeSurname || '').toString().trim()}`.trim();
+
+  if (!full) return [];
+  return [
+    {
+      employeeDocument: (s?.employeeDocument ?? '').toString().trim(),
+      employeeName: (s?.employeeName ?? '').toString().trim(),
+      employeeSurname: (s?.employeeSurname ?? '').toString().trim(),
+      employeeCompleteName: full,
+    },
+  ];
+};
+
+const labelDeEmpleados = (s) => {
+  const arr = employeesFromService(s);
+  const names = arr.map(empFull).filter(Boolean);
+  return names.join(', ');
+};
+
+// dedupe empleados dentro de un slot (por documento o por nombre)
+const uniqueEmployees = (services) => {
+  const seen = new Set();
+  const out = [];
+
+  for (const s of services) {
+    const emps = employeesFromService(s);
+    for (const e of emps) {
+      const doc = empDoc(e);
+      const full = empFull(e);
+      const key = doc || full;
+      if (!key || seen.has(key)) continue;
+
+      seen.add(key);
+      out.push({
+        employeeDocument: doc || undefined,
+        employeeName: e?.employeeName,
+        employeeSurname: e?.employeeSurname,
+        employeeCompleteName: full,
+      });
+    }
   }
-  return (
-    s?.employeeCompleteName ||
-    `${s?.employeeName || ''} ${s?.employeeSurname || ''}`.trim() ||
-    ''
-  );
+
+  return out;
 };
 
 // lunes=0..domingo=6
@@ -50,24 +89,28 @@ const getWeeksOfMonth = (year, month) => {
   const lastDay = new Date(year, month + 1, 0).getDate();
   const weeks = [];
   let d = 1;
+
   while (d <= lastDay) {
     const date = new Date(year, month, d);
     const dow = (date.getDay() + 6) % 7;
     const start = Math.max(1, d - dow);
+
     let end = start;
     while (end <= lastDay) {
       const ed = new Date(year, month, end);
       if (ed.getDay() === 0 || end === lastDay) break;
       end++;
     }
+
     weeks.push([start, end]);
     d = end + 1;
   }
+
   return weeks;
 };
 
 /* -----------------------------
-   FUSIÓN DE SERVICIOS IGUALES
+   FUSIÓN POR FECHA (solo si start/end iguales)
    ----------------------------- */
 const extractAddress = (s) =>
   norm(
@@ -80,35 +123,9 @@ const extractAddress = (s) =>
   );
 
 const extractClientKey = (s) =>
-  (s.clientDocument || s.clientId || norm(s.clientCompleteName || s.clientName || ''));
+  s.clientDocument || s.clientId || norm(s.clientCompleteName || s.clientName || '');
 
 const extractCityNorm = (s) => norm(s.city || s.clientCity || '');
-
-const uniqueEmployees = (services) => {
-  const seen = new Set();
-  const out = [];
-  for (const s of services) {
-    const arr = Array.isArray(s.employees) ? s.employees : [];
-    for (const e of arr) {
-      const doc = (e.employeeDocument ?? e.document ?? '').toString().trim();
-      const key = doc || `${e.employeeName || ''}-${e.employeeSurname || ''}`;
-      if (!key) continue;
-      if (!seen.has(key)) {
-        seen.add(key);
-        out.push({
-          employeeDocument: doc || undefined,
-          employeeName: e.employeeName,
-          employeeSurname: e.employeeSurname,
-          employeeCompleteName:
-            e.employeeCompleteName ||
-            `${e.employeeName || ''} ${e.employeeSurname || ''}`.trim(),
-          state: e.state,
-        });
-      }
-    }
-  }
-  return out;
-};
 
 const mergeSameSlotServicesByDate = (dataServicios) => {
   const byDate = new Map();
@@ -129,11 +146,11 @@ const mergeSameSlotServicesByDate = (dataServicios) => {
     }
   }
 
-  // construir resultado por fecha
   const result = new Map();
   for (const [date, groupMap] of byDate.entries()) {
     const arr = [];
     for (const { base, items } of groupMap.values()) {
+      // si llegan items repetidos, aquí consolidamos empleados
       const employees = uniqueEmployees(items);
       arr.push({
         ...base,
@@ -155,13 +172,13 @@ const CalendarioClientes = ({
   maxDate = null,
   visibleWeek = null,
   selectedClient = null,
-  calendarCity = '',          
+  calendarCity = '',
 }) => {
   const now = useMemo(() => new Date(), []);
   const year = currentYear ?? now.getFullYear();
   const month = currentMonth ?? now.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const t1EndMin = useMemo(() => toMin(T1_END), []);
+
   const todayKey = useMemo(() => {
     const t = new Date();
     return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}`;
@@ -169,8 +186,11 @@ const CalendarioClientes = ({
 
   const calendarCityNormalized = norm(calendarCity);
 
-  // servicios fusionados por fecha
-  const servicesByDate = useMemo(() => mergeSameSlotServicesByDate(dataServicios), [dataServicios]);
+  // servicios fusionados por fecha (solo cuando start/end coinciden)
+  const servicesByDate = useMemo(
+    () => mergeSameSlotServicesByDate(dataServicios),
+    [dataServicios]
+  );
 
   const startDay = useMemo(() => {
     const d = new Date(year, month, 1).getDay();
@@ -217,9 +237,9 @@ const CalendarioClientes = ({
     }
 
     const isSingleServiceDay = serviciosDelDia.length === 1;
-    let singleServicio = isSingleServiceDay ? serviciosDelDia[0] : null;
+    const singleServicio = isSingleServiceDay ? serviciosDelDia[0] : null;
 
-    // separar por franja si hay más de uno
+    // separar por franja
     const morningOnly = [];
     const afternoonOnly = [];
     const crossing = [];
@@ -245,44 +265,50 @@ const CalendarioClientes = ({
     const noDispLargo = serviciosDelDia.find(
       (s) => isNoDisponible(s) && (s.totalServiceHours ?? diffHours(s.startHour, s.endHour)) >= 8
     );
+
     const hayServicioReal = horasReales > 0;
     const aplicarBloqueoPorNoDisp = !!noDispLargo && !hayServicioReal;
 
-    const slots = [null, null];
-    const place = (s, pref = null) => {
-      if (pref === 0 && !slots[0]) { slots[0] = s; return true; }
-      if (pref === 1 && !slots[1]) { slots[1] = s; return true; }
-      if (!slots[0]) { slots[0] = s; return true; }
-      if (!slots[1]) { slots[1] = s; return true; }
-      return false;
+    // Slot por turno como LISTA de servicios (permite hora -> nombres, hora -> nombres)
+    let slot0 = [];
+    let slot1 = [];
+
+    const keyOf = (s) =>
+      s?.id ?? `${s?.serviceDate}|${s?.startHour}|${s?.endHour}|${extractAddress(s)}`;
+
+    const pushUnique = (arr, s) => {
+      const k = keyOf(s);
+      if (arr.some((x) => keyOf(x) === k)) return;
+      arr.push(s);
     };
 
     if (!isSingleServiceDay) {
       if (aplicarBloqueoPorNoDisp) {
-        slots[0] = noDispLargo;
-        slots[1] = noDispLargo;
+        slot0 = [noDispLargo];
+        slot1 = [noDispLargo];
       } else {
-        if (largosReales.length >= 2) {
-          place(largosReales[0], 0);
-          place(largosReales[1], 1);
-        } else if (largosReales.length === 1) {
-          const mid = (toMin(largosReales[0].startHour) + toMin(largosReales[0].endHour)) / 2;
-          place(largosReales[0], mid >= toMin(T1_END) ? 1 : 0);
-        }
-
-        if (morningOnly.length) place(morningOnly[0], 0);
-        if (afternoonOnly.length) place(afternoonOnly[0], 1);
+        for (const s of morningOnly) pushUnique(slot0, s);
+        for (const s of afternoonOnly) pushUnique(slot1, s);
 
         for (const s of crossing) {
           const mid = (toMin(s.startHour) + toMin(s.endHour)) / 2;
-          const preferT2 = mid >= toMin(T1_END);
-          if (preferT2) place(s, 1);
-          else place(s, 0);
+          if (mid >= toMin(T1_END)) pushUnique(slot1, s);
+          else pushUnique(slot0, s);
         }
 
-        if (largosReales.length === 1 && (!slots[0] ^ !slots[1])) {
-          if (!slots[0]) slots[0] = largosReales[0];
-          if (!slots[1]) slots[1] = largosReales[0];
+        // largos: si hay 2, asegura 1 en cada turno
+        if (largosReales.length >= 2) {
+          pushUnique(slot0, largosReales[0]);
+          pushUnique(slot1, largosReales[1]);
+        } else if (largosReales.length === 1) {
+          const lr = largosReales[0];
+          const mid = (toMin(lr.startHour) + toMin(lr.endHour)) / 2;
+          if (mid >= toMin(T1_END)) pushUnique(slot1, lr);
+          else pushUnique(slot0, lr);
+
+          // replica (mantiene lógica tipo “ocupa día”)
+          if (slot0.length === 0 && slot1.length > 0) slot0 = [...slot1];
+          if (slot1.length === 0 && slot0.length > 0) slot1 = [...slot0];
         }
       }
     }
@@ -291,11 +317,24 @@ const CalendarioClientes = ({
       'modern-date-container',
       isToday(year, month, day) && 'modern-date-container-today',
       isDateDisabled(year, month, day) && 'modern-date-container-disabled',
-    ].filter(Boolean).join(' ');
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-    const renderBtn = (servicio, idx, fullWidth = false) => {
+    // render por slot: Hora arriba y Nombres debajo, repetido por cada servicio
+    const renderBtnSlot = (servicesList, idx, fullWidth = false) => {
+      const list = Array.isArray(servicesList)
+        ? servicesList
+        : servicesList
+        ? [servicesList]
+        : [];
+
+      const hasAny = list.length > 0;
+
+      // estilo del botón: toma el primero como referencia
       let bgStyle;
-      if (servicio) {
+      if (hasAny) {
+        const servicio = list[0];
         if (servicio.state === 'NO PRESTADO') {
           bgStyle = { backgroundColor: '#ee27eeff', color: '#fff' };
         } else if (isNoDisponible(servicio)) {
@@ -313,22 +352,46 @@ const CalendarioClientes = ({
       }
 
       let content = null;
-      if (servicio) {
-        const reason = getNoDispReason(servicio);
-        const empleados = labelDeEmpleados(servicio) || 'No disponible';
-        if (reason) {
-          content = <div className="modern-btn-client" style={{ lineHeight: 1.1 }}>{empleados}</div>;
-        } else {
-          const horas = `${formatTo12h(servicio.startHour)} - ${formatTo12h(servicio.endHour)}`;
-          content = (
-            <>
-              <div>{horas}</div>
-              <div className="modern-btn-client">{empleados}</div>
-            </>
-          );
-        }
+
+      if (!hasAny) {
+        content = buttonLabels[idx] ?? ['TURNO 1', 'TURNO 2'][idx];
       } else {
-        content = ['TURNO 1', 'TURNO 2'][idx];
+        const ordered = [...list].sort((a, b) => toMin(a.startHour) - toMin(b.startHour));
+
+        content = (
+          <div style={{ width: '100%', textAlign: 'left', lineHeight: 1.15 }}>
+            {ordered.map((s, i) => {
+              const reason = getNoDispReason(s);
+              const horas = `${formatTo12h(s.startHour)} - ${formatTo12h(s.endHour)}`;
+              const empleados = labelDeEmpleados(s) || 'No disponible';
+
+              return (
+                <div
+                  key={`${s.id ?? `${i}-${s.startHour}-${s.endHour}`}`}
+                  style={{ marginBottom: i === ordered.length - 1 ? 0 : 10 }}
+                >
+                  {/* Hora arriba */}
+                  {!reason && (
+                    <div style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
+                      {horas}
+                    </div>
+                  )}
+
+                  {/* Nombres debajo */}
+                  <div
+                    className="modern-btn-client"
+                    style={{
+                      whiteSpace: 'normal',
+                      marginTop: reason ? 0 : 4,
+                    }}
+                  >
+                    {empleados}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
       }
 
       const disabled = true || isDateDisabled(year, month, day);
@@ -339,8 +402,10 @@ const CalendarioClientes = ({
           className={[
             'modern-date-button',
             disabled && 'modern-date-button-disabled',
-            fullWidth && 'modern-date-button-full'
-          ].filter(Boolean).join(' ')}
+            fullWidth && 'modern-date-button-full',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={bgStyle}
           disabled={disabled}
         >
@@ -354,15 +419,14 @@ const CalendarioClientes = ({
         <div className="modern-date-number">{day}</div>
 
         <div className={`modern-date-buttons ${isSingleServiceDay ? 'one-col' : ''}`}>
-          {isSingleServiceDay
-            ? renderBtn(singleServicio, 0, true)  // ocupa todo el ancho
-            : (
-              <>
-                {renderBtn(slots[0], 0, false)}
-                {renderBtn(slots[1], 1, false)}
-              </>
-            )
-          }
+          {isSingleServiceDay ? (
+            renderBtnSlot([singleServicio], 0, true)
+          ) : (
+            <>
+              {renderBtnSlot(slot0, 0, false)}
+              {renderBtnSlot(slot1, 1, false)}
+            </>
+          )}
         </div>
       </div>
     );

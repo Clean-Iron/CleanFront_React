@@ -3,7 +3,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import '@/styles/servicios/disponibilidad/ModalFrecuenciaFechas.css';
 
-/* Utilidades de fecha (sin libs) */
 const toYmd = (d) => {
   const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return z.toISOString().slice(0, 10);

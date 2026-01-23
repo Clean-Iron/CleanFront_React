@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Sidebar from "./MenuLateral";
 import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
-import ListaEmpleados from "./listaEmpleados/ListaEmpleados";
-import EditarEmpleados from "./editarEmpleados/EditarEmpleados";
+import ListaEmpleadosOrchestrator from "./listaEmpleados/ListaEmpleados";
 
 const Empleados = () => {
   const [componenteActual, setComponenteActual] = useState("infoGeneral");
@@ -13,15 +12,12 @@ const Empleados = () => {
     setComponenteActual(nombreComponente);
   };
 
-  // Renderizado condicional del componente seleccionado
   const renderComponente = () => {
     switch (componenteActual) {
       case "infoGeneral":
         return <InfoGeneral />;
       case "listaEmpleados":
-        return <ListaEmpleados />;
-      case "editarEmpleados":
-        return <EditarEmpleados />;
+        return <ListaEmpleadosOrchestrator />;
       default:
         return <InfoGeneral />;
     }
