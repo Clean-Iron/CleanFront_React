@@ -1,0 +1,287 @@
+/* ==============================
+   Modal Editar Clientes
+   (clases exclusivas cliedit-*)
+============================== */
+
+.cliedit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.cliedit-modal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  padding: 22px;
+
+  width: min(92vw, 920px);
+  height: min(92vh, 720px);
+  max-height: calc(100vh - 2rem);
+
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.22);
+}
+
+/* Header */
+.cliedit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cliedit-modal-title {
+  display: grid;
+  gap: 2px;
+}
+
+.cliedit-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.cliedit-subtitle {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Botón X */
+.cliedit-close-btn {
+  border: 1px solid rgba(184, 212, 240, 0.95);
+  background: #fff;
+  cursor: pointer;
+
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cliedit-close-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.cliedit-close-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Body */
+.cliedit-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cliedit-form-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 16px;
+
+  overflow: auto;
+  padding-right: 8px;
+  min-height: 0;
+}
+
+.cliedit-form-grid::-webkit-scrollbar { height: 10px; width: 10px; }
+.cliedit-form-grid::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+.cliedit-form-grid::-webkit-scrollbar-thumb { background: #cfcfcf; border-radius: 8px; }
+.cliedit-form-grid::-webkit-scrollbar-thumb:hover { background: #b5b5b5; }
+
+.cliedit-span-2 { grid-column: 1 / -1; }
+
+/* Inputs */
+.cliedit-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #333;
+  font-size: 14px;
+}
+
+.cliedit-input,
+.cliedit-textarea {
+  padding: 12px 14px;
+  border-radius: 20px;
+  border: 1px solid #B8D4F0;
+  width: 100%;
+  font-size: 14px;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.cliedit-textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.cliedit-input:focus,
+.cliedit-textarea:focus {
+  outline: none;
+  border-color: #4682B4;
+  box-shadow: 0 0 8px rgba(70, 130, 180, 0.3);
+}
+
+.cliedit-upper { text-transform: uppercase; }
+
+/* Estado */
+.cliedit-state-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #B8D4F0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+}
+
+/* Dropdown pill */
+.cliedit-dd { position: relative; }
+
+.cliedit-dd-trigger {
+  width: 100%;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid #B8D4F0;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.08);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  font-weight: 800;
+  font-size: 13.5px;
+  color: #111827;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliedit-dd-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0px 10px 14px rgba(0, 0, 0, 0.10);
+}
+
+.cliedit-dd-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cliedit-dd-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cliedit-dd-arrow {
+  font-size: 12px;
+  opacity: 0.9;
+  transition: transform 0.18s ease;
+}
+
+.cliedit-dd-trigger.cliedit-open .cliedit-dd-arrow { transform: rotate(180deg); }
+
+.cliedit-dd-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(184, 212, 240, 0.9);
+  border-radius: 14px;
+  box-shadow: 0px 16px 28px rgba(0, 0, 0, 0.12);
+
+  padding: 8px;
+  box-sizing: border-box;
+
+  max-height: 240px;
+  overflow: auto;
+}
+
+.cliedit-dd-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+
+  padding: 10px 10px;
+  border-radius: 10px;
+
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #374151;
+
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cliedit-dd-option:hover { background: rgba(35, 196, 131, 0.10); }
+
+.cliedit-selected {
+  background: rgba(35, 196, 131, 0.16);
+  color: #065f46;
+}
+
+.cliedit-dd-clear {
+  background: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+  margin-bottom: 6px;
+}
+
+/* Footer */
+.cliedit-footer {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  padding-top: 12px;
+  border-top: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+.cliedit-footer > button { flex: 1 1 0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cliedit-modal-container {
+    width: 94vw;
+    height: auto;
+    max-height: calc(100dvh - 1.5rem);
+    padding: 18px;
+  }
+
+  .cliedit-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliedit-span-2 {
+    grid-column: 1 / -1;
+  }
+}

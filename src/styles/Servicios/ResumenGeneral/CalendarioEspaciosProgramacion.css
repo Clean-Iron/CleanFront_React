@@ -223,6 +223,12 @@
 .info-servicios-ciudad__cell--single { background: #c6e0b4; }
 .info-servicios-ciudad__cell--multiple { background: #a9d18e; }
 
+/* ✅ NO PRESTADO (rosado solicitado) */
+.info-servicios-ciudad__cell--noPrestado {
+  background: #ee27eeff !important;
+  color: #ffffff;
+}
+
 .info-servicios-ciudad__cell--empty {
   background: #fce4d6;
   text-align: center;

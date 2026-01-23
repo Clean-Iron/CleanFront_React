@@ -1,141 +1,182 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { buscarClientes } from "@/lib/Logic.js";
-import { useCiudades } from "@/lib/Hooks";
-import "@/styles/Clientes/ListaClientes.css";
 
-import {
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Menu,
-  MenuItem,
-  CircularProgress,
-  Chip,
-  Switch,
-  FormControlLabel,
-} from "@mui/material";
+import FiltrosClientes from "./FiltrosClientes";
+import TablaClientes from "./TablaClientes";
 
-const ListaClientes = () => {
+import ModalAgregarClientes from "./ModalAgregarClientes.jsx";
+import ModalEditarClientes from "./ModalEditarClientes.jsx";
+
+import "@/styles/Clientes/ListaClientes/ListaClientes.css";
+
+const norm = (s) => (s ?? "").toString().trim();
+const normLower = (s) => norm(s).toLowerCase();
+const boolish = (v) => v === true || v === "true";
+
+export const CLI_HEADERS = [
+  "Nombre",
+  "Número Contacto",
+  "ID",
+  "Documento",
+  "Email",
+  "Estado",
+  "Direcciones",
+  "Acciones",
+];
+
+export default function ListaClientes() {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [busqueda, setBusqueda] = useState("");
-  const [mostrarDirecciones, setMostrarDirecciones] = useState({});
+  const [soloActivos, setSoloActivos] = useState(true);
 
   const [filtros, setFiltros] = useState({
     ciudad: "",
     tipoId: "",
-    ordenamiento: "nombre",
   });
 
-  // Switch Activos (ON) / Inactivos (OFF)
-  const [soloActivos, setSoloActivos] = useState(true);
+  const [mostrarDirecciones, setMostrarDirecciones] = useState({});
 
-  const { ciudades, isLoading: loadingCiudades } = useCiudades();
+  // ✅ Modales
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [clienteEditando, setClienteEditando] = useState(null);
 
-  const [menuKey, setMenuKey] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const handleOpenMenu = (key) => (e) => { setMenuKey(key); setAnchorEl(e.currentTarget); };
-  const closeMenu = () => { setMenuKey(null); setAnchorEl(null); };
+  const cargarClientes = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await buscarClientes();
-        const toBool = (v) => v === true || v === "true";
-        const arr = (Array.isArray(data) ? data : []).map(c => ({ ...c, state: toBool(c?.state) }));
-        setClientes(arr);
-      } catch (e) {
-        console.error("Error al buscar clientes:", e);
-        setError("Error al cargar los clientes");
-        setClientes([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
+      const data = await buscarClientes();
+      const arr = (Array.isArray(data) ? data : []).map((c) => ({
+        ...c,
+        state: boolish(c?.state),
+        typeId: norm(c?.typeId),
+      }));
+
+      setClientes(arr);
+    } catch (e) {
+      console.error("Error al buscar clientes:", e);
+      setError("Error al cargar los clientes");
+      setClientes([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const limpiarBusqueda = () => setBusqueda("");
-  const aplicarFiltro = (tipo, valor) => {
-    setFiltros((prev) => ({ ...prev, [tipo]: valor }));
-    closeMenu();
-  };
+  useEffect(() => {
+    cargarClientes();
+  }, [cargarClientes]);
 
-  const tiposIdUnicos = useMemo(
-    () =>
-      [...new Set(
-        clientes.map((c) => c.typeId?.trim()).filter((v) => v && v !== "")
-      )].sort(),
-    [clientes]
-  );
-
-  const norm = (s) => (s ?? "").toString().trim().toLowerCase();
+  const tiposIdUnicos = useMemo(() => {
+    const set = new Set();
+    for (const c of clientes) {
+      const t = norm(c?.typeId);
+      if (t) set.add(t);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [clientes]);
 
   const clientesFiltrados = useMemo(() => {
-    const r = clientes.filter((cliente) => {
-      const t = norm(busqueda);
+    const t = normLower(busqueda);
 
-      const nombre = norm(`${cliente.name || ""} ${cliente.surname || ""}`);
-      const email = norm(cliente.email || "");
-      const ciudadTop = norm(cliente.city || "");
-      const documento = (cliente.document ?? "").toString();
-      const telefono = (cliente.phone ?? "").toString();
+    const r = clientes.filter((cliente) => {
+      const nombre = normLower(`${cliente.name || ""} ${cliente.surname || ""}`);
+      const email = normLower(cliente.email || "");
+      const doc = (cliente.document ?? "").toString();
+      const phone = (cliente.phone ?? "").toString();
 
       const okBusqueda =
-        t === "" ||
+        !t ||
         nombre.includes(t) ||
         email.includes(t) ||
-        ciudadTop.includes(t) ||
-        documento.includes(t) ||
-        telefono.includes(t);
+        doc.includes(t) ||
+        phone.includes(t);
 
       const okCiudad =
         !filtros.ciudad ||
-        (cliente.addresses?.some((a) => norm(a?.city) === norm(filtros.ciudad)) ?? false);
+        (Array.isArray(cliente.addresses)
+          ? cliente.addresses.some((a) => normLower(a?.city) === normLower(filtros.ciudad))
+          : false);
 
-      const okTipo = !filtros.tipoId || norm(cliente.typeId?.trim()) === norm(filtros.tipoId);
+      const okTipo =
+        !filtros.tipoId || normLower(cliente.typeId) === normLower(filtros.tipoId);
 
-      // Filtro por estado según el switch
       const okEstado = soloActivos ? cliente.state === true : cliente.state === false;
 
       return okBusqueda && okCiudad && okTipo && okEstado;
     });
 
+    // ✅ orden fijo por nombre
     r.sort((a, b) => {
-      switch (filtros.ordenamiento) {
-        case "nombre": {
-          const A = norm(`${a.name || ""} ${a.surname || ""}`);
-          const B = norm(`${b.name || ""} ${b.surname || ""}`);
-          return A.localeCompare(B);
-        }
-        case "documento":
-          return (a.document || 0) - (b.document || 0);
-        case "email":
-          return norm(a.email).localeCompare(norm(b.email));
-        case "ciudad":
-          return norm(a.city).localeCompare(norm(b.city));
-        default:
-          return 0;
-      }
+      const A = normLower(`${a.name || ""} ${a.surname || ""}`);
+      const B = normLower(`${b.name || ""} ${b.surname || ""}`);
+      return A.localeCompare(B);
     });
 
     return r;
   }, [clientes, busqueda, filtros, soloActivos]);
 
+  const toggleDirecciones = (key) => {
+    setMostrarDirecciones((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // ✅ abrir modal crear
+  const handleCreate = () => {
+    setShowAddModal(true);
+  };
+
+  // ✅ abrir modal editar
+  const handleEdit = (cliente) => {
+    setClienteEditando(cliente);
+    setShowEditModal(true);
+  };
+
+  // ✅ cuando se crea o edita, recargamos lista
+  const onCreated = async () => {
+    await cargarClientes();
+  };
+
+  const onUpdated = async () => {
+    await cargarClientes();
+  };
+
   if (loading) {
     return (
       <div className="container">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <CircularProgress />
+        <div className="cli-board">
+          <div className="cli-root">
+            <div className="cli-panel">
+              <div className="cli-empty-state cli-empty-strong">
+                <div className="cli-empty-inner">
+                  <span className="cli-spinner" aria-hidden="true" />
+                  <p>Cargando clientes…</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Modales (por si el loading aparece con modal abierto) */}
+        <ModalAgregarClientes
+          show={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onCreated={onCreated}
+        />
+
+        <ModalEditarClientes
+          show={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setClienteEditando(null);
+          }}
+          cliente={clienteEditando}
+          onUpdated={onUpdated}
+        />
       </div>
     );
   }
@@ -143,227 +184,90 @@ const ListaClientes = () => {
   if (error) {
     return (
       <div className="container">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="no-results" style={{ flexDirection: "column", gap: "1rem" }}>
-            <span>{error}</span>
-            <button className="retry-btn" onClick={() => location.reload()}>Reintentar</button>
+        <div className="cli-board">
+          <div className="cli-root">
+            <div className="cli-panel">
+              <div className="cli-empty-state cli-empty-strong">
+                <div className="cli-empty-inner" style={{ display: "grid", gap: 12 }}>
+                  <p>{error}</p>
+                  <button className="cli-retry-btn" onClick={() => location.reload()}>
+                    Reintentar
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <ModalAgregarClientes
+          show={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onCreated={onCreated}
+        />
+
+        <ModalEditarClientes
+          show={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setClienteEditando(null);
+          }}
+          cliente={clienteEditando}
+          onUpdated={onUpdated}
+        />
       </div>
     );
   }
 
-  let menuItems = [];
-  if (menuKey === "Ciudad") {
-    menuItems = [
-      <MenuItem key="all-cities" onClick={() => aplicarFiltro("ciudad", "")}>
-        Todas las ciudades
-      </MenuItem>,
-      ...(loadingCiudades
-        ? [<MenuItem key="loading-cities" disabled>Cargando ciudades…</MenuItem>]
-        : (ciudades || []).map((c) => (
-          <MenuItem
-            key={c}
-            onClick={() => aplicarFiltro("ciudad", c)}
-            selected={norm(filtros.ciudad) === norm(c)}
-          >
-            {c}
-          </MenuItem>
-        ))),
-    ];
-  } else if (menuKey === "Tipo ID") {
-    menuItems = [
-      <MenuItem key="all-types" onClick={() => aplicarFiltro("tipoId", "")}>
-        Todos los tipos
-      </MenuItem>,
-      ...tiposIdUnicos.map((t) => (
-        <MenuItem
-          key={t}
-          onClick={() => aplicarFiltro("tipoId", t)}
-          selected={norm(filtros.tipoId) === norm(t)}
-        >
-          {t}
-        </MenuItem>
-      )),
-    ];
-  } else if (menuKey === "Ordenar") {
-    const opciones = [
-      ["nombre", "Por Nombre"],
-      ["documento", "Por Documento"],
-      ["email", "Por Email"],
-      ["ciudad", "Por Ciudad"],
-    ];
-    menuItems = opciones.map(([k, label]) => (
-      <MenuItem
-        key={k}
-        onClick={() => aplicarFiltro("ordenamiento", k)}
-        selected={filtros.ordenamiento === k}
-      >
-        {label}
-      </MenuItem>
-    ));
-  }
+  const resultsText =
+    clientesFiltrados.length === clientes.length
+      ? `Mostrando ${clientes.length} clientes`
+      : `Mostrando ${clientesFiltrados.length} de ${clientes.length} clientes`;
 
   return (
     <div className="container">
-      <div className="lista-clientes-content">
-        {/* Top bar */}
-        <div className="top-bar">
-          <div className="dropdown" style={{ position: "relative", transition: "all .3s ease-in-out" }}>
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar clientes..."
+      <div className="cli-board">
+        <FiltrosClientes
+          busqueda={busqueda}
+          setBusqueda={setBusqueda}
+          soloActivos={soloActivos}
+          setSoloActivos={setSoloActivos}
+          filtros={filtros}
+          setFiltros={setFiltros}
+          tiposId={tiposIdUnicos}
+          onCreateClient={handleCreate}
+        />
+
+        <div className="cli-root">
+          <div className="cli-panel">
+            <div className="cli-results-info">{resultsText}</div>
+
+            <TablaClientes
+              clientes={clientesFiltrados}
+              mostrarDirecciones={mostrarDirecciones}
+              onToggleDirecciones={toggleDirecciones}
+              onEditClient={handleEdit}
             />
-            {busqueda && (
-              <button className="clear-search" onClick={limpiarBusqueda} title="Limpiar búsqueda">✕</button>
-            )}
           </div>
-
-          {/* Switch con Chip como etiqueta (igual que en editar cliente) */}
-          <FormControlLabel
-            sx={{ ml: 2 }}
-            label={
-              <Chip
-                size="small"
-                label={soloActivos ? "ACTIVOS" : "INACTIVOS"}
-                color={soloActivos ? "success" : "default"}
-                variant={soloActivos ? "filled" : "outlined"}
-              />
-            }
-            control={
-              <Switch
-                checked={soloActivos}
-                onChange={(e) => setSoloActivos(e.target.checked)}
-              />
-            }
-          />
-
-          <div className="filter-buttons">
-            {["Ciudad", "Tipo ID", "Ordenar"].map((f) => (
-              <button
-                key={f}
-                className={`menu-btn-listaclientes ${menuKey === f ? "active-filter" : ""}`}
-                onClick={handleOpenMenu(f)}
-              >
-                {f} {menuKey === f ? "▲" : "▼"}
-              </button>
-            ))}
-          </div>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={closeMenu}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-            keepMounted
-          >
-            {menuItems}
-          </Menu>
         </div>
-
-        {/* Contador */}
-        <div className="results-info">
-          {clientesFiltrados.length === clientes.length
-            ? `Mostrando ${clientes.length} clientes`
-            : `Mostrando ${clientesFiltrados.length} de ${clientes.length} clientes`}
-        </div>
-
-        {/* Tabla */}
-        <TableContainer className="tabla-clientes-container">
-          <Table className="tabla-clientes" size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Número Contacto</TableCell>
-                <TableCell>ID</TableCell>
-                <TableCell>Documento</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Direcciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {clientesFiltrados.length > 0 ? (
-                clientesFiltrados.flatMap((cliente, idx) => {
-                  const keyBase =
-                    cliente?.document ??
-                    cliente?.email ??
-                    `${cliente?.name ?? ""}-${cliente?.phone ?? ""}-${idx}`;
-
-                  const fila = (
-                    <TableRow key={`row-${keyBase}`} className="cliente-row" hover>
-                      <TableCell>{cliente.name} {cliente.surname}</TableCell>
-                      <TableCell>{cliente.phone || "—"}</TableCell>
-                      <TableCell>{cliente.typeId?.trim() || "—"}</TableCell>
-                      <TableCell>{cliente.document || "—"}</TableCell>
-                      <TableCell>{cliente.email || "—"}</TableCell>
-                      <TableCell>
-                        {cliente.state === undefined || cliente.state === null ? "—" : (
-                          <Chip
-                            size="small"
-                            label={cliente.state ? "ACTIVO" : "INACTIVO"}
-                            color={cliente.state ? "success" : "default"}
-                            variant={cliente.state ? "filled" : "outlined"}
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          className="direcciones-toggle"
-                          onClick={() =>
-                            setMostrarDirecciones((prev) => ({
-                              ...prev,
-                              [cliente.document]: !prev[cliente.document],
-                            }))}>
-                          {cliente.addresses?.length || 0}{" "}
-                          {mostrarDirecciones[cliente.document] ? "▲" : "▼"}
-                        </button>
-                      </TableCell>
-                    </TableRow>
-                  );
-
-                  const filaDirecciones =
-                    mostrarDirecciones[cliente.document] && cliente.addresses ? (
-                      <TableRow key={`dir-${keyBase}`} className="direcciones-row">
-                        <TableCell className="direcciones-cell" colSpan={6}>
-                          <div className="direcciones-container">
-                            <h4>Direcciones:</h4>
-                            <div className="direcciones-grid">
-                              {cliente.addresses.map((address) => (
-                                <div key={address.id} className="direccion-card">
-                                  <div className="direccion-tipo">{address.description}</div>
-                                  <div className="direccion-datos">
-                                    <p><strong>Dirección:</strong> {address.address}</p>
-                                    <p><strong>Ciudad:</strong> {address.city}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : null;
-
-                  return [fila, filaDirecciones].filter(Boolean);
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" style={{ color: "#666", padding: "24px 16px" }}>
-                    {busqueda || filtros.ciudad || filtros.tipoId
-                      ? "No se encontraron clientes que coincidan con los filtros"
-                      : "No hay clientes para mostrar"}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
       </div>
+
+      {/* ✅ Modal Agregar */}
+      <ModalAgregarClientes
+        show={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onCreated={onCreated}
+      />
+
+      {/* ✅ Modal Editar */}
+      <ModalEditarClientes
+        show={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setClienteEditando(null);
+        }}
+        cliente={clienteEditando}
+        onUpdated={onUpdated}
+      />
     </div>
   );
-};
-
-export default ListaClientes;
+}

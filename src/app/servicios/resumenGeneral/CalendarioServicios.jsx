@@ -73,7 +73,9 @@ const CalendarioServicios = ({
 
   // estado local (optimista)
   const [localServicios, setLocalServicios] = useState(dataServicios);
-  useEffect(() => { setLocalServicios(dataServicios); }, [dataServicios]);
+  useEffect(() => {
+    setLocalServicios(dataServicios);
+  }, [dataServicios]);
 
   const servicesByDate = useMemo(() => {
     const map = new Map();
@@ -105,7 +107,10 @@ const CalendarioServicios = ({
   }, [weeks, visibleWeek]);
 
   const formatDateToYYYYMMDD = useCallback((y, m, d) => `${y}-${pad2(m + 1)}-${pad2(d)}`, []);
-  const isToday = useCallback((y, m, d) => todayKey === formatDateToYYYYMMDD(y, m, d), [todayKey, formatDateToYYYYMMDD]);
+  const isToday = useCallback(
+    (y, m, d) => todayKey === formatDateToYYYYMMDD(y, m, d),
+    [todayKey, formatDateToYYYYMMDD]
+  );
 
   const isDateDisabled = useCallback(
     (y, m, d) => {
@@ -116,21 +121,24 @@ const CalendarioServicios = ({
     [minDate, maxDate]
   );
 
-  const handleModalUpdate = useCallback((snap) => {
-    setModalOpen(false);
-    setSelectedService(null);
+  const handleModalUpdate = useCallback(
+    (snap) => {
+      setModalOpen(false);
+      setSelectedService(null);
 
-    setLocalServicios(prev => {
-      if (snap?.__deleted) return prev.filter(s => s.id !== snap.id);
-      const i = prev.findIndex(s => s.id === snap.id);
-      if (i === -1) return [...prev, snap];
-      const next = prev.slice();
-      next[i] = { ...next[i], ...snap };
-      return next;
-    });
+      setLocalServicios((prev) => {
+        if (snap?.__deleted) return prev.filter((s) => s.id !== snap.id);
+        const i = prev.findIndex((s) => s.id === snap.id);
+        if (i === -1) return [...prev, snap];
+        const next = prev.slice();
+        next[i] = { ...next[i], ...snap };
+        return next;
+      });
 
-    onServiceUpdate?.();
-  }, [onServiceUpdate]);
+      onServiceUpdate?.();
+    },
+    [onServiceUpdate]
+  );
 
   const makeDayCell = (day) => {
     const dateString = formatDateToYYYYMMDD(year, month, day);
@@ -147,7 +155,7 @@ const CalendarioServicios = ({
       const en = s.endHour || '00:00:00';
 
       if (!isNoDisponible(s)) {
-        horasReales += (s.totalServiceHours ?? diffHours(st, en));
+        horasReales += s.totalServiceHours ?? diffHours(st, en);
       }
 
       if (en <= T1_END) morningOnly.push(s);
@@ -157,13 +165,13 @@ const CalendarioServicios = ({
 
     // detectar bloqueo/largo
     const noDispLargo = serviciosDelDia.find(
-      s => isNoDisponible(s) && (s.totalServiceHours ?? diffHours(s.startHour, s.endHour)) >= 8
+      (s) => isNoDisponible(s) && (s.totalServiceHours ?? diffHours(s.startHour, s.endHour)) >= 8
     );
     const hayServicioReal = horasReales > 0;
     const aplicarBloqueoPorNoDisp = !!noDispLargo && !hayServicioReal;
 
     const serviceLargo = serviciosDelDia.find(
-      s => !isNoDisponible(s) && (s.totalServiceHours ?? diffHours(s.startHour, s.endHour)) >= 8
+      (s) => !isNoDisponible(s) && (s.totalServiceHours ?? diffHours(s.startHour, s.endHour)) >= 8
     );
 
     // preparar slots para render
@@ -189,18 +197,20 @@ const CalendarioServicios = ({
     }
 
     // === CÁLCULO PARA EL TOPE (máx 3 categorías: mañana, tarde, full-day) ===
-    const crossingMorning = crossing.filter(s => {
+    const crossingMorning = crossing.filter((s) => {
       const mid = (toMin(s.startHour) + toMin(s.endHour)) / 2;
       return mid < t1EndMin;
     });
-    const crossingAfternoon = crossing.filter(s => {
+    const crossingAfternoon = crossing.filter((s) => {
       const mid = (toMin(s.startHour) + toMin(s.endHour)) / 2;
       return mid >= t1EndMin;
     });
 
-    const hasMorning   = morningOnly.length  > 0 || crossingMorning.length  > 0 || (!!slots[0] && !aplicarBloqueoPorNoDisp && !serviceLargo);
-    const hasAfternoon = afternoonOnly.length > 0 || crossingAfternoon.length > 0 || (!!slots[1] && !aplicarBloqueoPorNoDisp && !serviceLargo);
-    const hasFullDay   = !!serviceLargo || aplicarBloqueoPorNoDisp; // considera bloqueo como “día completo”
+    const hasMorning =
+      morningOnly.length > 0 || crossingMorning.length > 0 || (!!slots[0] && !aplicarBloqueoPorNoDisp && !serviceLargo);
+    const hasAfternoon =
+      afternoonOnly.length > 0 || crossingAfternoon.length > 0 || (!!slots[1] && !aplicarBloqueoPorNoDisp && !serviceLargo);
+    const hasFullDay = !!serviceLargo || aplicarBloqueoPorNoDisp; // considera bloqueo como “día completo”
 
     const dailyUsed = (hasMorning ? 1 : 0) + (hasAfternoon ? 1 : 0) + (hasFullDay ? 1 : 0);
     const maxHalfReached = !hasFullDay && hasMorning && hasAfternoon;
@@ -210,7 +220,9 @@ const CalendarioServicios = ({
       'modern-date-container',
       isToday(year, month, day) && 'modern-date-container-today',
       isDateDisabled(year, month, day) && 'modern-date-container-disabled',
-    ].filter(Boolean).join(' ');
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     // payload de uso diario para el modal
     const dayUsage = { hasMorning, hasAfternoon, hasFullDay, blockFullDay: aplicarBloqueoPorNoDisp };
@@ -218,13 +230,14 @@ const CalendarioServicios = ({
     return (
       <div key={`day-${day}`} className={containerClasses}>
         <div className="modern-date-number">{day}</div>
+
         <div className="modern-date-buttons">
           {[0, 1].map((idx) => {
             const servicio = slots[idx];
             const esBloqueoTotal =
               (aplicarBloqueoPorNoDisp || !!serviceLargo) &&
               servicio &&
-              (servicio === (aplicarBloqueoPorNoDisp ? noDispLargo : serviceLargo));
+              servicio === (aplicarBloqueoPorNoDisp ? noDispLargo : serviceLargo);
             const esSegundoSilencioso = esBloqueoTotal && idx === 1;
 
             let bgStyle;
@@ -246,21 +259,41 @@ const CalendarioServicios = ({
               }
             }
 
-            // contenido
+            // contenido (AJUSTADO: hora arriba, datos debajo)
             let content = null;
             if (servicio) {
               if (!esSegundoSilencioso) {
                 const reason = getNoDispReason(servicio);
-                content = reason ? (
-                  <div className="modern-btn-client" style={{ lineHeight: 1.1 }}>{reason}</div>
-                ) : (
-                  <>
-                    <div>{`${formatTo12h(servicio.startHour)} ${formatTo12h(servicio.endHour)}`}</div>
-                    <div className="modern-btn-client">
-                      {servicio.clientCompleteName} {servicio.addressService}
+
+                if (reason) {
+                  // Si es “NO DISPONIBLE / INCAPACIDAD...”
+                  content = (
+                    <div style={{ lineHeight: 1.1, textAlign: 'left' }}>
+                      <div style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>{reason}</div>
+                      {(servicio.clientCompleteName || servicio.addressService) && (
+                        <div className="modern-btn-client" style={{ whiteSpace: 'normal', marginTop: 4 }}>
+                          {servicio.clientCompleteName || ''}
+                          {servicio.addressService ? ` · ${servicio.addressService}` : ''}
+                        </div>
+                      )}
                     </div>
-                  </>
-                );
+                  );
+                } else {
+                  content = (
+                    <div style={{ lineHeight: 1.15, textAlign: 'left' }}>
+                      {/* Hora arriba */}
+                      <div style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
+                        {`${formatTo12h(servicio.startHour)} - ${formatTo12h(servicio.endHour)}`}
+                      </div>
+
+                      {/* Datos debajo */}
+                      <div className="modern-btn-client" style={{ whiteSpace: 'normal', marginTop: 4 }}>
+                        {servicio.clientCompleteName || ''}
+                        {servicio.addressService ? ` · ${servicio.addressService}` : ''}
+                      </div>
+                    </div>
+                  );
+                }
               }
             } else if (!(aplicarBloqueoPorNoDisp || serviceLargo)) {
               content = buttonLabels[idx];
@@ -272,13 +305,8 @@ const CalendarioServicios = ({
               isDateDisabled(year, month, day) ||
               (esBloqueoTotal && !servicio) ||
               esSegundoSilencioso ||
-              (
-                !servicio && (
-                  reachedDailyLimit ||
-                  (idx === 0 && hasMorning) ||
-                  (idx === 1 && hasAfternoon)
-                )
-              );
+              (!servicio &&
+                (reachedDailyLimit || (idx === 0 && hasMorning) || (idx === 1 && hasAfternoon)));
 
             return (
               <button
@@ -287,7 +315,9 @@ const CalendarioServicios = ({
                   'modern-date-button',
                   disabled && 'modern-date-button-disabled',
                   esSegundoSilencioso && 'modern-date-button-muted',
-                ].filter(Boolean).join(' ')}
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 style={bgStyle}
                 disabled={disabled}
                 aria-hidden={esSegundoSilencioso ? 'true' : undefined}
@@ -327,12 +357,12 @@ const CalendarioServicios = ({
   }, [activeWeekRange, startDay, daysInMonth, year, month, servicesByDate]);
 
   const monthNames = useMemo(
-    () => ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    () => ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
     []
   );
 
   return (
-    <div className='calendar-body'>
+    <div className="calendar-body">
       <div className="modern-calendar" role="application" aria-label="Calendario de selección de fechas">
         <div className="modern-month-header">
           <h2 className="modern-month-title centered">
@@ -342,8 +372,10 @@ const CalendarioServicios = ({
         </div>
 
         <div className="modern-weekdays">
-          {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((n, i) => (
-            <div key={i} className="modern-weekday">{n}</div>
+          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((n, i) => (
+            <div key={i} className="modern-weekday">
+              {n}
+            </div>
           ))}
         </div>
 
@@ -352,7 +384,10 @@ const CalendarioServicios = ({
         {modalOpen && selectedService && (
           <FormularioTarea
             service={selectedService}
-            onClose={() => { setModalOpen(false); setSelectedService(null); }}
+            onClose={() => {
+              setModalOpen(false);
+              setSelectedService(null);
+            }}
             onUpdate={handleModalUpdate}
           />
         )}
@@ -365,8 +400,11 @@ const CalendarioServicios = ({
             date={assignInfo.date}
             startHour={assignInfo.shiftIndex === 0 ? '06:00' : '14:00'}
             endHour={assignInfo.shiftIndex === 0 ? '14:00' : '22:00'}
-            dayUsage={assignInfo.dayUsage}   
-            onAssigned={() => { setAssignModalOpen(false); onServiceUpdate?.(); }}
+            dayUsage={assignInfo.dayUsage}
+            onAssigned={() => {
+              setAssignModalOpen(false);
+              onServiceUpdate?.();
+            }}
           />
         )}
       </div>

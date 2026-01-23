@@ -72,7 +72,10 @@ const buildCityMonthEmployeesData = (services, fromDateISO, toDateISO) => {
     const startHour = item.startHour || '';
     const endHour = item.endHour || '';
     const hours = Number(item.totalServiceHours || 0);
-    const state = item.state || '';
+
+    // ✅ estado del servicio (string seguro)
+    const state = (item.state || '').toString().trim();
+
     const serviceDesc = srv.serviceDescription || srv.description || '';
     const comments = item.comments || '';
 
@@ -117,12 +120,13 @@ const buildCityMonthEmployeesData = (services, fromDateISO, toDateISO) => {
 
       if (!empRec.dayMap.has(keyDate)) {
         empRec.dayMap.set(keyDate, {
-          blocks: [{ text: blockText, hours, startHour }],
+          // ✅ guardamos state por bloque
+          blocks: [{ text: blockText, hours, startHour, state }],
           totalHours: hoursForTotals,
         });
       } else {
         const current = empRec.dayMap.get(keyDate);
-        current.blocks.push({ text: blockText, hours, startHour });
+        current.blocks.push({ text: blockText, hours, startHour, state }); // ✅
         current.totalHours += hoursForTotals;
         empRec.dayMap.set(keyDate, current);
       }
@@ -240,14 +244,27 @@ const CalendarioInfo = ({ services = [], loading = false, filters }) => {
                                   .sort((a, b) => (a.startHour || '').localeCompare(b.startHour || ''));
 
                                 const hasMultiple = blocksSorted.length > 1;
+
+                                // ✅ si algún bloque del día está NO PRESTADO => rosado
+                                const hasNoPrestado = blocksSorted.some(
+                                  (b) =>
+                                    (b?.state || '').toString().trim().toUpperCase() === 'NO PRESTADO'
+                                );
+
                                 const separator = '────────────────────────';
                                 const finalText = blocksSorted
                                   .map((b, i) => (i === 0 ? b.text : `\n${separator}\n${b.text}`))
                                   .join('\n\n');
 
-                                const cellClass = hasMultiple
-                                  ? 'info-servicios-ciudad__cell info-servicios-ciudad__cell--multiple'
-                                  : 'info-servicios-ciudad__cell info-servicios-ciudad__cell--single';
+                                const cellClass = [
+                                  'info-servicios-ciudad__cell',
+                                  hasMultiple
+                                    ? 'info-servicios-ciudad__cell--multiple'
+                                    : 'info-servicios-ciudad__cell--single',
+                                  hasNoPrestado ? 'info-servicios-ciudad__cell--noPrestado' : '',
+                                ]
+                                  .filter(Boolean)
+                                  .join(' ');
 
                                 return (
                                   <td key={`${rowKey}-${d.iso}-block`} className={cellClass}>

@@ -100,7 +100,7 @@ const ReasignarServicios = () => {
     setTransferToDoc('');
   };
 
-  // Payloads clonación (uno por empleado seleccionado)
+  // Payloads clonación
   const buildClonePayloads = () => {
     const docs = Array.from(selectedDocs);
 
@@ -165,7 +165,7 @@ const ReasignarServicios = () => {
     <div className="container">
       <div className="rm-root">
         <div className="rm-shell">
-          {/* IZQUIERDA (empleados) */}
+          {/* Empleados */}
           <div className="rm-left">
             <div className="rm-card rm-card--employees">
               <div className="rm-card__head">
@@ -219,7 +219,7 @@ const ReasignarServicios = () => {
             </div>
           </div>
 
-          {/* DERECHA (reasignación ocupa todo el alto) */}
+          {/* Reasignación */}
           <div className="rm-right">
             <div className="rm-card rm-card--reassign">
               <div className="rm-reassign-body">
@@ -299,7 +299,7 @@ const ReasignarServicios = () => {
                     onClick={onCloneSelected}
                     title={!cloneReady ? 'Selecciona al menos un empleado' : 'Generar payloads de clonación'}
                   >
-                    Clonar seleccionados
+                    Clonar
                   </button>
 
                   <button
@@ -309,11 +309,10 @@ const ReasignarServicios = () => {
                     onClick={onTransfer}
                     title={!transferReady ? 'Completa origen y destino en Renuncia/Reemplazo' : 'Generar payload de traspaso'}
                   >
-                    Reasignar (renuncia / reemplazo)
+                    Reasignar
                   </button>
                 </div>
 
-                {/* ✅ RENUNCIA / REEMPLAZO SIEMPRE VISIBLE */}
                 <div className="rm-section">
                   <div className="rm-section-title">Renuncia / reemplazo</div>
 
