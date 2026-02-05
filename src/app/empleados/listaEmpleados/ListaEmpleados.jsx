@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import * as XLSX from "xlsx";
 
 import { buscarEmpleados } from "@/lib/Logic.js";
 import { useCiudades } from "@/lib/Hooks";
@@ -14,7 +13,19 @@ import "@/styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 
 const norm = (v) => (v ?? "").toString().trim();
 const normLower = (v) => norm(v).toLowerCase();
-const boolish = (v) => v === true || v === "true";
+const uc = (v) => norm(v).toUpperCase();
+
+const boolish = (v) => {
+  if (v === true) return true;
+  if (v === false) return false;
+
+  const s = (v ?? "").toString().trim().toLowerCase();
+  if (["true", "1", "si", "sí", "yes", "y", "activo", "active"].includes(s)) return true;
+  if (["false", "0", "no", "n", "inactivo", "inactive"].includes(s)) return false;
+
+  return false;
+};
+
 const uniqSorted = (arr) =>
   [...new Set(arr)]
     .filter(Boolean)
@@ -37,6 +48,13 @@ const calcAgeFromBirthDate = (birthDateISO) => {
   return Number.isFinite(age) ? age : "";
 };
 
+const toIntOrNull = (v) => {
+  const s = norm(v);
+  if (!s) return null;
+  const n = Number.parseInt(s, 10);
+  return Number.isFinite(n) ? n : null;
+};
+
 export const EMP_TABLE_HEADERS = [
   "Nombre",
   "Número Contacto",
@@ -45,6 +63,12 @@ export const EMP_TABLE_HEADERS = [
   "Email",
   "Fecha nacimiento",
   "Edad",
+
+  // ✅ NUEVOS CAMPOS DTO
+  "Talla pantalón",
+  "Talla camisa",
+  "Talla calzado",
+
   "Dirección",
   "Ciudad",
   "Cargo",
@@ -60,30 +84,6 @@ export const EMP_TABLE_HEADERS = [
   "Comentarios",
   "Estado",
   "Acciones",
-];
-
-export const EMP_EXCEL_HEADERS = [
-  "Nombre",
-  "Número Contacto",
-  "ID",
-  "Documento",
-  "Email",
-  "Fecha nacimiento",
-  "Edad",
-  "Dirección",
-  "Ciudad",
-  "Cargo",
-  "Tipo contrato",
-  "EPS",
-  "Fondo pensiones",
-  "Contacto emergencia",
-  "Banco",
-  "N° Cuenta",
-  "Fecha ingreso",
-  "Fecha retiro",
-  "Fecha ingreso ARL",
-  "Comentarios",
-  "Estado",
 ];
 
 const pickCityNameFromEmployee = (e) => {
@@ -106,11 +106,7 @@ export default function ListaEmpleados({ onCreateEmployee }) {
 
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const {
-    ciudades: ciudadesCatalogo,
-    isLoading: ciudadesLoading,
-    isError: ciudadesError,
-  } = useCiudades();
+  const { ciudades: ciudadesCatalogo, isLoading: ciudadesLoading, isError: ciudadesError } = useCiudades();
 
   const cargarEmpleados = useCallback(async () => {
     try {
@@ -122,7 +118,7 @@ export default function ListaEmpleados({ onCreateEmployee }) {
       const list = (Array.isArray(data) ? data : []).map((e) => ({
         ...e,
         state: boolish(e?.state),
-        typeId: norm(e?.typeId).toUpperCase(),
+        typeId: uc(e?.typeId),
         contractType: norm(e?.contractType),
         city: pickCityNameFromEmployee(e),
         position: norm(e?.position),
@@ -142,6 +138,12 @@ export default function ListaEmpleados({ onCreateEmployee }) {
         name: norm(e?.name),
         surname: norm(e?.surname),
         document: norm(e?.document),
+
+        // ✅ CAMPOS DTO
+        age: typeof e?.age === "number" ? e.age : toIntOrNull(e?.age),
+        pantSize: uc(e?.pantSize),
+        shirtSize: uc(e?.shirtSize),
+        shoeSize: uc(e?.shoeSize),
       }));
 
       setEmpleados(list);
@@ -158,24 +160,15 @@ export default function ListaEmpleados({ onCreateEmployee }) {
     cargarEmpleados();
   }, [cargarEmpleados]);
 
-  const ciudadesDesdeEmpleados = useMemo(
-    () => uniqSorted(empleados.map((e) => norm(e.city)).filter(Boolean)),
-    [empleados]
-  );
+  const ciudadesDesdeEmpleados = useMemo(() => uniqSorted(empleados.map((e) => norm(e.city)).filter(Boolean)), [empleados]);
 
   const ciudadesParaUI = useMemo(() => {
     return ciudadesCatalogo?.length ? ciudadesCatalogo : ciudadesDesdeEmpleados;
   }, [ciudadesCatalogo, ciudadesDesdeEmpleados]);
 
-  const tiposId = useMemo(
-    () => uniqSorted(empleados.map((e) => norm(e.typeId).toUpperCase()).filter(Boolean)),
-    [empleados]
-  );
+  const tiposId = useMemo(() => uniqSorted(empleados.map((e) => uc(e.typeId)).filter(Boolean)), [empleados]);
 
-  const tiposContrato = useMemo(
-    () => uniqSorted(empleados.map((e) => norm(e.contractType)).filter(Boolean)),
-    [empleados]
-  );
+  const tiposContrato = useMemo(() => uniqSorted(empleados.map((e) => norm(e.contractType)).filter(Boolean)), [empleados]);
 
   const empleadosFiltrados = useMemo(() => {
     const q = normLower(busqueda);
@@ -197,14 +190,19 @@ export default function ListaEmpleados({ onCreateEmployee }) {
         normLower(e.bankName).includes(q) ||
         normLower(e.bankAccountNumber).includes(q) ||
         normLower(e.addressResidence).includes(q) ||
-        normLower(e.comments).includes(q);
+        normLower(e.comments).includes(q) ||
+        // ✅ búsqueda por tallas
+        normLower(e.pantSize).includes(q) ||
+        normLower(e.shirtSize).includes(q) ||
+        normLower(e.shoeSize).includes(q) ||
+        // ✅ búsqueda por edad (si escriben número)
+        (q && String(e.age ?? "").includes(q));
 
       const byCity = !filtros.ciudad || norm(e.city) === filtros.ciudad;
-      const byTipo = !filtros.tipoId || norm(e.typeId).toUpperCase() === filtros.tipoId.toUpperCase();
+      const byTipo = !filtros.tipoId || uc(e.typeId) === uc(filtros.tipoId);
 
       const byContrato =
-        !filtros.tipoContrato ||
-        norm(e.contractType).toLowerCase() === norm(filtros.tipoContrato).toLowerCase();
+        !filtros.tipoContrato || norm(e.contractType).toLowerCase() === norm(filtros.tipoContrato).toLowerCase();
 
       const byState = soloActivos ? e.state === true : e.state === false;
 
@@ -212,89 +210,17 @@ export default function ListaEmpleados({ onCreateEmployee }) {
     });
 
     filtered.sort((a, b) =>
-      normLower(`${a.name ?? ""} ${a.surname ?? ""}`).localeCompare(
-        normLower(`${b.name ?? ""} ${b.surname ?? ""}`),
-        "es",
-        { sensitivity: "base" }
-      )
+      normLower(`${a.name ?? ""} ${a.surname ?? ""}`).localeCompare(normLower(`${b.name ?? ""} ${b.surname ?? ""}`), "es", {
+        sensitivity: "base",
+      })
     );
 
     return filtered;
   }, [empleados, busqueda, filtros, soloActivos]);
 
-  const excelDisabled = empleadosFiltrados.length === 0;
-
   const handleCreate = () => {
     if (typeof onCreateEmployee === "function") return onCreateEmployee();
     setShowAddModal(true);
-  };
-
-  const onDownloadExcel = () => {
-    const yyyyMMdd = new Date().toISOString().slice(0, 10);
-    const estadoTag = soloActivos ? "activos" : "inactivos";
-    const filename = `empleados_${estadoTag}_${yyyyMMdd}.xlsx`;
-    const sheetName = soloActivos ? "Activos" : "Inactivos";
-
-    const data = [
-      EMP_EXCEL_HEADERS,
-      ...empleadosFiltrados.map((e) => {
-        const nombre = `${e.name ?? ""} ${e.surname ?? ""}`.trim() || "—";
-        const estado = e.state === true ? "ACTIVO" : e.state === false ? "INACTIVO" : "—";
-        const age = typeof e.age === "number" ? e.age : calcAgeFromBirthDate(e.birthDate);
-        const ageVal = age === "" ? "—" : String(age);
-
-        return [
-          nombre,
-          e.phone || "—",
-          e.typeId || "—",
-          e.document || "—",
-          e.email || "—",
-          e.birthDate || "—",
-          ageVal,
-          e.addressResidence || "—",
-          e.city || "—",
-          e.position || "—",
-          e.contractType || "—",
-          e.eps || "—",
-          e.pensionFund || "—",
-          e.emergencyContact || "—",
-          e.bankName || "—",
-          e.bankAccountNumber || "—",
-          e.entryDate || "—",
-          e.exitDate || "—",
-          e.arlEntryDate || "—",
-          e.comments || "—",
-          estado,
-        ];
-      }),
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    ws["!cols"] = [
-      { wch: 28 }, { wch: 18 }, { wch: 8 },  { wch: 16 }, { wch: 28 },
-      { wch: 14 }, { wch: 6 },  { wch: 34 }, { wch: 16 }, { wch: 18 },
-      { wch: 18 }, { wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 18 },
-      { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 30 },
-      { wch: 12 },
-    ];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([wbout], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -355,8 +281,7 @@ export default function ListaEmpleados({ onCreateEmployee }) {
           ciudades={ciudadesParaUI}
           tiposId={tiposId}
           tiposContrato={tiposContrato}
-          onDownloadExcel={onDownloadExcel}
-          excelDisabled={excelDisabled}
+          // ✅ sin Excel
           onCreateEmployee={handleCreate}
         />
 

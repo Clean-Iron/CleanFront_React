@@ -70,7 +70,7 @@ export const buscarClienteById = (id) =>
   safeApi(api.get(`/client/${encodeURIComponent(id)}`), 'buscarClienteById');
 
 export const actualizarCliente = (id, datos) =>
-  safeApi(api.put(`/client/${encodeURIComponent(id)}`, datos), 'actualizarCliente');
+  safeApi(api.patch(`/client/${encodeURIComponent(id)}`, datos), 'actualizarCliente');
 
 export const eliminarCliente = (id) =>
   safeApi(api.delete(`/client/${encodeURIComponent(id)}`), 'eliminarCliente');

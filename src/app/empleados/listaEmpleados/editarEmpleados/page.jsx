@@ -47,6 +47,12 @@ const normalizeEmployee = (e) => ({
   name: norm(e?.name),
   surname: norm(e?.surname),
   document: norm(e?.document),
+
+  // ✅ CAMPOS FALTANTES DEL DTO
+  age: e?.age ?? "",
+  pantSize: norm(e?.pantSize),
+  shirtSize: norm(e?.shirtSize),
+  shoeSize: norm(e?.shoeSize),
 });
 
 export default function Page() {

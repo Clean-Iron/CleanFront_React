@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Switch, Chip } from "@mui/material";
 
-import { actualizarCliente } from "@/lib/Logic.js"; // ajusta si difiere
+import { actualizarCliente } from "@/lib/Logic.js"; 
 import ModalEditarDirecciones from "../ModalEditarDirecciones.jsx"; // ajusta ruta
 
 import "@/styles/Clientes/EditarClientes/EditarClientesResumen.css";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { actualizarEmpleado } from "@/lib/Logic.js";
 import { useContractTypes } from "@/lib/Hooks";
 
-import { Switch, Chip, Tooltip } from "@mui/material";
+import { Switch, Chip } from "@mui/material";
 
 import "@/styles/Empleados/EditarEmpleados/EditarEmpleadosResumen.css";
 
@@ -38,6 +38,9 @@ const CARGOS = [
 
 const TIPO_ID_OPTIONS = ["CC", "PPT"];
 
+// ✅ Enum Bank (backend)
+const BANK_OPTIONS = ["DP", "CA", "OTRO"];
+
 const toYMD = (value) => {
   if (!value) return "";
   if (typeof value === "string") return value.slice(0, 10);
@@ -49,6 +52,33 @@ const toYMD = (value) => {
 };
 
 const pickCityNameFromEmployee = (e) => norm(e?.city ?? e?.cityName ?? e?.city?.name);
+
+const toIntOrNull = (v) => {
+  const n = Number.parseInt((v ?? "").toString().trim(), 10);
+  return Number.isFinite(n) ? n : null;
+};
+
+const calcAgeFromBirthYMD = (ymd) => {
+  const s = toYMD(ymd);
+  if (!s) return "";
+  const parts = s.split("-");
+  if (parts.length !== 3) return "";
+
+  const y = Number.parseInt(parts[0], 10);
+  const m = Number.parseInt(parts[1], 10);
+  const d = Number.parseInt(parts[2], 10);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return "";
+
+  const today = new Date();
+  let age = today.getFullYear() - y;
+  const mm = today.getMonth() + 1;
+  const dd = today.getDate();
+
+  if (mm < m || (mm === m && dd < d)) age -= 1;
+  if (age < 0 || age > 120) return "";
+
+  return String(age);
+};
 
 export default function EditarEmpleadosResumen({
   empleado,
@@ -78,10 +108,19 @@ export default function EditarEmpleadosResumen({
   const [contactoEmergencia, setContactoEmergencia] = useState("");
   const [eps, setEps] = useState("");
   const [fondoPensiones, setFondoPensiones] = useState("");
+
   const [banco, setBanco] = useState("");
   const [numeroCuenta, setNumeroCuenta] = useState("");
   const [fechaRetiro, setFechaRetiro] = useState("");
   const [fechaIngresoArl, setFechaIngresoArl] = useState("");
+
+  // ✅ CAMPOS FALTANTES DEL DTO
+  const [edad, setEdad] = useState("");
+  const ageTouchedRef = useRef(false);
+
+  const [tallaPantalon, setTallaPantalon] = useState("");
+  const [tallaCamisa, setTallaCamisa] = useState("");
+  const [tallaZapato, setTallaZapato] = useState("");
 
   const [selectedCargo, setSelectedCargo] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -95,16 +134,21 @@ export default function EditarEmpleadosResumen({
   const [contractDropdownOpen, setContractDropdownOpen] = useState(false);
   const [tipoIdDropdownOpen, setTipoIdDropdownOpen] = useState(false);
 
+  // ✅ dropdown banco
+  const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
+
   const ciudadDropdownRef = useRef(null);
   const cargoDropdownRef = useRef(null);
   const contractDropdownRef = useRef(null);
   const tipoIdDropdownRef = useRef(null);
+  const bankDropdownRef = useRef(null);
 
   const inputUpper = useMemo(() => ({ textTransform: "uppercase" }), []);
 
   const resetForm = () => {
     originalDocRef.current = "";
     initKeyRef.current = null;
+    ageTouchedRef.current = false;
 
     setNombre("");
     setApellido("");
@@ -124,6 +168,11 @@ export default function EditarEmpleadosResumen({
     setFechaRetiro("");
     setFechaIngresoArl("");
 
+    setEdad("");
+    setTallaPantalon("");
+    setTallaCamisa("");
+    setTallaZapato("");
+
     setSelectedCargo("");
     setSelectedCity("");
     setSelectedContractType("");
@@ -135,6 +184,7 @@ export default function EditarEmpleadosResumen({
     setCargoDropdownOpen(false);
     setContractDropdownOpen(false);
     setTipoIdDropdownOpen(false);
+    setBankDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -148,6 +198,7 @@ export default function EditarEmpleadosResumen({
     initKeyRef.current = key;
 
     originalDocRef.current = empleado.document ?? "";
+    ageTouchedRef.current = false;
 
     setNombre(uc(empleado.name));
     setApellido(uc(empleado.surname));
@@ -169,10 +220,22 @@ export default function EditarEmpleadosResumen({
     setContactoEmergencia(uc(empleado.emergencyContact));
     setEps(uc(empleado.eps));
     setFondoPensiones(uc(empleado.pensionFund));
-    setBanco(uc(empleado.bankName));
+
+    // ✅ banco: asegurar enum válido
+    const bankFromApi = uc(empleado.bankName);
+    setBanco(BANK_OPTIONS.includes(bankFromApi) ? bankFromApi : "");
+
     setNumeroCuenta(uc(empleado.bankAccountNumber));
     setFechaRetiro(toYMD(empleado.exitDate));
     setFechaIngresoArl(toYMD(empleado.arlEntryDate));
+
+    const ageFromDto = empleado?.age ?? "";
+    const computedAge = calcAgeFromBirthYMD(empleado?.birthDate);
+    setEdad(ageFromDto !== "" && ageFromDto !== null && ageFromDto !== undefined ? String(ageFromDto) : computedAge);
+
+    setTallaPantalon(uc(empleado?.pantSize));
+    setTallaCamisa(uc(empleado?.shirtSize));
+    setTallaZapato(uc(empleado?.shoeSize));
   }, [empleado]);
 
   useEffect(() => {
@@ -181,10 +244,20 @@ export default function EditarEmpleadosResumen({
       if (ciudadDropdownRef.current && !ciudadDropdownRef.current.contains(event.target)) setCiudadDropdownOpen(false);
       if (contractDropdownRef.current && !contractDropdownRef.current.contains(event.target)) setContractDropdownOpen(false);
       if (tipoIdDropdownRef.current && !tipoIdDropdownRef.current.contains(event.target)) setTipoIdDropdownOpen(false);
+      if (bankDropdownRef.current && !bankDropdownRef.current.contains(event.target)) setBankDropdownOpen(false);
     };
 
     const onKey = (e) => {
-      if (e.key === "Escape") !saving && onClose?.();
+      if (e.key === "Escape") {
+        if (!saving) {
+          setCiudadDropdownOpen(false);
+          setCargoDropdownOpen(false);
+          setContractDropdownOpen(false);
+          setTipoIdDropdownOpen(false);
+          setBankDropdownOpen(false);
+          onClose?.();
+        }
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -210,6 +283,8 @@ export default function EditarEmpleadosResumen({
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) faltantes.push("Correo válido");
     if (phone && !/^[0-9+()\-\s]{6,}$/.test(phone.trim())) faltantes.push("Teléfono válido");
+
+    if (edad && !Number.isFinite(Number.parseInt(edad, 10))) faltantes.push("Edad válida");
 
     return faltantes;
   };
@@ -238,11 +313,20 @@ export default function EditarEmpleadosResumen({
       comments: uc(comentarios).trim(),
       state: activo,
       birthDate: toYMD(fechaNacimiento),
+
+      age: toIntOrNull(edad),
+      pantSize: uc(tallaPantalon).trim(),
+      shirtSize: uc(tallaCamisa).trim(),
+      shoeSize: uc(tallaZapato).trim(),
+
       emergencyContact: uc(contactoEmergencia).trim(),
       eps: uc(eps).trim(),
       pensionFund: uc(fondoPensiones).trim(),
-      bankName: uc(banco).trim(),
+
+      // ✅ No enviar "" para enum
+      bankName: banco ? banco : null,
       bankAccountNumber: uc(numeroCuenta).trim(),
+
       exitDate: toYMD(fechaRetiro),
       arlEntryDate: toYMD(fechaIngresoArl),
     };
@@ -271,7 +355,7 @@ export default function EditarEmpleadosResumen({
           <div className="eer-toolbar-row">
             <Link
               href={backHref}
-              className="eer-btn-53 eer-control"
+              className="eer-btn-53"
               aria-disabled={saving ? "true" : "false"}
               onClick={(e) => {
                 if (saving) e.preventDefault();
@@ -287,14 +371,14 @@ export default function EditarEmpleadosResumen({
             </Link>
 
             <div className="eer-header">
-              <div style={{ minWidth: 0 }}>
-                <div className="eer-title">Editar empleado</div>
-                <div className="eer-subtitle">
-                  {nombreHeader}
-                  {empleado?.document ? ` — ${empleado.document}` : ""}
-                </div>
+              <div className="eer-title">Editar empleado</div>
+              <div className="eer-subtitle">
+                {nombreHeader}
+                {empleado?.document ? ` — ${empleado.document}` : ""}
               </div>
             </div>
+
+            <div className="eer-close-slot" />
           </div>
         </div>
 
@@ -312,7 +396,33 @@ export default function EditarEmpleadosResumen({
 
             <div className="eer-group">
               <label>Fecha de nacimiento</label>
-              <input className="eer-input" type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(toYMD(e.target.value))} disabled={saving} />
+              <input
+                className="eer-input"
+                type="date"
+                value={fechaNacimiento}
+                onChange={(e) => {
+                  const v = toYMD(e.target.value);
+                  setFechaNacimiento(v);
+                  if (!ageTouchedRef.current) setEdad(calcAgeFromBirthYMD(v));
+                }}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="eer-group">
+              <label>Edad</label>
+              <input
+                className="eer-input"
+                type="number"
+                value={edad}
+                onChange={(e) => {
+                  ageTouchedRef.current = true;
+                  setEdad(e.target.value);
+                }}
+                disabled={saving}
+                min={0}
+                max={120}
+              />
             </div>
 
             <div className="eer-group">
@@ -330,9 +440,50 @@ export default function EditarEmpleadosResumen({
               <input className="eer-input eer-upper" value={fondoPensiones} onChange={(e) => setFondoPensiones(uc(e.target.value))} disabled={saving} style={inputUpper} />
             </div>
 
-            <div className="eer-group">
+            {/* ✅ BANCO dropdown (misma estructura/clases de tus dropdowns) */}
+            <div className="eer-group eer-dd" ref={bankDropdownRef}>
               <label>Banco</label>
-              <input className="eer-input eer-upper" value={banco} onChange={(e) => setBanco(uc(e.target.value))} disabled={saving} style={inputUpper} />
+
+              <button
+                type="button"
+                className={`eer-dd-trigger ${bankDropdownOpen ? "eer-open" : ""}`}
+                onClick={() => !saving && setBankDropdownOpen((o) => !o)}
+                disabled={saving}
+              >
+                <span className="eer-dd-value">{banco || "Seleccionar banco"}</span>
+                <span className="eer-dd-arrow">▼</span>
+              </button>
+
+              {bankDropdownOpen && (
+                <div className="eer-dd-content">
+                  <button
+                    type="button"
+                    className={`eer-dd-option ${banco === "" ? "eer-selected" : ""}`}
+                    onClick={() => {
+                      setBanco("");
+                      setBankDropdownOpen(false);
+                    }}
+                    disabled={saving}
+                  >
+                    Limpiar
+                  </button>
+
+                  {BANK_OPTIONS.map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      className={`eer-dd-option ${banco === b ? "eer-selected" : ""}`}
+                      onClick={() => {
+                        setBanco(b);
+                        setBankDropdownOpen(false);
+                      }}
+                      disabled={saving}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="eer-group">
@@ -340,9 +491,29 @@ export default function EditarEmpleadosResumen({
               <input className="eer-input eer-upper" value={numeroCuenta} onChange={(e) => setNumeroCuenta(uc(e.target.value))} disabled={saving} style={inputUpper} />
             </div>
 
+            <div className="eer-group">
+              <label>Talla pantalón</label>
+              <input className="eer-input eer-upper" value={tallaPantalon} onChange={(e) => setTallaPantalon(uc(e.target.value))} disabled={saving} style={inputUpper} />
+            </div>
+
+            <div className="eer-group">
+              <label>Talla camisa</label>
+              <input className="eer-input eer-upper" value={tallaCamisa} onChange={(e) => setTallaCamisa(uc(e.target.value))} disabled={saving} style={inputUpper} />
+            </div>
+
+            <div className="eer-group">
+              <label>Talla calzado</label>
+              <input className="eer-input eer-upper" value={tallaZapato} onChange={(e) => setTallaZapato(uc(e.target.value))} disabled={saving} style={inputUpper} />
+            </div>
+
             <div className="eer-group eer-dd" ref={ciudadDropdownRef}>
               <label>Ciudad</label>
-              <button type="button" className={`eer-dd-trigger ${ciudadDropdownOpen ? "eer-open" : ""}`} onClick={() => !saving && setCiudadDropdownOpen((o) => !o)} disabled={saving}>
+              <button
+                type="button"
+                className={`eer-dd-trigger ${ciudadDropdownOpen ? "eer-open" : ""}`}
+                onClick={() => !saving && setCiudadDropdownOpen((o) => !o)}
+                disabled={saving}
+              >
                 <span className="eer-dd-value">{selectedCity || (ciudadesLoading ? "Cargando ciudades…" : "Seleccionar ciudad")}</span>
                 <span className="eer-dd-arrow">▼</span>
               </button>
@@ -373,7 +544,12 @@ export default function EditarEmpleadosResumen({
 
             <div className="eer-group eer-dd" ref={cargoDropdownRef}>
               <label>Cargo</label>
-              <button type="button" className={`eer-dd-trigger ${cargoDropdownOpen ? "eer-open" : ""}`} onClick={() => !saving && setCargoDropdownOpen((o) => !o)} disabled={saving}>
+              <button
+                type="button"
+                className={`eer-dd-trigger ${cargoDropdownOpen ? "eer-open" : ""}`}
+                onClick={() => !saving && setCargoDropdownOpen((o) => !o)}
+                disabled={saving}
+              >
                 <span className="eer-dd-value">{selectedCargo || "Seleccionar cargo"}</span>
                 <span className="eer-dd-arrow">▼</span>
               </button>
@@ -399,7 +575,12 @@ export default function EditarEmpleadosResumen({
 
             <div className="eer-group eer-dd" ref={contractDropdownRef}>
               <label>Tipo de contrato</label>
-              <button type="button" className={`eer-dd-trigger ${contractDropdownOpen ? "eer-open" : ""}`} onClick={() => !saving && setContractDropdownOpen((o) => !o)} disabled={saving}>
+              <button
+                type="button"
+                className={`eer-dd-trigger ${contractDropdownOpen ? "eer-open" : ""}`}
+                onClick={() => !saving && setContractDropdownOpen((o) => !o)}
+                disabled={saving}
+              >
                 <span className="eer-dd-value">{selectedContractType || (contratosLoading ? "Cargando tipos…" : "Seleccionar tipo")}</span>
                 <span className="eer-dd-arrow">▼</span>
               </button>
@@ -430,7 +611,12 @@ export default function EditarEmpleadosResumen({
 
             <div className="eer-group eer-dd" ref={tipoIdDropdownRef}>
               <label>Tipo ID</label>
-              <button type="button" className={`eer-dd-trigger ${tipoIdDropdownOpen ? "eer-open" : ""}`} onClick={() => !saving && setTipoIdDropdownOpen((o) => !o)} disabled={saving}>
+              <button
+                type="button"
+                className={`eer-dd-trigger ${tipoIdDropdownOpen ? "eer-open" : ""}`}
+                onClick={() => !saving && setTipoIdDropdownOpen((o) => !o)}
+                disabled={saving}
+              >
                 <span className="eer-dd-value">{selectedTipoId || "Selecc. Tipo ID"}</span>
                 <span className="eer-dd-arrow">▼</span>
               </button>
@@ -521,6 +707,7 @@ export default function EditarEmpleadosResumen({
           <button type="button" className="menu-btn" onClick={guardarCambios} disabled={saving}>
             💾 {saving ? "GUARDANDO…" : "GUARDAR CAMBIOS"}
           </button>
+
           {onClose ? (
             <button type="button" className="cancel-btn" onClick={() => !saving && onClose?.()} disabled={saving}>
               ❌ CANCELAR

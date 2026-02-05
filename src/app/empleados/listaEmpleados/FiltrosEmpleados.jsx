@@ -4,7 +4,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Chip, FormControlLabel, Switch, Tooltip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import DownloadIcon from "@mui/icons-material/Download";
 
 import "@/styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 
@@ -18,8 +17,6 @@ export default function FiltrosEmpleados({
   ciudades = [],
   tiposId = [],
   tiposContrato = [],
-  onDownloadExcel,
-  excelDisabled,
   onCreateEmployee,
 }) {
   const [cityOpen, setCityOpen] = useState(false);
@@ -45,12 +42,7 @@ export default function FiltrosEmpleados({
   return (
     <div className="emp-filter-bar">
       <div className="emp-search">
-        <input
-          className="emp-input"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar empleado…"
-        />
+        <input className="emp-input" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar empleado…" />
         {busqueda && (
           <button className="emp-clear-search" onClick={() => setBusqueda("")} title="Limpiar">
             ✕
@@ -60,24 +52,13 @@ export default function FiltrosEmpleados({
 
       <FormControlLabel
         sx={{ ml: 1 }}
-        label={
-          <Chip
-            size="small"
-            label={soloActivos ? "ACTIVOS" : "INACTIVOS"}
-            color={soloActivos ? "success" : "default"}
-            variant={soloActivos ? "filled" : "outlined"}
-          />
-        }
+        label={<Chip size="small" label={soloActivos ? "ACTIVOS" : "INACTIVOS"} color={soloActivos ? "success" : "default"} variant={soloActivos ? "filled" : "outlined"} />}
         control={<Switch checked={soloActivos} onChange={(e) => setSoloActivos(e.target.checked)} />}
       />
 
       {/* Ciudad */}
       <div className="emp-dropdown" ref={cityRef}>
-        <button
-          type="button"
-          className={`emp-dropdown-trigger ${cityOpen ? "emp-open" : ""}`}
-          onClick={() => setCityOpen((o) => !o)}
-        >
+        <button type="button" className={`emp-dropdown-trigger ${cityOpen ? "emp-open" : ""}`} onClick={() => setCityOpen((o) => !o)}>
           <span>{filtros.ciudad || "Ciudad"}</span>
           <span className="emp-arrow">▼</span>
         </button>
@@ -133,11 +114,7 @@ export default function FiltrosEmpleados({
 
       {/* Tipo ID */}
       <div className="emp-dropdown" ref={tipoRef}>
-        <button
-          type="button"
-          className={`emp-dropdown-trigger ${tipoOpen ? "emp-open" : ""}`}
-          onClick={() => setTipoOpen((o) => !o)}
-        >
+        <button type="button" className={`emp-dropdown-trigger ${tipoOpen ? "emp-open" : ""}`} onClick={() => setTipoOpen((o) => !o)}>
           <span>{filtros.tipoId || "Tipo ID"}</span>
           <span className="emp-arrow">▼</span>
         </button>
@@ -203,9 +180,7 @@ export default function FiltrosEmpleados({
                 <button
                   key={c}
                   type="button"
-                  className={`emp-dropdown-option ${
-                    (filtros.tipoContrato || "").toLowerCase() === c.toLowerCase() ? "emp-selected" : ""
-                  }`}
+                  className={`emp-dropdown-option ${(filtros.tipoContrato || "").toLowerCase() === c.toLowerCase() ? "emp-selected" : ""}`}
                   onClick={() => {
                     setFiltro("tipoContrato", c);
                     setContratoOpen(false);
@@ -223,18 +198,6 @@ export default function FiltrosEmpleados({
         <Tooltip title="Crear empleado">
           <button type="button" className="emp-icon-btn emp-create-btn" onClick={onCreateEmployee} aria-label="Crear">
             <AddIcon />
-          </button>
-        </Tooltip>
-
-        <Tooltip title="Descargar Excel">
-          <button
-            type="button"
-            className="emp-icon-btn emp-excel-btn"
-            onClick={onDownloadExcel}
-            disabled={excelDisabled}
-            aria-label="Descargar Excel"
-          >
-            <DownloadIcon />
           </button>
         </Tooltip>
       </div>

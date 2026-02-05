@@ -43,6 +43,11 @@ export default function TablaEmpleados({ empleados = [], hasAnyFilter = false, c
                   <TableCell>{e.birthDate || "—"}</TableCell>
                   <TableCell>{age}</TableCell>
 
+                  {/* ✅ NUEVAS COLUMNAS DTO */}
+                  <TableCell>{e.pantSize || "—"}</TableCell>
+                  <TableCell>{e.shirtSize || "—"}</TableCell>
+                  <TableCell>{e.shoeSize || "—"}</TableCell>
+
                   <TableCell>{e.addressResidence || "—"}</TableCell>
                   <TableCell>{e.city || "—"}</TableCell>
 
