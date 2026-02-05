@@ -66,7 +66,6 @@ export default function ModalEditarEmpleados({ show, onClose, empleado, onUpdate
   const [fechaIngreso, setFechaIngreso] = useState("");
   const [comentarios, setComentarios] = useState("");
 
-  // ✅ nuevos
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [contactoEmergencia, setContactoEmergencia] = useState("");
   const [eps, setEps] = useState("");
@@ -109,7 +108,6 @@ export default function ModalEditarEmpleados({ show, onClose, empleado, onUpdate
     setFechaIngreso("");
     setComentarios("");
 
-    // ✅ nuevos
     setFechaNacimiento("");
     setContactoEmergencia("");
     setEps("");
@@ -165,7 +163,6 @@ export default function ModalEditarEmpleados({ show, onClose, empleado, onUpdate
     setActivo(boolish(empleado.state));
     setFechaIngreso(toYMD(empleado.entryDate));
 
-    // ✅ nuevos
     setFechaNacimiento(toYMD(empleado.birthDate));
     setContactoEmergencia(uc(empleado.emergencyContact));
     setEps(uc(empleado.eps));
@@ -256,8 +253,6 @@ export default function ModalEditarEmpleados({ show, onClose, empleado, onUpdate
     const docOriginal = originalDocRef.current || empleado.document || documento;
 
     try {
-      console.log("[ModalEditarEmpleados] docOriginal =>", docOriginal);
-console.log("[ModalEditarEmpleados] payload =>", payload);
       setSaving(true);
       await actualizarEmpleado(docOriginal, payload);
       alert("Empleado actualizado correctamente ✅");
