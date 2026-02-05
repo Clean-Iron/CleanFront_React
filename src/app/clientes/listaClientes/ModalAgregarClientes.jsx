@@ -112,7 +112,6 @@ export default function ModalAgregarClientes({ show, onClose, onCreated }) {
     const addressesNorm = (direcciones || []).map((d) => ({
       ...d,
       address: uc(d?.address || '').trim(),
-      city: uc(d?.city || '').trim(),
     }));
 
     const nuevoCliente = {

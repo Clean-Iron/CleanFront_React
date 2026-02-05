@@ -72,11 +72,11 @@ const ResumenGeneral = () => {
   // Servicios cliente
   const [dataServiciosCliente, setDataServiciosCliente] = useState([]);
 
-  // ✅ Servicios ciudad
+  // Servicios ciudad
   const [dataServiciosCiudad, setDataServiciosCiudad] = useState([]);
   const [loadingServiciosCiudad, setLoadingServiciosCiudad] = useState(false);
 
-  // ✅ filtros extra (solo keyword)
+  // filtros extra
   const [keywordCiudad, setKeywordCiudad] = useState("");
 
   // Dropdowns
@@ -199,7 +199,7 @@ const ResumenGeneral = () => {
       });
   }, [selectedClient, selectedMonth, selectedYear]);
 
-  // ✅ Servicios por ciudad (mes/año/city)
+  // Servicios por ciudad (mes/año/city)
   useEffect(() => {
     const run = async () => {
       if (!city) {
@@ -225,7 +225,7 @@ const ResumenGeneral = () => {
     run();
   }, [city, selectedYear, selectedMonth]);
 
-  // ✅ reset de keyword cuando cambia el contexto base
+  // reset de keyword cuando cambia el contexto base
   useEffect(() => {
     setKeywordCiudad("");
   }, [city, selectedYear, selectedMonth]);
@@ -339,7 +339,7 @@ const ResumenGeneral = () => {
     };
   }, [selectedEmployee, selectedMonth, selectedYear]);
 
-  // ✅ filtro keyword para la data ciudad
+  // filtro keyword para la data ciudad
   const dataServiciosCiudadFiltrados = useMemo(() => {
     const q = (keywordCiudad || "").trim();
     if (!q) return dataServiciosCiudad || [];

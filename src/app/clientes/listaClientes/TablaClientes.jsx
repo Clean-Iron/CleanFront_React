@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   TableContainer,
   Table,
@@ -17,7 +18,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 import { CLI_HEADERS } from "./ListaClientes";
-
 import "@/styles/Clientes/ListaClientes/ListaClientes.css";
 
 const safeKey = (c, idx) =>
@@ -27,7 +27,6 @@ export default function TablaClientes({
   clientes = [],
   mostrarDirecciones = {},
   onToggleDirecciones,
-  onEditClient,
 }) {
   return (
     <TableContainer className="cli-table-wrap">
@@ -46,6 +45,9 @@ export default function TablaClientes({
               const key = safeKey(cliente, idx);
               const isOpen = !!mostrarDirecciones[key];
               const addresses = Array.isArray(cliente.addresses) ? cliente.addresses : [];
+
+              const doc = encodeURIComponent(cliente.document || "");
+              const href = cliente.document ? `/clientes/listaClientes/editarClientes/?doc=${doc}` : "#";
 
               const fila = (
                 <TableRow key={`row-${key}`} hover>
@@ -67,7 +69,6 @@ export default function TablaClientes({
                     )}
                   </TableCell>
 
-                  {/* Direcciones toggle */}
                   <TableCell>
                     <button
                       type="button"
@@ -81,17 +82,33 @@ export default function TablaClientes({
                     </button>
                   </TableCell>
 
-                  {/* Acciones */}
                   <TableCell className="cli-actions-cell">
                     <Tooltip title="Editar cliente">
-                      <button
-                        type="button"
-                        className="cli-row-icon-btn"
-                        onClick={() => onEditClient?.(cliente)}
-                        aria-label="Editar"
-                      >
-                        <EditIcon fontSize="small" />
-                      </button>
+                      <span>
+                        {cliente.document ? (
+                          <Link
+                            href={href}
+                            className="cli-row-icon-btn"
+                            aria-label="Editar"
+                            onClick={() => {
+                              try {
+                                sessionStorage.setItem("cli_edit", JSON.stringify(cliente));
+                              } catch {}
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            className="cli-row-icon-btn"
+                            onClick={() => alert("No se encontró el documento del cliente para editar.")}
+                            aria-label="Editar"
+                          >
+                            <EditIcon fontSize="small" />
+                          </button>
+                        )}
+                      </span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>

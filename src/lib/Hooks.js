@@ -1,82 +1,95 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import { useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import useSWR from "swr";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { API_BASE_URL } from "./ApiClient";
+import { fetcherAuth } from "./SwrFetchers";
+import { isSessionInvalid, handleAuthFailure } from "./Session";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
-const getToken = () => {
-  if (typeof window === 'undefined') return '';
-  return (
-    localStorage.getItem('token') ||
-    localStorage.getItem('access_token') ||
-    localStorage.getItem('authToken') ||
-    ''
-  );
+// =========================
+// Utils
+// =========================
+const normalizeArrayPayload = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (payload && Array.isArray(payload.data)) return payload.data;
+  if (payload && Array.isArray(payload.result)) return payload.result;
+  if (payload && Array.isArray(payload.items)) return payload.items;
+  return [];
 };
 
-const fetcherAuth = async (url) => {
-  const token = getToken();
-
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  const text = await res.text().catch(() => '');
-  if (!res.ok) throw new Error(`Error al cargar datos (${res.status}) ${text}`);
-
-  try {
-    return text ? JSON.parse(text) : null;
-  } catch {
-    return null;
-  }
+const defaultSWR = {
+  revalidateOnFocus: false,
+  keepPreviousData: true,
+  shouldRetryOnError: (err) => {
+    const status = err?.response?.status;
+    return !(status === 401 || status === 403);
+  },
 };
 
-/** =========================
- *  Hooks existentes (los tuyos)
- *  ========================= */
+// =========================
+// Guard global de sesión (redirect)
+// =========================
+function useAuthRedirectGuard() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (isSessionInvalid()) {
+      handleAuthFailure("session");
+    }
+  }, []);
+}
+
+function useSWRAuth(key, fetcher, options) {
+  useAuthRedirectGuard();
+
+  const swr = useSWR(key, fetcher, options);
+
+  useEffect(() => {
+    const status = swr?.error?.response?.status;
+    if (status === 401 || status === 403) {
+      handleAuthFailure("session");
+    }
+  }, [swr?.error]);
+
+  return swr;
+}
 
 export function useCiudades() {
-  const { data, error } = useSWR(
-    API_BASE_URL ? `${API_BASE_URL}/address/cities` : null,
-    fetcherAuth
-  );
+  const key = API_BASE_URL ? `${API_BASE_URL}/city/allowed` : null;
+
+  const { data, error, isLoading } = useSWRAuth(key, fetcherAuth, defaultSWR);
 
   return {
     ciudades: data || [],
-    isLoading: !error && !data,
+    isLoading,
     isError: !!error,
+    error,
   };
 }
 
 export function useServiceStates() {
-  const { data, error } = useSWR(
-    API_BASE_URL ? `${API_BASE_URL}/schedule/servicesStates` : null,
-    fetcherAuth
-  );
+  const key = API_BASE_URL ? `${API_BASE_URL}/schedule/servicesStates` : null;
+
+  const { data, error, isLoading } = useSWRAuth(key, fetcherAuth, defaultSWR);
 
   return {
     serviceStates: data || [],
-    isLoading: !error && !data,
+    isLoading,
     isError: !!error,
+    error,
   };
 }
 
 export function useContractTypes() {
-  const { data, error } = useSWR(
-    API_BASE_URL ? `${API_BASE_URL}/employee/contractTypes` : null,
-    fetcherAuth
-  );
+  const key = API_BASE_URL ? `${API_BASE_URL}/employee/contractTypes` : null;
+
+  const { data, error, isLoading } = useSWRAuth(key, fetcherAuth, defaultSWR);
 
   return {
     contractTypes: data || [],
-    isLoading: !error && !data,
+    isLoading,
     isError: !!error,
+    error,
   };
 }
 
@@ -85,10 +98,10 @@ export function useTimeOptions({ startHour = 0, endHour = 24, stepMinutes = 30 }
     const opts = [];
     for (let h = startHour; h < endHour; h++) {
       for (let m = 0; m < 60; m += stepMinutes) {
-        const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+        const value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`;
         const date = new Date();
         date.setHours(h, m);
-        const label = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const label = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
         opts.push({ value, label });
       }
     }
@@ -96,7 +109,7 @@ export function useTimeOptions({ startHour = 0, endHour = 24, stepMinutes = 30 }
   }, [startHour, endHour, stepMinutes]);
 }
 
-export function useLoadingOverlay(defaultText = 'Cargando…') {
+export function useLoadingOverlay(defaultText = "Cargando…") {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(defaultText);
 
@@ -138,27 +151,10 @@ export function useLoadingOverlay(defaultText = 'Cargando…') {
   return { isLoading: open, show, hide, withLoading, OverlayPortal };
 }
 
-/** =========================
- *  NUEVOS HOOKS para Reasignar Servicios
- *  ========================= */
-
-const normalizeArrayPayload = (payload) => {
-  if (Array.isArray(payload)) return payload;
-  if (payload && Array.isArray(payload.data)) return payload.data;
-  if (payload && Array.isArray(payload.result)) return payload.result;
-  if (payload && Array.isArray(payload.items)) return payload.items;
-  return [];
-};
-
-// Empleados: asume /employee devuelve array (con document, completeName, etc.)
 export const useEmployees = () => {
   const key = API_BASE_URL ? `${API_BASE_URL}/employee` : null;
 
-  const swr = useSWR(key, fetcherAuth, {
-    revalidateOnFocus: false,
-    keepPreviousData: true,
-  });
-
+  const swr = useSWRAuth(key, fetcherAuth, defaultSWR);
   const employees = normalizeArrayPayload(swr.data);
 
   return {
@@ -170,11 +166,10 @@ export const useEmployees = () => {
   };
 };
 
-// Servicios del empleado por mes: /schedule/servicesEmployee/{doc}?year=YYYY&month=M
 export const useEmployeeMonthServices = (employeeDoc, year, month) => {
-  const doc = String(employeeDoc || '').trim();
-  const y = String(year ?? '').trim();
-  const m = String(month ?? '').trim();
+  const doc = String(employeeDoc || "").trim();
+  const y = String(year ?? "").trim();
+  const m = String(month ?? "").trim();
 
   const key =
     doc && y && m
@@ -183,12 +178,8 @@ export const useEmployeeMonthServices = (employeeDoc, year, month) => {
         )}&month=${encodeURIComponent(m)}`
       : null;
 
-  const swr = useSWR(key, fetcherAuth, {
-    revalidateOnFocus: false,
-    keepPreviousData: true,
-  });
-
-  const services = normalizeArrayPayload(swr.data); // aquí ya es List<ScheduleDetailGroupedDto>
+  const swr = useSWRAuth(key, fetcherAuth, defaultSWR);
+  const services = normalizeArrayPayload(swr.data);
 
   return {
     services,

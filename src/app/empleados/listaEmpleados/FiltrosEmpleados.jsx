@@ -1,4 +1,5 @@
-'use client';
+// /components/Empleados/ListaEmpleados/FiltrosEmpleados.jsx
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { Chip, FormControlLabel, Switch, Tooltip } from "@mui/material";
@@ -16,14 +17,14 @@ export default function FiltrosEmpleados({
   setFiltros,
   ciudades = [],
   tiposId = [],
-  tiposContrato = [], // ✅ nuevo
+  tiposContrato = [],
   onDownloadExcel,
   excelDisabled,
   onCreateEmployee,
 }) {
   const [cityOpen, setCityOpen] = useState(false);
   const [tipoOpen, setTipoOpen] = useState(false);
-  const [contratoOpen, setContratoOpen] = useState(false); // ✅ nuevo
+  const [contratoOpen, setContratoOpen] = useState(false);
 
   const cityRef = useRef(null);
   const tipoRef = useRef(null);
@@ -43,7 +44,6 @@ export default function FiltrosEmpleados({
 
   return (
     <div className="emp-filter-bar">
-      {/* Buscar */}
       <div className="emp-search">
         <input
           className="emp-input"
@@ -58,7 +58,6 @@ export default function FiltrosEmpleados({
         )}
       </div>
 
-      {/* Activos / Inactivos */}
       <FormControlLabel
         sx={{ ml: 1 }}
         label={
@@ -173,7 +172,7 @@ export default function FiltrosEmpleados({
         )}
       </div>
 
-      {/* ✅ NUEVO: Tipo contrato */}
+      {/* Tipo contrato */}
       <div className="emp-dropdown" ref={contratoRef}>
         <button
           type="button"
@@ -220,7 +219,6 @@ export default function FiltrosEmpleados({
         )}
       </div>
 
-      {/* Acciones derecha (iconos) */}
       <div className="emp-actions">
         <Tooltip title="Crear empleado">
           <button type="button" className="emp-icon-btn emp-create-btn" onClick={onCreateEmployee} aria-label="Crear">
