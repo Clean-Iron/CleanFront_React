@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import * as XLSX from "xlsx";
+
 import { buscarEmpleados } from "@/lib/Logic.js";
+import { useCiudades } from "@/lib/Hooks";
 
 import FiltrosEmpleados from "./FiltrosEmpleados";
 import TablaEmpleados from "./TablaEmpleados";
-
-import ModalEditarEmpleados from "./ModalEditarEmpleados";
 import ModalAgregarEmpleados from "./ModalAgregarEmpleados";
 
 import "@/styles/Empleados/ListaEmpleados/ListaEmpleados.css";
@@ -15,9 +15,11 @@ import "@/styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 const norm = (v) => (v ?? "").toString().trim();
 const normLower = (v) => norm(v).toLowerCase();
 const boolish = (v) => v === true || v === "true";
-const uniqSorted = (arr) => [...new Set(arr)].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+const uniqSorted = (arr) =>
+  [...new Set(arr)]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
 
-// ✅ Parse YYYY-MM-DD sin bug de timezone
 const parseISODateOnly = (iso) => {
   if (!iso) return null;
   const [Y, M, D] = String(iso).slice(0, 10).split("-").map(Number);
@@ -84,7 +86,11 @@ export const EMP_EXCEL_HEADERS = [
   "Estado",
 ];
 
-export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
+const pickCityNameFromEmployee = (e) => {
+  return norm(e?.city ?? e?.cityName ?? e?.city?.name);
+};
+
+export default function ListaEmpleados({ onCreateEmployee }) {
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,10 +104,13 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
     tipoContrato: "",
   });
 
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [empToEdit, setEmpToEdit] = useState(null);
-
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const {
+    ciudades: ciudadesCatalogo,
+    isLoading: ciudadesLoading,
+    isError: ciudadesError,
+  } = useCiudades();
 
   const cargarEmpleados = useCallback(async () => {
     try {
@@ -115,7 +124,7 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
         state: boolish(e?.state),
         typeId: norm(e?.typeId).toUpperCase(),
         contractType: norm(e?.contractType),
-        city: norm(e?.city),
+        city: pickCityNameFromEmployee(e),
         position: norm(e?.position),
         eps: norm(e?.eps),
         pensionFund: norm(e?.pensionFund),
@@ -128,6 +137,11 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
         arlEntryDate: norm(e?.arlEntryDate),
         comments: norm(e?.comments),
         addressResidence: norm(e?.addressResidence),
+        email: norm(e?.email),
+        phone: norm(e?.phone),
+        name: norm(e?.name),
+        surname: norm(e?.surname),
+        document: norm(e?.document),
       }));
 
       setEmpleados(list);
@@ -144,10 +158,14 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
     cargarEmpleados();
   }, [cargarEmpleados]);
 
-  const ciudades = useMemo(
+  const ciudadesDesdeEmpleados = useMemo(
     () => uniqSorted(empleados.map((e) => norm(e.city)).filter(Boolean)),
     [empleados]
   );
+
+  const ciudadesParaUI = useMemo(() => {
+    return ciudadesCatalogo?.length ? ciudadesCatalogo : ciudadesDesdeEmpleados;
+  }, [ciudadesCatalogo, ciudadesDesdeEmpleados]);
 
   const tiposId = useMemo(
     () => uniqSorted(empleados.map((e) => norm(e.typeId).toUpperCase()).filter(Boolean)),
@@ -164,6 +182,7 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
 
     const filtered = empleados.filter((e) => {
       const fullName = normLower(`${e.name ?? ""} ${e.surname ?? ""}`);
+
       const byQuery =
         !q ||
         fullName.includes(q) ||
@@ -210,12 +229,6 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
     setShowAddModal(true);
   };
 
-  const handleEdit = (emp) => {
-    if (typeof onEditEmployee === "function") return onEditEmployee(emp);
-    setEmpToEdit(emp);
-    setShowEditModal(true);
-  };
-
   const onDownloadExcel = () => {
     const yyyyMMdd = new Date().toISOString().slice(0, 10);
     const estadoTag = soloActivos ? "activos" : "inactivos";
@@ -227,8 +240,7 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
       ...empleadosFiltrados.map((e) => {
         const nombre = `${e.name ?? ""} ${e.surname ?? ""}`.trim() || "—";
         const estado = e.state === true ? "ACTIVO" : e.state === false ? "INACTIVO" : "—";
-
-        const age = (typeof e.age === "number" ? e.age : calcAgeFromBirthDate(e.birthDate));
+        const age = typeof e.age === "number" ? e.age : calcAgeFromBirthDate(e.birthDate);
         const ageVal = age === "" ? "—" : String(age);
 
         return [
@@ -260,27 +272,11 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
     const ws = XLSX.utils.aoa_to_sheet(data);
 
     ws["!cols"] = [
-      { wch: 28 }, // Nombre
-      { wch: 18 }, // Tel
-      { wch: 8 },  // Tipo ID
-      { wch: 16 }, // Documento
-      { wch: 28 }, // Email
-      { wch: 14 }, // Nacimiento
-      { wch: 6 },  // Edad
-      { wch: 34 }, // Dirección
-      { wch: 16 }, // Ciudad
-      { wch: 18 }, // Cargo
-      { wch: 18 }, // Tipo contrato
-      { wch: 14 }, // EPS
-      { wch: 18 }, // Fondo
-      { wch: 22 }, // Emergencia
-      { wch: 18 }, // Banco
-      { wch: 20 }, // N° cuenta
-      { wch: 14 }, // Ingreso
-      { wch: 14 }, // Retiro
-      { wch: 16 }, // ARL
-      { wch: 30 }, // Comentarios
-      { wch: 12 }, // Estado
+      { wch: 28 }, { wch: 18 }, { wch: 8 },  { wch: 16 }, { wch: 28 },
+      { wch: 14 }, { wch: 6 },  { wch: 34 }, { wch: 16 }, { wch: 18 },
+      { wch: 18 }, { wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 18 },
+      { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 30 },
+      { wch: 12 },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -356,7 +352,7 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
           setSoloActivos={setSoloActivos}
           filtros={filtros}
           setFiltros={setFiltros}
-          ciudades={ciudades}
+          ciudades={ciudadesParaUI}
           tiposId={tiposId}
           tiposContrato={tiposContrato}
           onDownloadExcel={onDownloadExcel}
@@ -371,7 +367,6 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
             <TablaEmpleados
               empleados={empleadosFiltrados}
               hasAnyFilter={!!(busqueda || filtros.ciudad || filtros.tipoId || filtros.tipoContrato)}
-              onEditEmployee={handleEdit}
               calcAge={calcAgeFromBirthDate}
             />
           </div>
@@ -385,13 +380,9 @@ export default function ListaEmpleados({ onCreateEmployee, onEditEmployee }) {
           setShowAddModal(false);
           cargarEmpleados();
         }}
-      />
-
-      <ModalEditarEmpleados
-        show={showEditModal}
-        empleado={empToEdit}
-        onClose={() => setShowEditModal(false)}
-        onUpdated={cargarEmpleados}
+        ciudades={ciudadesParaUI}
+        ciudadesLoading={ciudadesLoading}
+        ciudadesError={ciudadesError}
       />
     </div>
   );

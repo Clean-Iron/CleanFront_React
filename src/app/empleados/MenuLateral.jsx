@@ -32,22 +32,6 @@ const Sidebar = ({ onNavClick, seccionActiva }) => {
 							👥 Lista de Empleados
 						</button>
 					</li>
-					<li>
-						<button
-							className={`menu-btn ${seccionActiva === "reportes" ? "activo" : ""}`}
-							onClick={() => onNavClick("reportes")}
-						>
-							📊 Reportes
-						</button>
-					</li>
-					<li>
-						<button
-							className={`menu-btn ${seccionActiva === "configuracion" ? "activo" : ""}`}
-							onClick={() => onNavClick("configuracion")}
-						>
-							⚙️ Configuración
-						</button>
-					</li>
 				</ul>
 			</div>
 		</div>

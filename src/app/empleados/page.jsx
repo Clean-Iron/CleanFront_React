@@ -6,7 +6,7 @@ import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
 import ListaEmpleadosOrchestrator from "./listaEmpleados/ListaEmpleados";
 
 const Empleados = () => {
-  const [componenteActual, setComponenteActual] = useState("infoGeneral");
+  const [componenteActual, setComponenteActual] = useState("listaEmpleados");
 
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
@@ -19,7 +19,7 @@ const Empleados = () => {
       case "listaEmpleados":
         return <ListaEmpleadosOrchestrator />;
       default:
-        return <InfoGeneral />;
+        return <ListaEmpleadosOrchestrator />;
     }
   };
 

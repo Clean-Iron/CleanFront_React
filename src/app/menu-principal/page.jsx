@@ -8,11 +8,9 @@ import '@/styles/MenuPrincipal.css';
 const MenuPrincipal = () => {
   const router = useRouter();
 
-  // ✅ NUEVO: panel notif/tareas
   const [ntOpen, setNtOpen] = useState(false);
   const [ntTab, setNtTab] = useState('notificaciones'); // 'notificaciones' | 'tareas'
 
-  // ✅ (placeholder) listas: luego las conectas a tu API
   const notifications = useMemo(
     () => [
       { id: 1, title: 'Servicio asignado', detail: 'Agenda creada para 2026-01-18', time: 'Hoy' },

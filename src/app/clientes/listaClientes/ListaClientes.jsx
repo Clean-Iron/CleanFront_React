@@ -7,7 +7,6 @@ import FiltrosClientes from "./FiltrosClientes";
 import TablaClientes from "./TablaClientes";
 
 import ModalAgregarClientes from "./ModalAgregarClientes.jsx";
-import ModalEditarClientes from "./ModalEditarClientes.jsx";
 
 import "@/styles/Clientes/ListaClientes/ListaClientes.css";
 
@@ -41,10 +40,7 @@ export default function ListaClientes() {
 
   const [mostrarDirecciones, setMostrarDirecciones] = useState({});
 
-  // ✅ Modales
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [clienteEditando, setClienteEditando] = useState(null);
 
   const cargarClientes = useCallback(async () => {
     try {
@@ -141,10 +137,6 @@ export default function ListaClientes() {
     await cargarClientes();
   };
 
-  const onUpdated = async () => {
-    await cargarClientes();
-  };
-
   if (loading) {
     return (
       <div className="container">
@@ -160,22 +152,11 @@ export default function ListaClientes() {
             </div>
           </div>
         </div>
-
-        {/* Modales (por si el loading aparece con modal abierto) */}
+        
         <ModalAgregarClientes
           show={showAddModal}
           onClose={() => setShowAddModal(false)}
           onCreated={onCreated}
-        />
-
-        <ModalEditarClientes
-          show={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setClienteEditando(null);
-          }}
-          cliente={clienteEditando}
-          onUpdated={onUpdated}
         />
       </div>
     );
@@ -203,16 +184,6 @@ export default function ListaClientes() {
           show={showAddModal}
           onClose={() => setShowAddModal(false)}
           onCreated={onCreated}
-        />
-
-        <ModalEditarClientes
-          show={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setClienteEditando(null);
-          }}
-          cliente={clienteEditando}
-          onUpdated={onUpdated}
         />
       </div>
     );
@@ -256,17 +227,6 @@ export default function ListaClientes() {
         show={showAddModal}
         onClose={() => setShowAddModal(false)}
         onCreated={onCreated}
-      />
-
-      {/* ✅ Modal Editar */}
-      <ModalEditarClientes
-        show={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setClienteEditando(null);
-        }}
-        cliente={clienteEditando}
-        onUpdated={onUpdated}
       />
     </div>
   );

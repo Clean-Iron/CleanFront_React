@@ -1,20 +1,14 @@
-'use client';
+"use client";
 
 import React from "react";
-import {
-  TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, Tooltip
-} from "@mui/material";
+import Link from "next/link";
+import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
 import { EMP_TABLE_HEADERS } from "./ListaEmpleados";
 import "@/styles/Empleados/ListaEmpleados/ListaEmpleados.css";
 
-export default function TablaEmpleados({
-  empleados = [],
-  hasAnyFilter = false,
-  onEditEmployee,
-  calcAge,
-}) {
+export default function TablaEmpleados({ empleados = [], hasAnyFilter = false, calcAge }) {
   return (
     <TableContainer className="emp-table-wrap">
       <Table size="small" stickyHeader className="emp-table">
@@ -33,7 +27,10 @@ export default function TablaEmpleados({
             empleados.map((e, i) => {
               const rowKey = e.document || e.email || `${e.typeId || "ID"}-${i}`;
               const nombre = `${e.name ?? ""} ${e.surname ?? ""}`.trim() || "—";
-              const age = (typeof e.age === "number" ? e.age : (calcAge ? calcAge(e.birthDate) : "")) || "—";
+              const age = (typeof e.age === "number" ? e.age : calcAge?.(e.birthDate)) || "—";
+
+              const doc = encodeURIComponent(e.document || "");
+              const href = e.document ? `/empleados/listaEmpleados/editarEmpleados/?doc=${doc}` : "#";
 
               return (
                 <TableRow key={rowKey} hover>
@@ -81,14 +78,31 @@ export default function TablaEmpleados({
 
                   <TableCell className="emp-actions-cell">
                     <Tooltip title="Editar">
-                      <button
-                        type="button"
-                        className="emp-row-icon-btn"
-                        onClick={() => onEditEmployee?.(e)}
-                        aria-label="Editar"
-                      >
-                        <EditIcon fontSize="small" />
-                      </button>
+                      <span>
+                        {e.document ? (
+                          <Link
+                            href={href}
+                            className="emp-row-icon-btn"
+                            aria-label="Editar"
+                            onClick={() => {
+                              try {
+                                sessionStorage.setItem("emp_edit", JSON.stringify(e));
+                              } catch {}
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            className="emp-row-icon-btn"
+                            onClick={() => alert("No se encontró el documento del empleado para editar.")}
+                            aria-label="Editar"
+                          >
+                            <EditIcon fontSize="small" />
+                          </button>
+                        )}
+                      </span>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
@@ -96,14 +110,8 @@ export default function TablaEmpleados({
             })
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={EMP_TABLE_HEADERS.length}
-                align="center"
-                style={{ color: "#666", padding: "24px 16px" }}
-              >
-                {hasAnyFilter
-                  ? "No se encontraron empleados que coincidan con los filtros"
-                  : "No hay empleados para mostrar"}
+              <TableCell colSpan={EMP_TABLE_HEADERS.length} align="center" style={{ color: "#666", padding: "24px 16px" }}>
+                {hasAnyFilter ? "No se encontraron empleados que coincidan con los filtros" : "No hay empleados para mostrar"}
               </TableCell>
             </TableRow>
           )}

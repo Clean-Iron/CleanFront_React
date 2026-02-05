@@ -6,7 +6,7 @@ import InfoGeneral from "./infoGeneral/InfoGeneral.jsx";
 import ListaClientes from "./listaClientes/ListaClientes.jsx";
 
 const Clientes = () => {
-  const [componenteActual, setComponenteActual] = useState("infoGeneral");
+  const [componenteActual, setComponenteActual] = useState("listaClientes");
   
   const cambiarComponente = (nombreComponente) => {
     setComponenteActual(nombreComponente);
